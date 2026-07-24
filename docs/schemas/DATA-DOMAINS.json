@@ -1,0 +1,128 @@
+[
+  {
+    "name": "Identity and Authentication",
+    "purpose": "Owns identified actor profiles and bot authentication credentials while leaving conversation-scoped authority to membership.",
+    "justification": "Identity status and bot credential validity form an application-wide authentication and attribution boundary governed independently of conversation-scoped roles, and credentials carry a stronger security posture than visible profiles.",
+    "slug": "identity",
+    "dataObjects": [
+      {
+        "name": "Identity",
+        "purpose": "Represents a stable non-anonymous person or bot profile and its application access status.",
+        "schemaFileName": "identity.yaml"
+      },
+      {
+        "name": "Bot Credential",
+        "purpose": "Authenticates one bot identity through a revocable and optionally expiring retained token digest.",
+        "schemaFileName": "bot-credential.yaml"
+      }
+    ]
+  },
+  {
+    "name": "Tag Vocabulary",
+    "purpose": "Owns canonical reusable tag values shared across conversations without owning conversation-specific assignments.",
+    "justification": "Tags are shared identifiers owned by neither users nor conversations, with application-wide normalization and reuse rules distinct from the conversation-governed assignment of those values.",
+    "slug": "tags",
+    "dataObjects": [
+      {
+        "name": "Tag",
+        "purpose": "Stores a canonical case-insensitive value reused for conversation classification, discovery, and joining.",
+        "schemaFileName": "tag.yaml"
+      }
+    ]
+  },
+  {
+    "name": "Conversations and Discovery",
+    "purpose": "Owns conversation purpose, discovery and matching policy, lifecycle, and governed assignments of shared tags.",
+    "justification": "Conversation owners and administrators govern discovery policy, lifecycle, and tag assignments under privacy and ownership-continuity rules distinct from shared vocabulary, participant authorization history, and authored content.",
+    "slug": "conversations",
+    "dataObjects": [
+      {
+        "name": "Conversation",
+        "purpose": "Represents a tagged messaging space with discovery policy, purpose, and active or archived lifecycle.",
+        "schemaFileName": "conversation.yaml"
+      },
+      {
+        "name": "Conversation Tag",
+        "purpose": "Retains an ordered assignment between a conversation and a reusable tag, including removal history.",
+        "schemaFileName": "conversation-tag.yaml"
+      }
+    ]
+  },
+  {
+    "name": "Membership and Authorization",
+    "purpose": "Owns current and historical identity participation, roles, bans, ownership continuity, and conversation authorization evidence.",
+    "justification": "Membership state is the conversation-scoped authorization boundary used by joining, viewing, posting, governance, and moderation, while temporal role and event history preserve authority after current state changes.",
+    "slug": "membership",
+    "dataObjects": [
+      {
+        "name": "Membership",
+        "purpose": "Stores the current retained relationship, participation state, and role for one identity in one conversation.",
+        "schemaFileName": "membership.yaml"
+      },
+      {
+        "name": "Membership Role Period",
+        "purpose": "Preserves each time-bounded conversation role assignment for a membership.",
+        "schemaFileName": "membership-role-period.yaml"
+      },
+      {
+        "name": "Membership Event",
+        "purpose": "Provides append-only evidence explaining each participation or role transition.",
+        "schemaFileName": "membership-event.yaml"
+      }
+    ]
+  },
+  {
+    "name": "Messaging",
+    "purpose": "Owns participant-authored conversation messages and retained emoji responses while relying on membership for authorization.",
+    "justification": "Messages and reactions are authored interaction records with retention, soft-removal, chronological access, and content sensitivity distinct from permission history and case-oriented moderation evidence.",
+    "slug": "messaging",
+    "dataObjects": [
+      {
+        "name": "Message",
+        "purpose": "Retains identified participant-authored conversation content and its soft-deletion visibility state.",
+        "schemaFileName": "message.yaml"
+      },
+      {
+        "name": "Emoji Reaction",
+        "purpose": "Retains an identity's emoji response to a message, including withdrawal state.",
+        "schemaFileName": "emoji-reaction.yaml"
+      }
+    ]
+  },
+  {
+    "name": "Moderation",
+    "purpose": "Owns message reports, privileged review state, moderator action evidence, and time-bounded posting restrictions.",
+    "justification": "Moderation is a conversation-scoped privileged trust boundary with case-specific sensitive evidence, authorized moderator writers, append-only action lineage, and sanction state used for permission decisions.",
+    "slug": "moderation",
+    "dataObjects": [
+      {
+        "name": "Moderation Ticket",
+        "purpose": "Tracks a numbered participant report of a message and its privileged review state.",
+        "schemaFileName": "moderation-ticket.yaml"
+      },
+      {
+        "name": "Moderation Action",
+        "purpose": "Provides append-only evidence of a concrete action taken by an authorized conversation moderator.",
+        "schemaFileName": "moderation-action.yaml"
+      },
+      {
+        "name": "Posting Suspension",
+        "purpose": "Represents a moderator-imposed time-bounded posting restriction that leaves membership active.",
+        "schemaFileName": "posting-suspension.yaml"
+      }
+    ]
+  },
+  {
+    "name": "Annotations",
+    "purpose": "Owns identified user-authored contextual notes attached to conversations, messages, or moderation tickets.",
+    "justification": "A Note crosses conversation, messaging, and moderation targets while retaining independent authorship, audience, and soft-deletion governance, creating a distinct security boundary from each target.",
+    "slug": "annotations",
+    "dataObjects": [
+      {
+        "name": "Note",
+        "purpose": "Stores identified user-authored context attached to exactly one conversation, message, or moderation ticket.",
+        "schemaFileName": "note.yaml"
+      }
+    ]
+  }
+]
