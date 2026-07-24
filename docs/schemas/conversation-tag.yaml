@@ -1,0 +1,62 @@
+$schema: "https://json-schema.org/draft/2020-12/schema"
+$id: "https://example.local/schemas/conversation-tag.schema.json"
+title: "Conversation Tag"
+description: "A retained association between a conversation and one of its one-to-ten tags."
+type: object
+additionalProperties: false
+required:
+  - id
+  - conversationId
+  - tagId
+  - position
+  - addedAt
+  - addedById
+  - createdAt
+  - updatedAt
+properties:
+  id:
+    type: string
+    format: uuid
+    description: "Stable unique identifier for this conversation-tag association period."
+  conversationId:
+    type: string
+    format: uuid
+    description: "Conversation to which the tag is or was assigned."
+  tagId:
+    type: string
+    format: uuid
+    description: "Reusable Tag assigned to the conversation."
+  position:
+    type: integer
+    minimum: 1
+    maximum: 10
+    description: "Stable presentation order within the conversation's maximum of ten active tags."
+  addedAt:
+    type: string
+    format: date-time
+    description: "When this tag assignment became effective."
+  addedById:
+    type: string
+    format: uuid
+    description: "Owner or administrator identity that assigned the tag."
+  removedAt:
+    type: string
+    format: date-time
+    description: "When this tag assignment ended, if it is no longer active."
+  removedById:
+    type: string
+    format: uuid
+    description: "Owner or administrator identity that removed the tag, if applicable."
+  createdAt:
+    type: string
+    format: date-time
+    description: "When this association record was created."
+  updatedAt:
+    type: string
+    format: date-time
+    description: "When this association record was last updated."
+dependentRequired:
+  removedAt:
+    - removedById
+  removedById:
+    - removedAt

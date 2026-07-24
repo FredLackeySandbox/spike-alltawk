@@ -1,0 +1,74 @@
+$schema: "https://json-schema.org/draft/2020-12/schema"
+$id: "https://example.local/schemas/posting-suspension.schema.json"
+title: "Posting Suspension"
+description: "A time-limited restriction that keeps a participant in a conversation while preventing message posting."
+type: object
+additionalProperties: false
+required:
+  - id
+  - membershipId
+  - conversationId
+  - identityId
+  - imposedById
+  - startsAt
+  - endsAt
+  - createdAt
+  - updatedAt
+properties:
+  id:
+    type: string
+    format: uuid
+    description: "Stable unique identifier for this posting suspension."
+  membershipId:
+    type: string
+    format: uuid
+    description: "Membership whose posting permission is restricted."
+  conversationId:
+    type: string
+    format: uuid
+    description: "Conversation in which the restriction applies."
+  identityId:
+    type: string
+    format: uuid
+    description: "Participant prevented from posting during the suspension period."
+  moderationTicketId:
+    type: string
+    format: uuid
+    description: "Ticket that prompted the suspension, when applicable."
+  imposedById:
+    type: string
+    format: uuid
+    description: "Owner or administrator that imposed the suspension."
+  reason:
+    type: string
+    maxLength: 4000
+    description: "Optional explanation for the restriction."
+  startsAt:
+    type: string
+    format: date-time
+    description: "Inclusive time at which posting becomes restricted."
+  endsAt:
+    type: string
+    format: date-time
+    description: "Time at which posting permission automatically resumes."
+  liftedAt:
+    type: string
+    format: date-time
+    description: "When a moderator ended the suspension early, if applicable."
+  liftedById:
+    type: string
+    format: uuid
+    description: "Owner or administrator that ended the suspension early, if applicable."
+  createdAt:
+    type: string
+    format: date-time
+    description: "When this posting-suspension record was created."
+  updatedAt:
+    type: string
+    format: date-time
+    description: "When this posting-suspension record was last updated."
+dependentRequired:
+  liftedAt:
+    - liftedById
+  liftedById:
+    - liftedAt

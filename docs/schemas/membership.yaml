@@ -1,0 +1,107 @@
+$schema: "https://json-schema.org/draft/2020-12/schema"
+$id: "https://example.local/schemas/membership.schema.json"
+title: "Membership"
+description: "The retained relationship between one identity and one conversation, including current participation and role state."
+type: object
+additionalProperties: false
+required:
+  - id
+  - conversationId
+  - identityId
+  - currentStatus
+  - joinedAt
+  - createdAt
+  - updatedAt
+properties:
+  id:
+    type: string
+    format: uuid
+    description: "Stable unique identifier for this identity-conversation membership."
+  conversationId:
+    type: string
+    format: uuid
+    description: "Conversation to which this membership belongs."
+  identityId:
+    type: string
+    format: uuid
+    description: "Person or bot represented by this membership."
+  currentStatus:
+    type: string
+    enum:
+      - active
+      - left
+      - removed
+      - banned
+    description: "Current participation state used to authorize viewing, joining, and member-list visibility."
+  currentRole:
+    type: string
+    enum:
+      - owner
+      - administrator
+      - member
+      - none
+    description: "Current conversation role; none represents a retained banned membership."
+  joinedAt:
+    type: string
+    format: date-time
+    description: "When the identity first joined the conversation."
+  lastActivatedAt:
+    type: string
+    format: date-time
+    description: "When the latest active participation period began, including a rejoin."
+  lastEndedAt:
+    type: string
+    format: date-time
+    description: "When the latest active participation period ended because of leaving, removal, or banning."
+  lastEndedById:
+    type: string
+    format: uuid
+    description: "Identity that ended the latest active participation period, when an actor performed the action."
+  createdAt:
+    type: string
+    format: date-time
+    description: "When this membership was created."
+  updatedAt:
+    type: string
+    format: date-time
+    description: "When this membership was last updated."
+allOf:
+  - if:
+      properties:
+        currentStatus:
+          const: banned
+      required:
+        - currentStatus
+    then:
+      required:
+        - currentRole
+      properties:
+        currentRole:
+          const: none
+  - if:
+      properties:
+        currentStatus:
+          const: active
+      required:
+        - currentStatus
+    then:
+      required:
+        - currentRole
+      properties:
+        currentRole:
+          enum:
+            - owner
+            - administrator
+            - member
+  - if:
+      properties:
+        currentStatus:
+          enum:
+            - left
+            - removed
+      required:
+        - currentStatus
+    then:
+      not:
+        required:
+          - currentRole

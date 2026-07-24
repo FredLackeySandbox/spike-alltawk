@@ -1,0 +1,53 @@
+$schema: "https://json-schema.org/draft/2020-12/schema"
+$id: "https://example.local/schemas/identity.schema.json"
+title: "Identity"
+description: "An identified person or bot that can authenticate, own conversations, and participate in Tawk."
+type: object
+additionalProperties: false
+required:
+  - id
+  - type
+  - displayName
+  - status
+  - createdAt
+  - updatedAt
+properties:
+  id:
+    type: string
+    format: uuid
+    description: "Stable unique identifier for this identity."
+  type:
+    type: string
+    enum:
+      - person
+      - bot
+    description: "Whether the identified actor is a human or an automated bot."
+  displayName:
+    type: string
+    minLength: 1
+    maxLength: 100
+    description: "Required public name displayed with conversation activity."
+  properName:
+    type: string
+    minLength: 1
+    maxLength: 200
+    description: "Optional proper name retained while the profile-name decision remains unresolved."
+  humanAuthSubject:
+    type: string
+    minLength: 1
+    maxLength: 500
+    description: "Optional unique subject from the human authentication provider selected for the POC."
+  status:
+    type: string
+    enum:
+      - active
+      - disabled
+    description: "Whether this identity may authenticate and use the application."
+  createdAt:
+    type: string
+    format: date-time
+    description: "When this identity was created."
+  updatedAt:
+    type: string
+    format: date-time
+    description: "When this identity was last updated."

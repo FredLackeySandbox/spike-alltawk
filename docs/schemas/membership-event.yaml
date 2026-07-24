@@ -1,0 +1,137 @@
+$schema: "https://json-schema.org/draft/2020-12/schema"
+$id: "https://example.local/schemas/membership-event.schema.json"
+title: "Membership Event"
+description: "An immutable-style history entry explaining how a membership joined, changed role, ended, or was restored."
+type: object
+additionalProperties: false
+required:
+  - id
+  - membershipId
+  - conversationId
+  - identityId
+  - type
+  - occurredAt
+  - createdAt
+properties:
+  id:
+    type: string
+    format: uuid
+    description: "Stable unique identifier for this membership event."
+  membershipId:
+    type: string
+    format: uuid
+    description: "Membership whose history includes this event."
+  conversationId:
+    type: string
+    format: uuid
+    description: "Conversation in which the membership event occurred."
+  identityId:
+    type: string
+    format: uuid
+    description: "Participant whose membership changed."
+  actorIdentityId:
+    type: string
+    format: uuid
+    description: "Identity that initiated the event; omitted when the event is system-generated."
+  type:
+    type: string
+    enum:
+      - joined
+      - rejoined
+      - roleChanged
+      - left
+      - removed
+      - banned
+      - unbanned
+    description: "Membership transition captured by this history entry."
+  fromRole:
+    type: string
+    enum:
+      - owner
+      - administrator
+      - member
+      - none
+    description: "Role immediately before the transition, when applicable."
+  toRole:
+    type: string
+    enum:
+      - owner
+      - administrator
+      - member
+      - none
+    description: "Role immediately after the transition, when applicable."
+  reason:
+    type: string
+    maxLength: 2000
+    description: "Optional explanation supplied for a role or participation change."
+  moderationTicketId:
+    type: string
+    format: uuid
+    description: "Moderation ticket that prompted the event, when applicable."
+  occurredAt:
+    type: string
+    format: date-time
+    description: "When the membership transition took effect."
+  createdAt:
+    type: string
+    format: date-time
+    description: "When this event record was created."
+allOf:
+  - if:
+      properties:
+        type:
+          const: roleChanged
+      required:
+        - type
+    then:
+      required:
+        - fromRole
+        - toRole
+  - if:
+      properties:
+        type:
+          const: banned
+      required:
+        - type
+    then:
+      required:
+        - fromRole
+        - toRole
+      properties:
+        toRole:
+          const: none
+  - if:
+      properties:
+        type:
+          const: unbanned
+      required:
+        - type
+    then:
+      required:
+        - fromRole
+        - toRole
+      properties:
+        fromRole:
+          const: none
+        toRole:
+          enum:
+            - owner
+            - administrator
+            - member
+  - if:
+      properties:
+        type:
+          enum:
+            - joined
+            - rejoined
+      required:
+        - type
+    then:
+      required:
+        - toRole
+      properties:
+        toRole:
+          enum:
+            - owner
+            - administrator
+            - member

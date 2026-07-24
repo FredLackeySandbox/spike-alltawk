@@ -1,0 +1,676 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Review conversation membership, roles, and restrictions in Tawk.">
+  <title>Members and Roles — Tawk</title>
+  <link rel="stylesheet" href="../assets/styles.css">
+  <style>
+    .app-shell { max-width: 1080px; margin: 0 auto; }
+    .governance-title { display: flex; align-items: center; gap: 10px; }
+    .members-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 24px; margin-bottom: 16px; }
+    .permission-note { display: inline-flex; align-items: center; gap: 8px; color: var(--muted); font-size: 13px; }
+    .permission-note::before { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); content: ''; }
+    .roster-table { table-layout: fixed; }
+    .roster-table th:nth-child(1) { width: 31%; }
+    .roster-table th:nth-child(2) { width: 18%; }
+    .roster-table th:nth-child(3) { width: 24%; }
+    .roster-table th:nth-child(4) { width: 18%; }
+    .roster-table th:nth-child(5) { width: 9%; text-align: right; }
+    .roster-table td:last-child { text-align: right; }
+    .state-copy { display: block; margin-top: 3px; color: var(--muted); font-size: 12px; }
+    .last-owner { color: var(--warning); font-size: 12px; font-weight: 700; }
+    .role-select { min-width: 142px; }
+    .empty-filter { display: none; padding: 34px; text-align: center; }
+    .empty-filter.show { display: block; }
+    .roster-loading, .roster-error, .roster-denied { padding: 40px 34px; text-align: center; }
+    .roster-error, .roster-denied { padding: 28px; border-radius: 12px; }
+    .spinner { display: inline-block; width: 26px; height: 26px; border: 3px solid var(--line); border-top-color: var(--primary); border-radius: 50%; animation: spin 0.8s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .btn.is-busy { position: relative; color: transparent !important; pointer-events: none; }
+    .btn.is-busy::after { content: ''; position: absolute; top: 50%; left: 50%; width: 15px; height: 15px; margin: -8px 0 0 -8px; border: 2px solid rgba(255,255,255,0.55); border-top-color: #fff; border-radius: 50%; animation: spin 0.7s linear infinite; }
+    [inert] { pointer-events: none; }
+    .modal h2[tabindex] { outline: none; }
+    .modal-person { padding: 13px 14px; border-radius: 11px; background: var(--surface-tint); font-weight: 700; }
+    .suspension-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 18px; }
+    .table-caption { padding: 12px 16px; border-top: 1px solid var(--line); color: var(--muted); background: #fbfbf7; font-size: 12px; }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <header class="site-header">
+      <div class="header-main">
+        <a class="brand" href="../hub/index.html" aria-label="Tawk conversations">
+          <span class="brand-mark" aria-hidden="true">T</span>
+          <span>Tawk</span>
+        </a>
+        <nav class="nav-links" aria-label="Private product navigation">
+          <a class="nav-link" href="../hub/index.html">Conversations</a>
+          <a class="nav-link" href="../hub/find.html">Find</a>
+          <a class="nav-link" href="../hub/create.html">Create</a>
+          <a class="nav-link active" href="settings.html" aria-current="page">Governance</a>
+        </nav>
+      </div>
+      <div class="header-actions">
+        <span class="profile-pill"><span class="avatar">RE</span> Rowan Ellis</span>
+      </div>
+    </header>
+
+    <main>
+      <div class="context-bar">
+        <div class="breadcrumb">
+          <a href="../conversation/thread.html">#design-systems + #accessibility + #frontend</a>
+          <span aria-hidden="true">/</span>
+          <span>Governance</span>
+        </div>
+        <div class="subnav" aria-label="Governance sections">
+          <a href="settings.html">Tags &amp; lifecycle</a>
+          <a class="active" href="members.html" aria-current="page">Members &amp; roles</a>
+        </div>
+      </div>
+
+      <section class="page-heading">
+        <div>
+          <p class="eyebrow">Conversation governance</p>
+          <div class="governance-title">
+            <h1>Members and roles</h1>
+            <span class="badge owner">You’re an owner</span>
+          </div>
+          <p class="lede">Compare active and former participants, adjust trusted roles, and apply access restrictions for this conversation.</p>
+        </div>
+        <a class="btn btn-secondary" href="../moderation/index.html">Review reports</a>
+      </section>
+
+      <div class="notice warning mt-16" id="ownerNotice">
+        <strong>Ownership continuity:</strong> Rowan Ellis is the last active owner and cannot be removed or leave. Promote another member to owner first, or archive the conversation.
+      </div>
+
+      <section class="mt-24" aria-labelledby="rosterTitle">
+        <div class="members-toolbar">
+          <div>
+            <h2 id="rosterTitle">Conversation roster</h2>
+            <div class="permission-note">Owners may promote members. Administrators cannot add, remove, or change owners.</div>
+          </div>
+          <div class="segmented" role="group" aria-label="Filter roster">
+            <button class="active" type="button" data-filter="active" aria-pressed="true">Active <span id="activeCount">5</span></button>
+            <button type="button" data-filter="former" aria-pressed="false">Former <span id="formerCount">2</span></button>
+          </div>
+        </div>
+
+        <div class="roster-loading" id="rosterLoading" role="status" aria-live="polite">
+          <span class="spinner" aria-hidden="true"></span>
+          <p class="muted mt-16 mb-0">Loading conversation roster…</p>
+        </div>
+
+        <div class="notice danger roster-error hidden" id="rosterError" role="alert">
+          <p><strong>Roster could not be loaded.</strong> This is a local demonstration failure — no service was contacted.</p>
+          <button class="btn btn-secondary" type="button" id="rosterRetry">Retry</button>
+        </div>
+
+        <div class="notice warning roster-denied hidden" id="rosterDenied" role="alert">
+          <p><strong>Governance tools are limited to owners and administrators.</strong> Former membership and member actions are not available to your role.</p>
+          <a class="btn btn-secondary" href="../conversation/thread.html">Back to conversation</a>
+        </div>
+
+        <div class="table-wrap" id="rosterWrap">
+          <table class="roster-table">
+            <thead>
+              <tr>
+                <th scope="col">Participant</th>
+                <th scope="col">Role</th>
+                <th scope="col">Access state</th>
+                <th scope="col">Since</th>
+                <th scope="col"><span class="visually-hidden">Actions</span></th>
+              </tr>
+            </thead>
+            <tbody id="rosterBody">
+              <tr data-state="active" data-person="Rowan Ellis" data-role="Owner" data-kind="person" data-protected="true">
+                <td><div class="identity"><span class="avatar">RE</span><span class="identity-copy"><strong>Rowan Ellis <span class="badge owner">You</span></strong><span>Person · last active owner</span></span></div></td>
+                <td><span class="badge owner role-value">Owner</span></td>
+                <td><span class="badge success state-value">Active</span><span class="state-copy">Full participation</span></td>
+                <td>May 14, 2026</td>
+                <td><span class="last-owner">Protected</span></td>
+              </tr>
+              <tr data-state="active" data-person="Maya Chen" data-role="Administrator" data-kind="person">
+                <td><div class="identity"><span class="avatar rose">MC</span><span class="identity-copy"><strong>Maya Chen</strong><span>Person</span></span></div></td>
+                <td><span class="badge role-value">Administrator</span></td>
+                <td><span class="badge success state-value">Active</span><span class="state-copy">Full participation</span></td>
+                <td>May 18, 2026</td>
+                <td><div class="dropdown"><button class="menu-button" type="button" data-menu-trigger aria-label="Actions for Maya Chen">•••</button><div class="dropdown-menu"><button type="button" data-promote="Owner">Promote to owner</button><button type="button" data-action="suspend">Suspend posting…</button><button type="button" data-action="remove">Remove…</button><button class="danger" type="button" data-action="ban">Ban…</button></div></div></td>
+              </tr>
+              <tr data-state="active" data-person="Avery Brooks" data-role="Member" data-kind="person">
+                <td><div class="identity"><span class="avatar gold">AB</span><span class="identity-copy"><strong>Avery Brooks</strong><span>Person</span></span></div></td>
+                <td><span class="badge role-value">Member</span></td>
+                <td><span class="badge success state-value">Active</span><span class="state-copy">Full participation</span></td>
+                <td>Jun 2, 2026</td>
+                <td><div class="dropdown"><button class="menu-button" type="button" data-menu-trigger aria-label="Actions for Avery Brooks">•••</button><div class="dropdown-menu"><button type="button" data-promote="Owner">Promote to owner</button><button type="button" data-promote="Administrator">Promote to administrator</button><button type="button" data-action="suspend">Suspend posting…</button><button type="button" data-action="remove">Remove…</button><button class="danger" type="button" data-action="ban">Ban…</button></div></div></td>
+              </tr>
+              <tr data-state="active" data-person="Patchwork Bot" data-role="Member" data-kind="bot" data-suspend-end="2026-07-24T09:00">
+                <td><div class="identity"><span class="avatar bot">PB</span><span class="identity-copy"><strong>Patchwork Bot</strong><span>Bot · automated accessibility checks</span></span></div></td>
+                <td><span class="badge role-value">Member</span></td>
+                <td><span class="badge warning state-value">Posting suspended</span><span class="state-copy">Until Jul 24, 2026 · 9:00 AM ET</span></td>
+                <td>Jun 8, 2026</td>
+                <td><div class="dropdown"><button class="menu-button" type="button" data-menu-trigger aria-label="Actions for Patchwork Bot">•••</button><div class="dropdown-menu"><button type="button" data-promote="Owner">Promote to owner</button><button type="button" data-promote="Administrator">Promote to administrator</button><button type="button" data-action="suspend">Change suspension…</button><button type="button" data-action="end-suspend">End suspension now</button><button type="button" data-action="remove">Remove…</button><button class="danger" type="button" data-action="ban">Ban…</button></div></div></td>
+              </tr>
+              <tr data-state="active" data-person="Noor Patel" data-role="Member" data-kind="person">
+                <td><div class="identity"><span class="avatar">NP</span><span class="identity-copy"><strong>Noor Patel</strong><span>Person</span></span></div></td>
+                <td><span class="badge role-value">Member</span></td>
+                <td><span class="badge success state-value">Active</span><span class="state-copy">Full participation</span></td>
+                <td>Jul 7, 2026</td>
+                <td><div class="dropdown"><button class="menu-button" type="button" data-menu-trigger aria-label="Actions for Noor Patel">•••</button><div class="dropdown-menu"><button type="button" data-promote="Owner">Promote to owner</button><button type="button" data-promote="Administrator">Promote to administrator</button><button type="button" data-action="suspend">Suspend posting…</button><button type="button" data-action="remove">Remove…</button><button class="danger" type="button" data-action="ban">Ban…</button></div></div></td>
+              </tr>
+              <tr class="row-muted hidden" data-state="former" data-person="Ellis Romero" data-role="Member" data-kind="person" data-former-status="Removed">
+                <td><div class="identity"><span class="avatar muted">ER</span><span class="identity-copy"><strong>Ellis Romero</strong><span>Person · former participant</span></span></div></td>
+                <td><span class="badge role-value">Member</span></td>
+                <td><span class="badge state-value">Removed</span><span class="state-copy">Left Jul 3, 2026</span></td>
+                <td>Mar 21, 2026</td>
+                <td><button class="btn btn-secondary btn-sm" type="button" data-action="ban">Ban</button></td>
+              </tr>
+              <tr class="row-muted hidden" data-state="former" data-person="Release Notes Bot" data-role="Member" data-kind="bot" data-former-status="Banned">
+                <td><div class="identity"><span class="avatar bot">RN</span><span class="identity-copy"><strong>Release Notes Bot</strong><span>Bot · former participant</span></span></div></td>
+                <td><span class="badge role-value">Member</span></td>
+                <td><span class="badge danger state-value">Banned</span><span class="state-copy">Since Jul 10, 2026</span></td>
+                <td>Apr 9, 2026</td>
+                <td><button class="btn btn-secondary btn-sm" type="button" data-action="unban">Unban</button></td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="empty-filter" id="emptyFilter">
+            <h3>No participants in this view</h3>
+            <p class="muted mb-0">Choose the other roster filter to continue.</p>
+          </div>
+          <div class="table-caption">Former membership is retained for governance. Ordinary members do not have access to this view.</div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div class="modal-backdrop" id="actionModal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="actionTitle">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 id="actionTitle" tabindex="-1">Confirm member action</h2>
+        <button class="icon-btn" type="button" data-modal-close aria-label="Close confirmation">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="modal-person" id="actionPerson">Participant</div>
+        <p class="muted mt-16" id="actionExplanation"></p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" type="button" data-modal-close>Cancel</button>
+        <button class="btn btn-danger" id="confirmAction" type="button">Confirm</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="suspendModal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="suspendTitle">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 id="suspendTitle" tabindex="-1">Suspend posting</h2>
+        <button class="icon-btn" type="button" data-modal-close aria-label="Close suspension form">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="modal-person" id="suspendPerson">Participant</div>
+        <p class="muted mt-16">Reading remains available. Choose the exact date and time when posting access returns.</p>
+        <div class="suspension-fields">
+          <div class="form-field"><label for="suspendDate">End date</label><input class="input" id="suspendDate" type="date" value="2026-07-24" min="2026-07-23"></div>
+          <div class="form-field"><label for="suspendTime">End time (ET)</label><input class="input" id="suspendTime" type="time" value="09:00"></div>
+        </div>
+        <div class="error-text mt-8" id="suspendError" role="alert"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" type="button" data-modal-close>Cancel</button>
+        <button class="btn btn-primary" id="confirmSuspend" type="button">Apply suspension</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" data-toast role="status" aria-live="polite">
+    <span aria-hidden="true">✓</span>
+    <span data-toast-copy>Updated</span>
+  </div>
+
+  <script src="../assets/app.js"></script>
+  <script>
+    (function () {
+      'use strict';
+      var body = document.getElementById('rosterBody');
+      var appShell = document.querySelector('.app-shell');
+      var ownerNotice = document.getElementById('ownerNotice');
+      var activeCountEl = document.getElementById('activeCount');
+      var formerCountEl = document.getElementById('formerCount');
+      var emptyFilter = document.getElementById('emptyFilter');
+      var actionModal = document.getElementById('actionModal');
+      var suspendModal = document.getElementById('suspendModal');
+      var confirmActionBtn = document.getElementById('confirmAction');
+      var confirmSuspendBtn = document.getElementById('confirmSuspend');
+      var suspendDate = document.getElementById('suspendDate');
+      var suspendTime = document.getElementById('suspendTime');
+      var suspendError = document.getElementById('suspendError');
+
+      var selectedRow = null;
+      var selectedAction = '';
+      var pendingRole = '';
+      var returnFocusEl = null;      // focus target on plain cancel
+      var mutationFocusTarget = null; // focus target after a confirmed mutation
+      var currentFilter = 'active';
+      var bannedSet = {};             // local rejoin-eligibility ledger
+      var TODAY = 'Jul 22, 2026';
+
+      var params = new URLSearchParams(window.location.search);
+      var fixture = params.get('fixture') || '';
+      var isAdmin = fixture === 'admin';
+
+      // ---- Local rejoin-eligibility check (no service) --------------------
+      window.__canRejoin = function (name) { return !bannedSet[name]; };
+
+      // ---- Count + filter (derived from a single roster state) ------------
+      function liveRows() {
+        return Array.prototype.slice.call(body.querySelectorAll('tr')).filter(function (r) {
+          return r.dataset.removed !== 'true';
+        });
+      }
+      function recount() {
+        var rows = liveRows();
+        var active = rows.filter(function (r) { return r.dataset.state === 'active'; }).length;
+        var former = rows.filter(function (r) { return r.dataset.state === 'former'; }).length;
+        activeCountEl.textContent = active;
+        formerCountEl.textContent = former;
+      }
+      function showFilter(state) {
+        currentFilter = state;
+        document.querySelectorAll('[data-filter]').forEach(function (button) {
+          var on = button.dataset.filter === state;
+          button.classList.toggle('active', on);
+          button.setAttribute('aria-pressed', String(on));
+        });
+        var visible = 0;
+        body.querySelectorAll('tr').forEach(function (row) {
+          var show = row.dataset.state === state && row.dataset.removed !== 'true';
+          row.classList.toggle('hidden', !show);
+          if (show) visible += 1;
+        });
+        emptyFilter.classList.toggle('show', visible === 0);
+      }
+      function activeFilterButton() {
+        return document.querySelector('[data-filter].active') || document.querySelector('[data-filter]');
+      }
+
+      // ---- Owner continuity ------------------------------------------------
+      function recomputeOwners() {
+        var owners = liveRows().filter(function (r) {
+          return r.dataset.state === 'active' && r.dataset.role === 'Owner';
+        });
+        owners.forEach(function (row) {
+          var cell = row.lastElementChild;
+          if (owners.length === 1) {
+            cell.innerHTML = '<span class="last-owner">Protected</span>';
+          } else {
+            cell.innerHTML = '<span class="muted small">—</span>';
+          }
+        });
+        if (owners.length === 1) {
+          var name = owners[0].dataset.person;
+          ownerNotice.classList.remove('hidden');
+          ownerNotice.innerHTML = '<strong>Ownership continuity:</strong> ' + name +
+            ' is the last active owner and cannot be removed or leave. Promote another member to owner first, or ' +
+            '<a href="settings.html">archive the conversation</a>.';
+        } else {
+          ownerNotice.classList.add('hidden');
+        }
+      }
+
+      // ---- Menu helpers ----------------------------------------------------
+      function removePromoteOption(row, role) {
+        var btn = row.querySelector('[data-promote="' + role + '"]');
+        if (btn) btn.remove();
+      }
+      function stripOwnerControls(row) {
+        removePromoteOption(row, 'Owner');
+      }
+      function setSuspendMenu(row, suspended) {
+        var suspendBtn = row.querySelector('[data-action="suspend"]');
+        if (suspendBtn) suspendBtn.textContent = suspended ? 'Change suspension…' : 'Suspend posting…';
+        var endBtn = row.querySelector('[data-action="end-suspend"]');
+        if (suspended && !endBtn && suspendBtn) {
+          endBtn = document.createElement('button');
+          endBtn.type = 'button';
+          endBtn.setAttribute('data-action', 'end-suspend');
+          endBtn.textContent = 'End suspension now';
+          suspendBtn.parentNode.insertBefore(endBtn, suspendBtn.nextSibling);
+        } else if (!suspended && endBtn) {
+          endBtn.remove();
+        }
+      }
+      function closeRowMenu(row) {
+        var dd = row.querySelector('.dropdown');
+        if (dd) dd.classList.remove('open');
+      }
+
+      // ---- Formatting ------------------------------------------------------
+      function fmtDate(d) {
+        return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+      }
+      function fmtTime(d) {
+        return d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+      }
+
+      // ---- Dialog focus management ----------------------------------------
+      function focusables(modal) {
+        return Array.prototype.slice.call(modal.querySelectorAll(
+          'button:not([disabled]), a[href], input:not([disabled]), select, textarea, [tabindex]:not([tabindex="-1"])'
+        )).filter(function (el) { return el.offsetParent !== null; });
+      }
+      function openDialog(id, trigger) {
+        returnFocusEl = trigger || null;
+        mutationFocusTarget = null;
+        var modal = document.getElementById(id);
+        modal.classList.add('open');
+        modal.setAttribute('aria-hidden', 'false');
+        if (appShell) appShell.setAttribute('inert', '');
+        var heading = modal.querySelector('h2');
+        if (heading) heading.focus();
+      }
+      function resetBusy() {
+        confirmSuspendBtn.classList.remove('is-busy');
+        confirmSuspendBtn.disabled = false;
+        confirmActionBtn.disabled = false;
+      }
+      [actionModal, suspendModal].forEach(function (modal) {
+        new MutationObserver(function () {
+          if (modal.getAttribute('aria-hidden') === 'true') {
+            if (appShell) appShell.removeAttribute('inert');
+            resetBusy();
+            var target = mutationFocusTarget || returnFocusEl;
+            if (target && document.contains(target)) { try { target.focus(); } catch (e) {} }
+            mutationFocusTarget = null;
+          }
+        }).observe(modal, { attributes: true, attributeFilter: ['aria-hidden'] });
+      });
+      document.addEventListener('keydown', function (e) {
+        if (e.key !== 'Tab') return;
+        var modal = document.querySelector('.modal-backdrop.open');
+        if (!modal) return;
+        var f = focusables(modal);
+        if (!f.length) return;
+        var first = f[0], last = f[f.length - 1];
+        if (!modal.contains(document.activeElement)) { e.preventDefault(); first.focus(); return; }
+        if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+        else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+      });
+      function closeModal(modal) {
+        modal.classList.remove('open');
+        modal.setAttribute('aria-hidden', 'true');
+      }
+
+      // ---- Filter buttons --------------------------------------------------
+      document.querySelectorAll('[data-filter]').forEach(function (button) {
+        button.addEventListener('click', function () { showFilter(button.dataset.filter); });
+      });
+
+      // ---- Row action routing ---------------------------------------------
+      body.addEventListener('click', function (event) {
+        var actionButton = event.target.closest('[data-action]');
+        var promoteButton = event.target.closest('[data-promote]');
+        if (!actionButton && !promoteButton) return;
+        var row = event.target.closest('tr');
+        selectedRow = row;
+        var trigger = row.querySelector('[data-menu-trigger]') || (actionButton || promoteButton);
+
+        if (promoteButton) {
+          selectedAction = 'promote';
+          pendingRole = promoteButton.dataset.promote;
+          closeRowMenu(row);
+          document.getElementById('actionTitle').textContent = pendingRole === 'Owner' ? 'Promote to owner?' : 'Promote to administrator?';
+          document.getElementById('actionPerson').textContent = row.dataset.person;
+          document.getElementById('actionExplanation').textContent =
+            'This gives ' + row.dataset.person + ' ' + (pendingRole === 'Owner' ? 'owner' : 'administrator') +
+            ' permissions for this conversation. You can review roles here at any time.';
+          confirmActionBtn.textContent = pendingRole === 'Owner' ? 'Promote to owner' : 'Promote to administrator';
+          confirmActionBtn.className = 'btn btn-primary';
+          openDialog('actionModal', trigger);
+          return;
+        }
+
+        selectedAction = actionButton.dataset.action;
+        closeRowMenu(row);
+
+        if (selectedAction === 'suspend') {
+          var end = row.dataset.suspendEnd;
+          if (end) {
+            suspendDate.value = end.split('T')[0];
+            suspendTime.value = end.split('T')[1];
+            document.getElementById('suspendTitle').textContent = 'Change suspension';
+            confirmSuspendBtn.textContent = 'Update suspension';
+          } else {
+            suspendDate.value = '';
+            suspendTime.value = '';
+            document.getElementById('suspendTitle').textContent = 'Suspend posting';
+            confirmSuspendBtn.textContent = 'Apply suspension';
+          }
+          suspendError.textContent = '';
+          document.getElementById('suspendPerson').textContent = row.dataset.person;
+          openDialog('suspendModal', trigger);
+          return;
+        }
+
+        // remove / ban / unban / end-suspend -> confirmation dialog
+        var titles = {
+          remove: 'Remove participant?', ban: 'Ban identity?',
+          unban: 'Unban identity?', 'end-suspend': 'End suspension now?'
+        };
+        var copy = {
+          remove: 'Active participation ends now. Prior membership and any authored content remain retained for governance.',
+          ban: 'This identity is blocked from rejoining this conversation. Prior membership remains retained; this is stronger than a removal.',
+          unban: 'This makes the identity eligible to join again in the future. It does not automatically add them back to the conversation.',
+          'end-suspend': 'Posting access is restored immediately for ' + row.dataset.person + '. Reading and membership were never interrupted.'
+        };
+        var confirmLabels = {
+          remove: 'Remove participant', ban: 'Ban identity',
+          unban: 'Unban identity', 'end-suspend': 'End suspension'
+        };
+        document.getElementById('actionTitle').textContent = titles[selectedAction];
+        document.getElementById('actionPerson').textContent = row.dataset.person;
+        document.getElementById('actionExplanation').textContent = copy[selectedAction];
+        confirmActionBtn.textContent = confirmLabels[selectedAction];
+        confirmActionBtn.className = (selectedAction === 'unban' || selectedAction === 'end-suspend') ? 'btn btn-primary' : 'btn btn-danger';
+        openDialog('actionModal', trigger);
+      });
+
+      // ---- Confirm (promote / remove / ban / unban / end-suspend) ---------
+      confirmActionBtn.addEventListener('click', function () {
+        if (confirmActionBtn.disabled || !selectedRow) return;
+        confirmActionBtn.disabled = true; // prevent double submission
+        var row = selectedRow;
+        var name = row.dataset.person;
+        var stateNode = row.querySelector('.state-value');
+        var copyNode = row.querySelector('.state-copy');
+
+        if (selectedAction === 'promote') {
+          row.dataset.role = pendingRole;
+          var roleNode = row.querySelector('.role-value');
+          roleNode.textContent = pendingRole;
+          roleNode.className = pendingRole === 'Owner' ? 'badge owner role-value' : 'badge role-value';
+          if (pendingRole === 'Owner') {
+            // becomes an owner; owner rows carry no destructive menu in this view
+            row.dataset.suspendEnd = '';
+          } else {
+            removePromoteOption(row, 'Administrator');
+          }
+          recomputeOwners();
+          recount();
+          window.showToast(name + ' is now ' + (pendingRole === 'Owner' ? 'an owner.' : 'an administrator.'));
+        } else if (selectedAction === 'remove') {
+          row.dataset.state = 'former';
+          row.dataset.role = 'Member';
+          row.classList.add('row-muted');
+          stateNode.textContent = 'Removed';
+          stateNode.className = 'badge state-value';
+          copyNode.textContent = 'Removed ' + TODAY;
+          row.lastElementChild.innerHTML = '<button class="btn btn-secondary btn-sm" type="button" data-action="ban">Ban</button>';
+          recomputeOwners();
+          showFilter('former');
+          recount();
+          window.showToast(name + ' was removed.');
+        } else if (selectedAction === 'ban') {
+          var wasActive = row.dataset.state === 'active';
+          row.dataset.state = 'former';
+          row.dataset.formerStatus = 'Banned';
+          row.classList.add('row-muted');
+          stateNode.textContent = 'Banned';
+          stateNode.className = 'badge danger state-value';
+          copyNode.textContent = 'Since ' + TODAY;
+          bannedSet[name] = true;
+          row.dataset.rejoin = 'false';
+          row.lastElementChild.innerHTML = '<button class="btn btn-secondary btn-sm" type="button" data-action="unban">Unban</button>';
+          recomputeOwners();
+          if (wasActive) showFilter('former'); else showFilter(currentFilter);
+          recount();
+          window.showToast(name + ' was banned and cannot rejoin.');
+        } else if (selectedAction === 'unban') {
+          row.dataset.formerStatus = 'Removed';
+          stateNode.textContent = 'Eligible';
+          stateNode.className = 'badge state-value';
+          copyNode.textContent = 'Eligible to join again';
+          delete bannedSet[name];
+          row.dataset.rejoin = 'true';
+          row.lastElementChild.innerHTML = '<button class="btn btn-secondary btn-sm" type="button" data-action="ban">Ban</button>';
+          showFilter(currentFilter);
+          recount();
+          window.showToast(name + ' is eligible to join again.');
+        } else if (selectedAction === 'end-suspend') {
+          row.dataset.suspendEnd = '';
+          stateNode.textContent = 'Active';
+          stateNode.className = 'badge success state-value';
+          copyNode.textContent = 'Full participation';
+          setSuspendMenu(row, false);
+          window.showToast('Posting access restored for ' + name + '.');
+        }
+
+        mutationFocusTarget = activeFilterButton();
+        closeModal(actionModal);
+      });
+
+      // ---- Confirm suspension (validated, with busy state) ----------------
+      confirmSuspendBtn.addEventListener('click', function () {
+        if (confirmSuspendBtn.disabled || !selectedRow) return;
+        var dateValue = suspendDate.value;
+        var timeValue = suspendTime.value;
+        if (!dateValue) {
+          suspendError.textContent = 'Choose an end date.';
+          suspendDate.focus();
+          return;
+        }
+        if (!timeValue) {
+          suspendError.textContent = 'Choose an end time.';
+          suspendTime.focus();
+          return;
+        }
+        var end = new Date(dateValue + 'T' + timeValue + ':00');
+        if (isNaN(end.getTime()) || end.getTime() <= Date.now()) {
+          suspendError.textContent = 'Choose an end date and time later than now.';
+          suspendDate.focus();
+          return;
+        }
+        suspendError.textContent = '';
+        confirmSuspendBtn.classList.add('is-busy');
+        confirmSuspendBtn.disabled = true;
+        var row = selectedRow;
+        setTimeout(function () {
+          if (!suspendModal.classList.contains('open')) return; // cancelled mid-busy
+          var dateText = fmtDate(end);
+          var timeText = fmtTime(end);
+          row.dataset.suspendEnd = dateValue + 'T' + timeValue;
+          row.querySelector('.state-value').textContent = 'Posting suspended';
+          row.querySelector('.state-value').className = 'badge warning state-value';
+          row.querySelector('.state-copy').textContent = 'Until ' + dateText + ' · ' + timeText + ' ET';
+          setSuspendMenu(row, true);
+          mutationFocusTarget = activeFilterButton();
+          closeModal(suspendModal);
+          window.showToast(row.dataset.person + ' cannot post until ' + dateText + '.');
+        }, 550);
+      });
+
+      // ---- Auto-resolve expired suspensions to Active ---------------------
+      function resolveExpiredSuspensions() {
+        liveRows().forEach(function (row) {
+          if (row.dataset.state !== 'active') return;
+          var end = row.dataset.suspendEnd;
+          if (!end) return;
+          if (new Date(end + ':00').getTime() <= Date.now()) {
+            row.dataset.suspendEnd = '';
+            row.querySelector('.state-value').textContent = 'Active';
+            row.querySelector('.state-value').className = 'badge success state-value';
+            row.querySelector('.state-copy').textContent = 'Full participation';
+            setSuspendMenu(row, false);
+          }
+        });
+      }
+
+      // ---- Fixture variants (invisible QA hooks via ?fixture=) ------------
+      function applyFixtureData() {
+        if (fixture === 'expired') {
+          var pw = body.querySelector('[data-person="Patchwork Bot"]');
+          if (pw) pw.dataset.suspendEnd = '2026-07-01T09:00';
+        }
+        if (isAdmin) {
+          var badge = document.querySelector('.governance-title .badge');
+          if (badge) badge.textContent = 'You’re an administrator';
+          body.querySelectorAll('[data-promote="Owner"]').forEach(function (b) { b.remove(); });
+        }
+        if (fixture === 'empty-active') {
+          liveRows().forEach(function (r) { if (r.dataset.state === 'active' && r.dataset.person !== 'Rowan Ellis') r.dataset.removed = 'true'; });
+          var self = body.querySelector('[data-person="Rowan Ellis"]');
+          if (self) self.dataset.removed = 'true';
+        }
+        if (fixture === 'empty-former') {
+          liveRows().forEach(function (r) { if (r.dataset.state === 'former') r.dataset.removed = 'true'; });
+        }
+      }
+
+      // ---- Boot with a brief local loading state --------------------------
+      var loading = document.getElementById('rosterLoading');
+      var errorPanel = document.getElementById('rosterError');
+      var deniedPanel = document.getElementById('rosterDenied');
+      var wrap = document.getElementById('rosterWrap');
+      var toolbar = document.querySelector('.members-toolbar');
+      // set suspend min date to today
+      suspendDate.min = new Date().toISOString().split('T')[0];
+
+      function boot() {
+        loading.classList.add('hidden');
+        if (fixture === 'member') {
+          // ordinary member: deny governance surface entirely
+          toolbar.classList.add('hidden');
+          wrap.classList.add('hidden');
+          ownerNotice.classList.add('hidden');
+          deniedPanel.classList.remove('hidden');
+          return;
+        }
+        if (fixture === 'fail') {
+          wrap.classList.add('hidden');
+          toolbar.classList.add('hidden');
+          errorPanel.classList.remove('hidden');
+          return;
+        }
+        applyFixtureData();
+        resolveExpiredSuspensions();
+        recomputeOwners();
+        recount();
+        showFilter('active');
+      }
+
+      document.getElementById('rosterRetry').addEventListener('click', function () {
+        window.location.href = window.location.pathname; // reset to baseline fixture
+      });
+
+      // hide roster until loaded
+      wrap.classList.add('hidden');
+      setTimeout(function () {
+        wrap.classList.remove('hidden');
+        boot();
+      }, 450);
+    })();
+  </script>
+</body>
+</html>
