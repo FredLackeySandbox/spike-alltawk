@@ -1,0 +1,113 @@
+{
+  "openApiSchema": {
+    "package": "atk-ux-api-contract",
+    "file": "openapi/openapi.yaml",
+    "description": "Canonical request, response, validation, and error schemas for these routes."
+  },
+  "routes": [
+    {
+      "operationId": "governance.retrieve-conversation-governance",
+      "method": "GET",
+      "path": "/api/v0/governance/retrieve-conversation-governance",
+      "description": "Retrieve conversation governance.",
+      "inputs": {
+        "conversationUid": "string",
+        "view": "string"
+      }
+    },
+    {
+      "operationId": "governance.promote-participant-role",
+      "method": "POST",
+      "path": "/api/v0/governance/promote-participant-role",
+      "description": "Promote participant role.",
+      "inputs": {
+        "conversationUid": "string",
+        "participantUid": "string",
+        "targetRole": "string"
+      }
+    },
+    {
+      "operationId": "governance.remove-participant",
+      "method": "DELETE",
+      "path": "/api/v0/governance/remove-participant",
+      "description": "Remove participant.",
+      "inputs": {
+        "conversationUid": "string",
+        "participantUid": "string"
+      }
+    },
+    {
+      "operationId": "governance.ban-identity",
+      "method": "POST",
+      "path": "/api/v0/governance/ban-identity",
+      "description": "Ban identity.",
+      "inputs": {
+        "conversationUid": "string",
+        "participantUid": "string"
+      }
+    },
+    {
+      "operationId": "governance.restore-banned-participant",
+      "method": "POST",
+      "path": "/api/v0/governance/restore-banned-participant",
+      "description": "Restore banned participant.",
+      "inputs": {
+        "conversationUid": "string",
+        "participantUid": "string"
+      }
+    },
+    {
+      "operationId": "governance.create-posting-suspension",
+      "method": "POST",
+      "path": "/api/v0/governance/create-posting-suspension",
+      "description": "Create posting suspension.",
+      "inputs": {
+        "conversationUid": "string",
+        "participantUid": "string",
+        "endsAt": "string",
+        "displayTimeZone": "string"
+      }
+    },
+    {
+      "operationId": "governance.update-posting-suspension",
+      "method": "PATCH",
+      "path": "/api/v0/governance/update-posting-suspension",
+      "description": "Update posting suspension.",
+      "inputs": {
+        "conversationUid": "string",
+        "suspensionUid": "string",
+        "endsAt": "string",
+        "displayTimeZone": "string"
+      }
+    },
+    {
+      "operationId": "governance.end-posting-suspension",
+      "method": "DELETE",
+      "path": "/api/v0/governance/end-posting-suspension",
+      "description": "End posting suspension.",
+      "inputs": {
+        "conversationUid": "string",
+        "suspensionUid": "string"
+      }
+    },
+    {
+      "operationId": "governance.update-conversation-tags",
+      "method": "PATCH",
+      "path": "/api/v0/governance/update-conversation-tags",
+      "description": "Update conversation tags.",
+      "inputs": {
+        "conversationUid": "string",
+        "tags": "string[]"
+      }
+    },
+    {
+      "operationId": "governance.archive-conversation",
+      "method": "POST",
+      "path": "/api/v0/governance/archive-conversation",
+      "description": "Archive conversation.",
+      "inputs": {
+        "conversationUid": "string"
+      }
+    }
+  ]
+}

@@ -6,40 +6,17 @@ Reviewer: Route File Reviewer
 ## Summary
 
 - Routes reviewed: 10
-- Decisions: 9 PASS, 1 FAIL
+- Decisions: 10 PASS, 0 FAIL
 
 ## Route Findings
 
 ## Retrieve Conversation Governance : (`GET /api/v0/governance/retrieve-conversation-governance`)
 
-**Decision:** FAIL
+**Decision:** PASS
 
 Operations reviewed: `GET /api/v0/governance/retrieve-conversation-governance?conversationUid={conversationUid}&view={governanceView}`
 
-Reason: The page route, selected governance page, and documented session cookie can form the request, but the only concrete response example is an array containing both `MEMBERS` and `SETTINGS` objects even though the prose says the selected view returns one view-specific result. The browser therefore lacks an unambiguous concrete response contract for either page.
-
-Suggested fix:
-
-Replace the combined array with two explicitly labeled response examples, each a single object keyed to its request `view`. For example, document the members response as:
-
-```json
-{
-  "result": "SUCCEEDED",
-  "conversationUid": "f47ac10b58cc4372a5670e02b2c3d479",
-  "view": "MEMBERS",
-  "lifecycleStatus": "ACTIVE",
-  "viewerRole": "OWNER",
-  "activeCount": 5,
-  "formerCount": 2,
-  "ownerContinuity": {
-    "isCurrentViewerLastActiveOwner": true,
-    "message": "Promote another participant to owner or archive the conversation before leaving."
-  },
-  "participants": []
-}
-```
-
-Document the `SETTINGS` response separately as a single object containing the concrete `tags`, `discovery`, `matching`, lifecycle, viewer-role, and `allowedActions` fields already shown in the route file.
+The page route, page-selected view, and documented session cookie form the request; the two concrete view-specific responses supply the authorized roster or settings state and safe public UIDs without exposing storage details.
 
 ## Promote Participant Role : (`POST /api/v0/governance/promote-participant-role`)
 
@@ -47,7 +24,7 @@ Document the `SETTINGS` response separately as a single object containing the co
 
 Operations reviewed: `POST /api/v0/governance/promote-participant-role`
 
-The conversation route and prior authorized roster provide both public UIDs and the offered target role before confirmation; the concrete response supplies the authoritative role, row actions, and ownership-continuity result while keeping eligibility and authority decisions server-side.
+The conversation route and prior roster row provide the public participant UID and offered target role, while the response returns the authoritative role, allowed row actions, and ownership-continuity state without asking the browser to assert permission.
 
 ## Remove Participant : (`DELETE /api/v0/governance/remove-participant`)
 
@@ -55,7 +32,7 @@ The conversation route and prior authorized roster provide both public UIDs and 
 
 Operations reviewed: `DELETE /api/v0/governance/remove-participant`
 
-The page route and selected roster row provide the public request identifiers before the visible confirmation; the response returns the retained former-participant state and updated counts needed to redraw the roster, while owner protection and membership retention remain backend-owned.
+The request uses the conversation route and selected roster participant UID after local confirmation; the response provides the retained former row and updated counts while owner continuity and authorization remain server-enforced.
 
 ## Ban Identity : (`POST /api/v0/governance/ban-identity`)
 
@@ -63,7 +40,7 @@ The page route and selected roster row provide the public request identifiers be
 
 Operations reviewed: `POST /api/v0/governance/ban-identity`
 
-The current conversation and selected active or former roster row supply the public UIDs at invocation; the concrete result gives the banned state, rejoin outcome, next action, and counts required by the page without exposing storage history or trusting the frontend to decide authority or owner continuity.
+The prior authorized roster supplies the selected public participant UID, and the response directly supplies the banned retained state, rejoin outcome, updated counts, and next allowed action without leaking internal membership records.
 
 ## Restore Banned Participant : (`POST /api/v0/governance/restore-banned-participant`)
 
@@ -71,7 +48,7 @@ The current conversation and selected active or former roster row supply the pub
 
 Operations reviewed: `POST /api/v0/governance/restore-banned-participant`
 
-The banned roster row and page route provide the public identifiers before confirmation; the response authoritatively restores the active role, returns the complete active row and counts required by the requirements-backed restoration flow, and correctly derives the retained role server-side.
+The request carries only the conversation and selected banned participant public UIDs; the API derives the restored role from retained history and returns the complete active roster entry, counts, and safe next actions.
 
 ## Create Posting Suspension : (`POST /api/v0/governance/create-posting-suspension`)
 
@@ -79,7 +56,7 @@ The banned roster row and page route provide the public identifiers before confi
 
 Operations reviewed: `POST /api/v0/governance/create-posting-suspension`
 
-The page route, selected unsuspended roster row, and visible date, time, and time-zone context form the request; the response concretely returns the new public suspension UID, authoritative end, access state, and next actions needed for later update or end operations without leaking restriction-history internals.
+The roster, visible end fields, and prior display-time-zone context provide every request value, and the concrete response returns the exact suspension UID, authoritative end, access state, and actions needed for later update or end operations.
 
 ## Update Posting Suspension : (`PATCH /api/v0/governance/update-posting-suspension`)
 
@@ -87,7 +64,7 @@ The page route, selected unsuspended roster row, and visible date, time, and tim
 
 Operations reviewed: `PATCH /api/v0/governance/update-posting-suspension`
 
-The prior roster response supplies the public suspension UID and editable current end, while the form supplies the revised end and time-zone context; the concrete response returns the same carry-forward UID, revised authoritative values, access state, and actions, with validation and authority kept behind the UX API.
+The prior roster or create response supplies the public suspension UID and prefilled timing context, while the revised visible fields form the update and the response returns the same UID with the authoritative new end and current actions.
 
 ## End Posting Suspension : (`DELETE /api/v0/governance/end-posting-suspension`)
 
@@ -95,7 +72,7 @@ The prior roster response supplies the public suspension UID and editable curren
 
 Operations reviewed: `DELETE /api/v0/governance/end-posting-suspension`
 
-The selected suspended row provides the public suspension UID before the visible confirmation and the page route provides conversation context; the response directly supports the active-row redraw with restored access and replacement actions while the backend resolves the participant and retains restriction history.
+The prior roster or create response supplies the current public suspension UID, and the success response directly restores active access, clears the suspension, and returns replacement allowed actions without requiring frontend policy decisions.
 
 ## Update Conversation Tags : (`PATCH /api/v0/governance/update-conversation-tags`)
 
@@ -103,7 +80,7 @@ The selected suspended row provides the public suspension UID before the visible
 
 Operations reviewed: `PATCH /api/v0/governance/update-conversation-tags`
 
-The page route and visible complete chip set supply the request after local editing; the response returns the committed display tags, count, lifecycle, and permitted actions needed to reconcile the page, while authoritative normalization, validation, permission, and lifecycle decisions remain server-side.
+The conversation route and complete visible tag draft form the request; server-side permission, lifecycle, normalization, and validation remain authoritative, and the response returns the committed display tags and safe page action state.
 
 ## Archive Conversation : (`POST /api/v0/governance/archive-conversation`)
 
@@ -111,4 +88,4 @@ The page route and visible complete chip set supply the request after local edit
 
 Operations reviewed: `POST /api/v0/governance/archive-conversation`
 
-The current conversation public UID and documented session cookie form the request after the owner’s visible confirmation, with unsaved drafts blocked locally; the concrete response returns the archived lifecycle state, effective time, retention confirmation, and empty action set without accepting frontend-supplied ownership or retention decisions.
+The page route, documented session cookie, and visible owner confirmation are sufficient to invoke archival, while the response returns the authoritative archived state, timestamp, retained-record confirmation, and cleared actions without exposing internal lifecycle data.

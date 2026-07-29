@@ -6,7 +6,7 @@ Reviewer: Route File Reviewer
 ## Summary
 
 - Routes reviewed: 8
-- Decisions: 7 PASS, 1 FAIL
+- Decisions: 8 PASS, 0 FAIL
 
 ## Route Findings
 
@@ -20,38 +20,11 @@ The optional conversation UID is available from the queue URL or may be omitted,
 
 ## Retrieve Moderation Ticket : (`GET /api/v0/moderation/retrieve-moderation-ticket`)
 
-**Decision:** FAIL
+**Decision:** PASS
 
 Operations reviewed: `GET /api/v0/moderation/retrieve-moderation-ticket?reportNumber={reportNumber}&conversationUid={conversationUid}`
 
-Reason: The queue response supplies both query values, but the only concrete ticket response shows `postingSuspension` as null even though an already-suspended ticket must supply the suspension UID and current end time needed by Update Posting Suspension. The response also crosses presentation composition into the UX API by returning `sourceConversationUrl` and `relatedDiscussion.conversationUrl` instead of public UIDs from which the page can construct its own links.
-
-Suggested fix:
-
-Add a concrete existing-suspension ticket response variant that carries the exact update values, and replace navigation-route strings with public conversation UIDs:
-
-```json
-{
-  "conversation": {
-    "conversationUid": "a12bc34d56ef4789a1234567890abcde",
-    "sourceAvailable": true
-  },
-  "participant": {
-    "participantUid": "c34de56f78a9412ba34567890abcdef1",
-    "postingSuspension": {
-      "suspensionUid": "e56f07819abc434da567890abcdef123",
-      "endsAt": "2026-07-29T17:00:00-04:00"
-    }
-  },
-  "relatedDiscussion": {
-    "conversationUid": "f6701892abcd445ea67890abcdef1234",
-    "tags": [
-      "#mod-review",
-      "#ticket-1048"
-    ]
-  }
-}
-```
+The queue response and ticket URL supply both query values, the named session cookie supplies reviewer context, and the response provides all evidence and action state needed by the page. Its concrete existing-suspension variant also returns the public suspension UID and current end time required for Update Posting Suspension, while authorization and report binding remain server-controlled.
 
 ## Create Reviewer Note : (`POST /api/v0/moderation/create-reviewer-note`)
 
@@ -75,7 +48,7 @@ The ticket URL and prior ticket response provide the report, conversation, and p
 
 Operations reviewed: `POST /api/v0/moderation/create-posting-suspension`
 
-The ticket URL, prior ticket response, and suspension form supply all request values, and the concrete response returns the new public suspension UID and effective end time required for the visible Change continuation while keeping eligibility and authorization checks server-owned.
+The ticket URL, prior ticket response, and suspension form supply every request value, and the concrete response returns the public suspension UID and effective `endsAt` value that the documented continuation maps to Update Posting Suspension's `currentEndsAt`, along with directly renderable effects and action availability.
 
 ## Update Posting Suspension : (`PATCH /api/v0/moderation/update-posting-suspension`)
 

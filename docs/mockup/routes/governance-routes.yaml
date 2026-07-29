@@ -1,0 +1,1146 @@
+openapi: 3.1.0
+info:
+  title: Governance UX API
+  version: 0.1.0
+x-solpoc-route-markdown: docs/mockup/routes/governance-routes.md
+paths:
+  /api/v0/governance/retrieve-conversation-governance:
+    get:
+      operationId: retrieveConversationGovernance
+      summary: Retrieve conversation governance
+      description: Retrieves the authorized, UI-ready governance result for one selected conversation governance view.
+      tags:
+        - governance
+      x-solpoc-source-actions:
+        - "docs/mockup/desktop/governance/members.md — Retrieve Conversation Roster"
+        - "docs/mockup/desktop/governance/settings.md — Retrieve Conversation Governance Settings"
+      x-solpoc-mockup-files:
+        - docs/mockup/desktop/governance/members.html
+        - docs/mockup/desktop/governance/members.md
+        - docs/mockup/desktop/governance/settings.html
+        - docs/mockup/desktop/governance/settings.md
+      security:
+        - sessionCookie: []
+      parameters:
+        - name: conversationUid
+          in: query
+          required: true
+          description: Public identifier from the current conversation page route.
+          schema:
+            type: string
+        - name: view
+          in: query
+          required: true
+          description: Single governance view selected by the open page.
+          schema:
+            type: string
+            enum:
+              - MEMBERS
+              - SETTINGS
+      responses:
+        '200':
+          description: UI-ready governance result for the requested view.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - result
+                  - conversationUid
+                  - view
+                  - lifecycleStatus
+                  - viewerRole
+                properties:
+                  result:
+                    type: string
+                    enum:
+                      - SUCCEEDED
+                  conversationUid:
+                    type: string
+                  view:
+                    type: string
+                    enum:
+                      - MEMBERS
+                      - SETTINGS
+                  lifecycleStatus:
+                    type: string
+                    enum:
+                      - ACTIVE
+                      - ARCHIVED
+                  viewerRole:
+                    type: string
+                    enum:
+                      - OWNER
+                      - ADMINISTRATOR
+                      - MEMBER
+                  displayTimeZone:
+                    type: string
+                  activeCount:
+                    type: integer
+                  formerCount:
+                    type: integer
+                  ownerContinuity:
+                    type: object
+                    required:
+                      - isCurrentViewerLastActiveOwner
+                      - message
+                    properties:
+                      isCurrentViewerLastActiveOwner:
+                        type: boolean
+                      message:
+                        type: string
+                  participants:
+                    type: array
+                    items:
+                      type: object
+                      required:
+                        - participantUid
+                        - displayName
+                        - identityType
+                        - role
+                        - membershipState
+                        - accessState
+                        - memberSince
+                        - postingSuspension
+                        - allowedActions
+                      properties:
+                        participantUid:
+                          type: string
+                        displayName:
+                          type: string
+                        identityType:
+                          type: string
+                          enum:
+                            - PERSON
+                            - BOT
+                        role:
+                          type: string
+                          enum:
+                            - OWNER
+                            - ADMINISTRATOR
+                            - MEMBER
+                        membershipState:
+                          type: string
+                          enum:
+                            - ACTIVE
+                            - REMOVED
+                            - BANNED
+                        accessState:
+                          type: string
+                          enum:
+                            - ACTIVE
+                            - POSTING_SUSPENDED
+                            - INACTIVE
+                        memberSince:
+                          type: string
+                          format: date-time
+                        bannedAt:
+                          type: string
+                          format: date-time
+                        postingSuspension:
+                          oneOf:
+                            - type: object
+                              required:
+                                - suspensionUid
+                                - endsAt
+                                - displayTimeZone
+                              properties:
+                                suspensionUid:
+                                  type: string
+                                endsAt:
+                                  type: string
+                                  format: date-time
+                                displayTimeZone:
+                                  type: string
+                            - type: 'null'
+                        allowedActions:
+                          type: array
+                          items:
+                            type: string
+                  currentStep:
+                    type: string
+                    enum:
+                      - SETTINGS
+                  tags:
+                    type: array
+                    items:
+                      type: string
+                  tagCount:
+                    type: integer
+                  discovery:
+                    type: object
+                    required:
+                      - visibility
+                      - displayLabel
+                    properties:
+                      visibility:
+                        type: string
+                        enum:
+                          - LISTED
+                          - UNLISTED
+                      displayLabel:
+                        type: string
+                  matching:
+                    type: object
+                    required:
+                      - mode
+                      - displayLabel
+                      - displayMeaning
+                    properties:
+                      mode:
+                        type: string
+                        enum:
+                          - EXCLUSIVE
+                          - INCLUSIVE
+                          - ALL_TAGS
+                      displayLabel:
+                        type: string
+                      displayMeaning:
+                        type: string
+                  allowedActions:
+                    type: array
+                    items:
+                      type: string
+              examples:
+                members:
+                  value:
+                    result: SUCCEEDED
+                    conversationUid: f47ac10b58cc4372a5670e02b2c3d479
+                    view: MEMBERS
+                    lifecycleStatus: ACTIVE
+                    viewerRole: OWNER
+                    displayTimeZone: America/New_York
+                    activeCount: 3
+                    formerCount: 1
+                    ownerContinuity:
+                      isCurrentViewerLastActiveOwner: true
+                      message: Promote another participant to owner or archive the conversation before leaving.
+                    participants:
+                      - participantUid: 8f14e45fceea467a9b53c3f5e5d5c918
+                        displayName: Rowan Ellis
+                        identityType: PERSON
+                        role: OWNER
+                        membershipState: ACTIVE
+                        accessState: ACTIVE
+                        memberSince: '2026-05-14T13:00:00Z'
+                        postingSuspension: null
+                        allowedActions: []
+                      - participantUid: a3bb189e8bf943f4a3f107c4b6bb12e3
+                        displayName: Avery Brooks
+                        identityType: PERSON
+                        role: MEMBER
+                        membershipState: ACTIVE
+                        accessState: ACTIVE
+                        memberSince: '2026-06-02T15:30:00Z'
+                        postingSuspension: null
+                        allowedActions:
+                          - PROMOTE_TO_OWNER
+                          - PROMOTE_TO_ADMINISTRATOR
+                          - CREATE_POSTING_SUSPENSION
+                          - REMOVE_PARTICIPANT
+                          - BAN_IDENTITY
+                      - participantUid: c7d934725d23424daf163bf811a3506e
+                        displayName: Patchwork Bot
+                        identityType: BOT
+                        role: MEMBER
+                        membershipState: ACTIVE
+                        accessState: POSTING_SUSPENDED
+                        memberSince: '2026-06-08T12:15:00Z'
+                        postingSuspension:
+                          suspensionUid: 9d19c22f3a024ee08c9bcf677dab8f2b
+                          endsAt: '2026-08-01T14:30:00Z'
+                          displayTimeZone: America/New_York
+                        allowedActions:
+                          - UPDATE_POSTING_SUSPENSION
+                          - END_POSTING_SUSPENSION
+                          - REMOVE_PARTICIPANT
+                          - BAN_IDENTITY
+                      - participantUid: 4be219f68d0b4e6486fe7d9cc4e8717b
+                        displayName: Release Notes Bot
+                        identityType: BOT
+                        role: MEMBER
+                        membershipState: BANNED
+                        accessState: INACTIVE
+                        memberSince: '2026-04-09T09:00:00Z'
+                        bannedAt: '2026-07-10T17:05:00Z'
+                        postingSuspension: null
+                        allowedActions:
+                          - RESTORE_BANNED_PARTICIPANT
+                settings:
+                  value:
+                    result: SUCCEEDED
+                    conversationUid: f47ac10b58cc4372a5670e02b2c3d479
+                    view: SETTINGS
+                    lifecycleStatus: ACTIVE
+                    viewerRole: OWNER
+                    currentStep: SETTINGS
+                    tags:
+                      - design-systems
+                      - accessibility
+                      - frontend
+                      - product-design
+                    tagCount: 4
+                    discovery:
+                      visibility: LISTED
+                      displayLabel: Listed
+                    matching:
+                      mode: EXCLUSIVE
+                      displayLabel: Exclusive
+                      displayMeaning: People find this conversation only when their search matches the complete tag set.
+                    allowedActions:
+                      - UPDATE_CONVERSATION_TAGS
+                      - ARCHIVE_CONVERSATION
+  /api/v0/governance/promote-participant-role:
+    post:
+      operationId: promoteParticipantRole
+      summary: Promote participant role
+      description: Promotes an eligible active participant to the selected owner or administrator role and returns the authoritative roster state.
+      tags:
+        - governance
+      x-solpoc-source-actions:
+        - "docs/mockup/desktop/governance/members.md — Promote Participant to Owner"
+        - "docs/mockup/desktop/governance/members.md — Promote Participant to Administrator"
+      x-solpoc-mockup-files:
+        - docs/mockup/desktop/governance/members.html
+        - docs/mockup/desktop/governance/members.md
+      security:
+        - sessionCookie: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - conversationUid
+                - participantUid
+                - targetRole
+              properties:
+                conversationUid:
+                  type: string
+                participantUid:
+                  type: string
+                targetRole:
+                  type: string
+                  enum:
+                    - OWNER
+                    - ADMINISTRATOR
+            example:
+              conversationUid: f47ac10b58cc4372a5670e02b2c3d479
+              participantUid: a3bb189e8bf943f4a3f107c4b6bb12e3
+              targetRole: ADMINISTRATOR
+      responses:
+        '200':
+          description: Authoritative participant role and ownership-continuity state.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - result
+                  - participant
+                  - ownerContinuity
+                properties:
+                  result:
+                    type: string
+                    enum:
+                      - SUCCEEDED
+                  participant:
+                    type: object
+                    required:
+                      - participantUid
+                      - displayName
+                      - role
+                      - membershipState
+                      - accessState
+                      - allowedActions
+                    properties:
+                      participantUid:
+                        type: string
+                      displayName:
+                        type: string
+                      role:
+                        type: string
+                        enum:
+                          - OWNER
+                          - ADMINISTRATOR
+                      membershipState:
+                        type: string
+                        enum:
+                          - ACTIVE
+                      accessState:
+                        type: string
+                        enum:
+                          - ACTIVE
+                          - POSTING_SUSPENDED
+                      allowedActions:
+                        type: array
+                        items:
+                          type: string
+                  ownerContinuity:
+                    type: object
+                    required:
+                      - hasAnotherActiveOwner
+                    properties:
+                      hasAnotherActiveOwner:
+                        type: boolean
+              example:
+                result: SUCCEEDED
+                participant:
+                  participantUid: a3bb189e8bf943f4a3f107c4b6bb12e3
+                  displayName: Avery Brooks
+                  role: ADMINISTRATOR
+                  membershipState: ACTIVE
+                  accessState: ACTIVE
+                  allowedActions:
+                    - PROMOTE_TO_OWNER
+                    - CREATE_POSTING_SUSPENSION
+                    - REMOVE_PARTICIPANT
+                    - BAN_IDENTITY
+                ownerContinuity:
+                  hasAnotherActiveOwner: false
+  /api/v0/governance/remove-participant:
+    delete:
+      operationId: removeParticipant
+      summary: Remove participant
+      description: Ends an eligible participant's active membership while retaining membership history and authored content.
+      tags:
+        - governance
+      x-solpoc-source-actions:
+        - "docs/mockup/desktop/governance/members.md — Remove Participant"
+      x-solpoc-mockup-files:
+        - docs/mockup/desktop/governance/members.html
+        - docs/mockup/desktop/governance/members.md
+      security:
+        - sessionCookie: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - conversationUid
+                - participantUid
+              properties:
+                conversationUid:
+                  type: string
+                participantUid:
+                  type: string
+            example:
+              conversationUid: f47ac10b58cc4372a5670e02b2c3d479
+              participantUid: a3bb189e8bf943f4a3f107c4b6bb12e3
+      responses:
+        '200':
+          description: Retained former-participant state and authoritative roster counts.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - result
+                  - participant
+                  - activeCount
+                  - formerCount
+                properties:
+                  result:
+                    type: string
+                    enum:
+                      - SUCCEEDED
+                  participant:
+                    type: object
+                    required:
+                      - participantUid
+                      - displayName
+                      - role
+                      - membershipState
+                      - accessState
+                      - endedAt
+                      - allowedActions
+                    properties:
+                      participantUid:
+                        type: string
+                      displayName:
+                        type: string
+                      role:
+                        type: string
+                        enum:
+                          - OWNER
+                          - ADMINISTRATOR
+                          - MEMBER
+                      membershipState:
+                        type: string
+                        enum:
+                          - REMOVED
+                      accessState:
+                        type: string
+                        enum:
+                          - INACTIVE
+                      endedAt:
+                        type: string
+                        format: date-time
+                      allowedActions:
+                        type: array
+                        items:
+                          type: string
+                  activeCount:
+                    type: integer
+                  formerCount:
+                    type: integer
+              example:
+                result: SUCCEEDED
+                participant:
+                  participantUid: a3bb189e8bf943f4a3f107c4b6bb12e3
+                  displayName: Avery Brooks
+                  role: MEMBER
+                  membershipState: REMOVED
+                  accessState: INACTIVE
+                  endedAt: '2026-07-23T16:42:00Z'
+                  allowedActions:
+                    - BAN_IDENTITY
+                activeCount: 2
+                formerCount: 2
+  /api/v0/governance/ban-identity:
+    post:
+      operationId: banIdentity
+      summary: Ban identity
+      description: Bans a selected identity while retaining conversation history, ending active participation when needed, and preventing rejoin.
+      tags:
+        - governance
+      x-solpoc-source-actions:
+        - "docs/mockup/desktop/governance/members.md — Ban Identity"
+      x-solpoc-mockup-files:
+        - docs/mockup/desktop/governance/members.html
+        - docs/mockup/desktop/governance/members.md
+      security:
+        - sessionCookie: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - conversationUid
+                - participantUid
+              properties:
+                conversationUid:
+                  type: string
+                participantUid:
+                  type: string
+            example:
+              conversationUid: f47ac10b58cc4372a5670e02b2c3d479
+              participantUid: a3bb189e8bf943f4a3f107c4b6bb12e3
+      responses:
+        '200':
+          description: Banned former-participant state and authoritative roster counts.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - result
+                  - participant
+                  - activeCount
+                  - formerCount
+                properties:
+                  result:
+                    type: string
+                    enum:
+                      - SUCCEEDED
+                  participant:
+                    type: object
+                    required:
+                      - participantUid
+                      - displayName
+                      - role
+                      - membershipState
+                      - accessState
+                      - bannedAt
+                      - canRejoin
+                      - allowedActions
+                    properties:
+                      participantUid:
+                        type: string
+                      displayName:
+                        type: string
+                      role:
+                        type: string
+                        enum:
+                          - OWNER
+                          - ADMINISTRATOR
+                          - MEMBER
+                      membershipState:
+                        type: string
+                        enum:
+                          - BANNED
+                      accessState:
+                        type: string
+                        enum:
+                          - INACTIVE
+                      bannedAt:
+                        type: string
+                        format: date-time
+                      canRejoin:
+                        type: boolean
+                      allowedActions:
+                        type: array
+                        items:
+                          type: string
+                  activeCount:
+                    type: integer
+                  formerCount:
+                    type: integer
+              example:
+                result: SUCCEEDED
+                participant:
+                  participantUid: a3bb189e8bf943f4a3f107c4b6bb12e3
+                  displayName: Avery Brooks
+                  role: MEMBER
+                  membershipState: BANNED
+                  accessState: INACTIVE
+                  bannedAt: '2026-07-23T16:45:00Z'
+                  canRejoin: false
+                  allowedActions:
+                    - RESTORE_BANNED_PARTICIPANT
+                activeCount: 2
+                formerCount: 2
+  /api/v0/governance/restore-banned-participant:
+    post:
+      operationId: restoreBannedParticipant
+      summary: Restore banned participant
+      description: Ends a selected identity's ban and restores the authoritative active role while retaining prior history.
+      tags:
+        - governance
+      x-solpoc-source-actions:
+        - "docs/mockup/desktop/governance/members.md — Restore Banned Participant"
+      x-solpoc-mockup-files:
+        - docs/mockup/desktop/governance/members.html
+        - docs/mockup/desktop/governance/members.md
+      security:
+        - sessionCookie: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - conversationUid
+                - participantUid
+              properties:
+                conversationUid:
+                  type: string
+                participantUid:
+                  type: string
+            example:
+              conversationUid: f47ac10b58cc4372a5670e02b2c3d479
+              participantUid: 4be219f68d0b4e6486fe7d9cc4e8717b
+      responses:
+        '200':
+          description: Restored active participant state and authoritative roster counts.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - result
+                  - participant
+                  - activeCount
+                  - formerCount
+                properties:
+                  result:
+                    type: string
+                    enum:
+                      - SUCCEEDED
+                  participant:
+                    type: object
+                    required:
+                      - participantUid
+                      - displayName
+                      - identityType
+                      - role
+                      - membershipState
+                      - accessState
+                      - restoredAt
+                      - allowedActions
+                    properties:
+                      participantUid:
+                        type: string
+                      displayName:
+                        type: string
+                      identityType:
+                        type: string
+                        enum:
+                          - PERSON
+                          - BOT
+                      role:
+                        type: string
+                        enum:
+                          - OWNER
+                          - ADMINISTRATOR
+                          - MEMBER
+                      membershipState:
+                        type: string
+                        enum:
+                          - ACTIVE
+                      accessState:
+                        type: string
+                        enum:
+                          - ACTIVE
+                      restoredAt:
+                        type: string
+                        format: date-time
+                      allowedActions:
+                        type: array
+                        items:
+                          type: string
+                  activeCount:
+                    type: integer
+                  formerCount:
+                    type: integer
+              example:
+                result: SUCCEEDED
+                participant:
+                  participantUid: 4be219f68d0b4e6486fe7d9cc4e8717b
+                  displayName: Release Notes Bot
+                  identityType: BOT
+                  role: MEMBER
+                  membershipState: ACTIVE
+                  accessState: ACTIVE
+                  restoredAt: '2026-07-23T16:48:00Z'
+                  allowedActions:
+                    - PROMOTE_TO_OWNER
+                    - PROMOTE_TO_ADMINISTRATOR
+                    - CREATE_POSTING_SUSPENSION
+                    - REMOVE_PARTICIPANT
+                    - BAN_IDENTITY
+                activeCount: 4
+                formerCount: 0
+  /api/v0/governance/create-posting-suspension:
+    post:
+      operationId: createPostingSuspension
+      summary: Create posting suspension
+      description: Creates a time-bounded posting suspension for an active participant while preserving membership and reading access.
+      tags:
+        - governance
+      x-solpoc-source-actions:
+        - "docs/mockup/desktop/governance/members.md — Create Posting Suspension"
+      x-solpoc-mockup-files:
+        - docs/mockup/desktop/governance/members.html
+        - docs/mockup/desktop/governance/members.md
+      security:
+        - sessionCookie: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - conversationUid
+                - participantUid
+                - endsAt
+                - displayTimeZone
+              properties:
+                conversationUid:
+                  type: string
+                participantUid:
+                  type: string
+                endsAt:
+                  type: string
+                  format: date-time
+                displayTimeZone:
+                  type: string
+            example:
+              conversationUid: f47ac10b58cc4372a5670e02b2c3d479
+              participantUid: a3bb189e8bf943f4a3f107c4b6bb12e3
+              endsAt: '2026-08-01T14:30:00Z'
+              displayTimeZone: America/New_York
+      responses:
+        '201':
+          description: Created suspension state and updated participant actions.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - result
+                  - participantUid
+                  - accessState
+                  - postingSuspension
+                  - allowedActions
+                properties:
+                  result:
+                    type: string
+                    enum:
+                      - SUCCEEDED
+                  participantUid:
+                    type: string
+                  accessState:
+                    type: string
+                    enum:
+                      - POSTING_SUSPENDED
+                  postingSuspension:
+                    type: object
+                    required:
+                      - suspensionUid
+                      - endsAt
+                      - displayTimeZone
+                    properties:
+                      suspensionUid:
+                        type: string
+                      endsAt:
+                        type: string
+                        format: date-time
+                      displayTimeZone:
+                        type: string
+                  allowedActions:
+                    type: array
+                    items:
+                      type: string
+              example:
+                result: SUCCEEDED
+                participantUid: a3bb189e8bf943f4a3f107c4b6bb12e3
+                accessState: POSTING_SUSPENDED
+                postingSuspension:
+                  suspensionUid: 9d19c22f3a024ee08c9bcf677dab8f2b
+                  endsAt: '2026-08-01T14:30:00Z'
+                  displayTimeZone: America/New_York
+                allowedActions:
+                  - UPDATE_POSTING_SUSPENSION
+                  - END_POSTING_SUSPENSION
+                  - REMOVE_PARTICIPANT
+                  - BAN_IDENTITY
+  /api/v0/governance/update-posting-suspension:
+    patch:
+      operationId: updatePostingSuspension
+      summary: Update posting suspension
+      description: Revises the end of an identified posting suspension without creating a replacement.
+      tags:
+        - governance
+      x-solpoc-source-actions:
+        - "docs/mockup/desktop/governance/members.md — Update Posting Suspension"
+      x-solpoc-mockup-files:
+        - docs/mockup/desktop/governance/members.html
+        - docs/mockup/desktop/governance/members.md
+      security:
+        - sessionCookie: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - conversationUid
+                - suspensionUid
+                - endsAt
+                - displayTimeZone
+              properties:
+                conversationUid:
+                  type: string
+                suspensionUid:
+                  type: string
+                endsAt:
+                  type: string
+                  format: date-time
+                displayTimeZone:
+                  type: string
+            example:
+              conversationUid: f47ac10b58cc4372a5670e02b2c3d479
+              suspensionUid: 9d19c22f3a024ee08c9bcf677dab8f2b
+              endsAt: '2026-08-08T18:00:00Z'
+              displayTimeZone: America/New_York
+      responses:
+        '200':
+          description: Revised suspension state and current participant actions.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - result
+                  - participantUid
+                  - accessState
+                  - postingSuspension
+                  - allowedActions
+                properties:
+                  result:
+                    type: string
+                    enum:
+                      - SUCCEEDED
+                  participantUid:
+                    type: string
+                  accessState:
+                    type: string
+                    enum:
+                      - POSTING_SUSPENDED
+                  postingSuspension:
+                    type: object
+                    required:
+                      - suspensionUid
+                      - endsAt
+                      - displayTimeZone
+                    properties:
+                      suspensionUid:
+                        type: string
+                      endsAt:
+                        type: string
+                        format: date-time
+                      displayTimeZone:
+                        type: string
+                  allowedActions:
+                    type: array
+                    items:
+                      type: string
+              example:
+                result: SUCCEEDED
+                participantUid: c7d934725d23424daf163bf811a3506e
+                accessState: POSTING_SUSPENDED
+                postingSuspension:
+                  suspensionUid: 9d19c22f3a024ee08c9bcf677dab8f2b
+                  endsAt: '2026-08-08T18:00:00Z'
+                  displayTimeZone: America/New_York
+                allowedActions:
+                  - UPDATE_POSTING_SUSPENSION
+                  - END_POSTING_SUSPENSION
+                  - REMOVE_PARTICIPANT
+                  - BAN_IDENTITY
+  /api/v0/governance/end-posting-suspension:
+    delete:
+      operationId: endPostingSuspension
+      summary: End posting suspension
+      description: Ends an identified posting suspension immediately, restores posting access, and retains the restriction history.
+      tags:
+        - governance
+      x-solpoc-source-actions:
+        - "docs/mockup/desktop/governance/members.md — End Posting Suspension"
+      x-solpoc-mockup-files:
+        - docs/mockup/desktop/governance/members.html
+        - docs/mockup/desktop/governance/members.md
+      security:
+        - sessionCookie: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - conversationUid
+                - suspensionUid
+              properties:
+                conversationUid:
+                  type: string
+                suspensionUid:
+                  type: string
+            example:
+              conversationUid: f47ac10b58cc4372a5670e02b2c3d479
+              suspensionUid: 9d19c22f3a024ee08c9bcf677dab8f2b
+      responses:
+        '200':
+          description: Active posting access and replacement participant actions.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - result
+                  - participantUid
+                  - accessState
+                  - postingSuspension
+                  - endedAt
+                  - allowedActions
+                properties:
+                  result:
+                    type: string
+                    enum:
+                      - SUCCEEDED
+                  participantUid:
+                    type: string
+                  accessState:
+                    type: string
+                    enum:
+                      - ACTIVE
+                  postingSuspension:
+                    type: 'null'
+                  endedAt:
+                    type: string
+                    format: date-time
+                  allowedActions:
+                    type: array
+                    items:
+                      type: string
+              example:
+                result: SUCCEEDED
+                participantUid: c7d934725d23424daf163bf811a3506e
+                accessState: ACTIVE
+                postingSuspension: null
+                endedAt: '2026-07-23T16:52:00Z'
+                allowedActions:
+                  - CREATE_POSTING_SUSPENSION
+                  - REMOVE_PARTICIPANT
+                  - BAN_IDENTITY
+  /api/v0/governance/update-conversation-tags:
+    patch:
+      operationId: updateConversationTags
+      summary: Update conversation tags
+      description: Replaces the complete ordered tag set for an existing conversation and returns the committed display state.
+      tags:
+        - governance
+      x-solpoc-source-actions:
+        - "docs/mockup/desktop/governance/settings.md — Update Conversation Tags"
+      x-solpoc-mockup-files:
+        - docs/mockup/desktop/governance/settings.html
+        - docs/mockup/desktop/governance/settings.md
+      security:
+        - sessionCookie: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - conversationUid
+                - tags
+              properties:
+                conversationUid:
+                  type: string
+                tags:
+                  type: array
+                  minItems: 1
+                  maxItems: 10
+                  items:
+                    type: string
+            example:
+              conversationUid: f47ac10b58cc4372a5670e02b2c3d479
+              tags:
+                - design-systems
+                - accessibility
+                - frontend
+                - research
+      responses:
+        '200':
+          description: Committed tag and governance action state.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - result
+                  - conversationUid
+                  - tags
+                  - tagCount
+                  - lifecycleStatus
+                  - allowedActions
+                properties:
+                  result:
+                    type: string
+                    enum:
+                      - SUCCEEDED
+                  conversationUid:
+                    type: string
+                  tags:
+                    type: array
+                    items:
+                      type: string
+                  tagCount:
+                    type: integer
+                  lifecycleStatus:
+                    type: string
+                    enum:
+                      - ACTIVE
+                  allowedActions:
+                    type: array
+                    items:
+                      type: string
+              example:
+                result: SUCCEEDED
+                conversationUid: f47ac10b58cc4372a5670e02b2c3d479
+                tags:
+                  - design-systems
+                  - accessibility
+                  - frontend
+                  - research
+                tagCount: 4
+                lifecycleStatus: ACTIVE
+                allowedActions:
+                  - UPDATE_CONVERSATION_TAGS
+                  - ARCHIVE_CONVERSATION
+  /api/v0/governance/archive-conversation:
+    post:
+      operationId: archiveConversation
+      summary: Archive conversation
+      description: Archives an active conversation after owner confirmation without hard deletion.
+      tags:
+        - governance
+      x-solpoc-source-actions:
+        - "docs/mockup/desktop/governance/settings.md — Archive Conversation"
+      x-solpoc-mockup-files:
+        - docs/mockup/desktop/governance/settings.html
+        - docs/mockup/desktop/governance/settings.md
+      security:
+        - sessionCookie: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - conversationUid
+              properties:
+                conversationUid:
+                  type: string
+            example:
+              conversationUid: f47ac10b58cc4372a5670e02b2c3d479
+      responses:
+        '200':
+          description: Authoritative archived conversation state.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - result
+                  - conversationUid
+                  - lifecycleStatus
+                  - archivedAt
+                  - recordsRetained
+                  - allowedActions
+                properties:
+                  result:
+                    type: string
+                    enum:
+                      - SUCCEEDED
+                  conversationUid:
+                    type: string
+                  lifecycleStatus:
+                    type: string
+                    enum:
+                      - ARCHIVED
+                  archivedAt:
+                    type: string
+                    format: date-time
+                  recordsRetained:
+                    type: boolean
+                  allowedActions:
+                    type: array
+                    items:
+                      type: string
+              example:
+                result: SUCCEEDED
+                conversationUid: f47ac10b58cc4372a5670e02b2c3d479
+                lifecycleStatus: ARCHIVED
+                archivedAt: '2026-07-23T16:55:00Z'
+                recordsRetained: true
+                allowedActions: []
+components:
+  securitySchemes:
+    sessionCookie:
+      type: apiKey
+      in: cookie
+      name: tawk_session
+      description: Browser-managed opaque session reference.

@@ -56,7 +56,8 @@ No JSON request body is sent for this route.
       ],
       "reporter": {
         "displayName": "Priya Nair",
-        "identityType": "PERSON"
+        "identityType": "PERSON",
+        "membershipLabel": "Member"
       },
       "reasonExcerpt": "Personal attack after the keyboard test results were shared."
     }
@@ -64,6 +65,8 @@ No JSON request body is sent for this route.
   "totalCount": 1
 }
 ```
+
+An authorized zero-result branch returns `result: "READY"`, the authorized `governedConversations`, an empty `reports` array, and `totalCount: 0`; `selectedConversationUid` is `null` when no governed conversation is selected. When the reviewer has no governed scope, the response returns `result: "DENIED"` and omits conversation and report collections so the page shows its non-disclosing denied state. A recoverable retrieval failure returns `result: "FAILED"` with only display-ready retry guidance and no report data; the page keeps its current URL values and invokes this same route again.
 
 ## Retrieve Moderation Ticket : (`GET /api/v0/moderation/retrieve-moderation-ticket`)
 
@@ -94,7 +97,7 @@ The browser sends `Cookie: tawk_session={opaqueSessionRef}`. `reportNumber` and 
 
 No JSON request body is sent for this route.
 
-### Example Response Payload — No Active Suspension
+### Example Response Payload
 
 ```json
 {
@@ -174,34 +177,25 @@ No JSON request body is sent for this route.
 }
 ```
 
-### Example Response Payload — Existing Suspension
-
-The existing-suspension variant returns the public participant and suspension identifiers and current suspension end time required to continue to Update Posting Suspension. It also returns public conversation UIDs for the source and related discussion so the page can construct navigation links.
+The successful `result: "READY"` guidance also includes this concrete existing-suspension response variant:
 
 ```json
 {
-  "conversation": {
-    "conversationUid": "a12bc34d56ef4789a1234567890abcde",
-    "sourceAvailable": true
-  },
   "participant": {
     "participantUid": "c34de56f78a9412ba34567890abcdef1",
     "postingSuspension": {
       "suspensionUid": "e56f07819abc434da567890abcdef123",
       "endsAt": "2026-07-29T17:00:00-04:00"
     }
-  },
-  "relatedDiscussion": {
-    "conversationUid": "f6701892abcd445ea67890abcdef1234",
-    "tags": [
-      "#mod-review",
-      "#ticket-1048"
-    ]
   }
 }
 ```
 
-The page carries `participant.participantUid` forward as `participantUid`, `participant.postingSuspension.suspensionUid` as `suspensionUid`, and `participant.postingSuspension.endsAt` as `currentEndsAt` in the Update Posting Suspension request. For this variant, those values are exactly `c34de56f78a9412ba34567890abcdef1`, `e56f07819abc434da567890abcdef123`, and `2026-07-29T17:00:00-04:00`, respectively.
+For this existing-suspension variant, the page carries `participant.postingSuspension.suspensionUid` value `e56f07819abc434da567890abcdef123` into Update Posting Suspension as `suspensionUid`, and carries `participant.postingSuspension.endsAt` value `2026-07-29T17:00:00-04:00` into Update Posting Suspension as `currentEndsAt`.
+
+When an active suspension exists, `participant.postingSuspension` is an object containing the public `suspensionUid` and current `endsAt` value instead of `null`; `participant.canPost` is `false`, while `participant.canRead` and `participant.canRejoin` remain `true`. `allowedActions.createPostingSuspension` is `false` and `allowedActions.updatePostingSuspension` is `true`. The page carries those returned suspension values forward as `suspensionUid` and `currentEndsAt` when it invokes Update Posting Suspension. The source and related-discussion conversation UIDs remain public navigation values returned in the same ticket response.
+
+For retained deletion, `reportedMessage.isDeleted` is `true` and the retained evidence remains present, while `allowedActions.deleteReportedMessage` is `false`. When the source conversation is unavailable, `conversation.sourceAvailable` is `false` and source-navigation fields are omitted; when no related discussion exists, `relatedDiscussion` is `null`. Missing, unauthorized, failed, and timeout branches return only a display-ready `result` and retry or return guidance, omitting ticket evidence, participant data, notes, related-discussion data, and allowed actions. The page retries this route after failures and returns to the queue after missing or unauthorized results.
 
 ## Create Reviewer Note : (`POST /api/v0/moderation/create-reviewer-note`)
 
@@ -256,6 +250,8 @@ The browser sends `Cookie: tawk_session={opaqueSessionRef}`. `reportNumber` and 
   }
 }
 ```
+
+If the ticket is no longer reviewable, the response returns `result: "UNAVAILABLE"` without a `note`; the page does not append anything and reloads the ticket to reconcile current access and action availability. Invalid text returns a display-ready validation outcome without creating or returning a note.
 
 ## Delete Reported Message : (`DELETE /api/v0/moderation/delete-reported-message`)
 
@@ -321,6 +317,8 @@ The browser sends `Cookie: tawk_session={opaqueSessionRef}`. `reportNumber` and 
 }
 ```
 
+If the message was already soft-deleted, the response returns `result: "ALREADY_DELETED"` with the same public message UID, `isDeleted: true`, the retained-evidence effect, and current allowed actions. If access or the report-to-message binding is stale, the response returns `result: "UNAVAILABLE"` without message text or retained evidence; the page closes the pending action and reloads the ticket.
+
 ## Create Posting Suspension : (`POST /api/v0/moderation/create-posting-suspension`)
 
 Creates a time-bounded posting restriction for the active participant represented by the loaded ticket without ending membership or reading access. The browser carries forward the report number and public-safe participant identifier from the ticket response and supplies the reviewer-entered future end time plus confirmation; the route returns the effective restriction, applied effect, and continuation information required to expose the later Change action.
@@ -385,6 +383,8 @@ The browser sends `Cookie: tawk_session={opaqueSessionRef}`. `reportNumber` and 
   }
 }
 ```
+
+If the participant is no longer eligible for a posting restriction, the response returns `result: "NOT_APPLICABLE"` with current display-ready participant status and allowed actions but no suspension object. Invalid or non-future input returns `result: "REJECTED"` with field-level end-time guidance and no created suspension; the page leaves the form open for correction.
 
 ## Update Posting Suspension : (`PATCH /api/v0/moderation/update-posting-suspension`)
 
@@ -457,6 +457,8 @@ The browser sends `Cookie: tawk_session={opaqueSessionRef}`. `reportNumber` and 
 }
 ```
 
+If `currentEndsAt` no longer matches the authoritative suspension, the response returns `result: "STALE"` with the public `suspensionUid`, current `endsAt`, and current allowed actions but does not apply the replacement. If shortening needs acknowledgment and the request does not carry it, the response returns `result: "REJECTED"` with display-ready replacement guidance; the page keeps the dialog open and asks for the explicit acknowledgment.
+
 ## Remove Participant : (`DELETE /api/v0/moderation/remove-participant`)
 
 Ends the target participant's active membership for the ticket's source conversation without banning the identity or deleting retained membership and message history. The report number and public-safe participant identifier are carried forward from the loaded ticket and the action is sent only after confirmation; the route returns the current former-participant result and allowed actions so already-inactive or stale states cannot be applied twice.
@@ -521,6 +523,8 @@ The browser sends `Cookie: tawk_session={opaqueSessionRef}`. `reportNumber` and 
 }
 ```
 
+If the participant is already inactive, the response returns `result: "ALREADY_INACTIVE"` with the current public participant status, `canRejoin`, the applicable effect, and current allowed actions. If access or the ticket-to-participant binding is stale, the response returns `result: "UNAVAILABLE"` without participant history; the page reloads the ticket before offering another moderation action.
+
 ## Ban Participant : (`POST /api/v0/moderation/ban-participant`)
 
 Applies the durable moderation decision that blocks the target identity from participating in or rejoining the source conversation while retaining its historical membership, messages, and ticket evidence. The browser carries the report number and public-safe participant identifier from the loaded ticket and invokes the action after explicit confirmation; the route returns the banned outcome and updated allowed actions for successful, already-banned, or stale participant states.
@@ -584,3 +588,5 @@ The browser sends `Cookie: tawk_session={opaqueSessionRef}`. `reportNumber` and 
   }
 }
 ```
+
+If the participant is already banned, the response returns `result: "ALREADY_BANNED"` with the current public participant status, `canRejoin: false`, the applicable retained-history effect, and current allowed actions. If access or the ticket-to-participant binding is stale, the response returns `result: "UNAVAILABLE"` without participant history; the page reloads the ticket before offering another moderation action.

@@ -2,63 +2,64 @@
 
 ## Purpose
 
-Define the storage-neutral ownership and governance boundaries for Tawk data. Every schema object has one authoritative domain even when other domains consume it.
+This guide maps Tawk's durable schema objects to logical ownership and governance boundaries. Every object has exactly one authoritative domain even when other domains consume it.
 
 ## How To Use This Guide
 
-Domains describe logical ownership, authorization, lifecycle, and governance boundaries; they do not prescribe physical stores, services, queues, caches, or deployment units. **Provisional** marks the best-supported classification when evidence is incomplete, while **Open** marks a material decision the sources do not establish.
+Domains describe ownership, authorization, lifecycle, and consistency boundaries; they do not prescribe physical stores or deployment units. **Provisional** marks the best-supported choice where evidence is incomplete, while **Open** marks a material decision the sources do not resolve.
 
-## Identity and Authentication
+## Identity
 
 ### Purpose
 
-Owns identified actor profiles and bot authentication credentials. It determines who may authenticate, not what an actor may do inside a conversation.
+Own identified people and bots, their visible profiles, and the credentials that let bots authenticate.
 
 ### Justification
 
-Identity status and bot credential validity form an application-wide authentication and attribution boundary governed independently of conversation-scoped roles; credentials also contain authentication material with a stronger security posture than visible profiles.
+Identity is a separate boundary because actor identity and authentication are global to the application rather than owned by any conversation, and credential revocation and identity disablement must be governed before conversation-scoped authorization is evaluated.
 
 ### Domain Profile
 
 **Primary workflows and access patterns**
 
-- Authenticate a person through the selected human mechanism or a bot through a valid credential.
-- Resolve a stable identity for profile display and retained authorship or audit attribution.
-- Disable an identity or revoke, expire, rotate, and inspect a bot credential.
+- Resolve a person or bot by stable identity for attribution and profile display.
+- Authenticate a bot by credential and inspect or revoke that bot's credentials.
+- Check whether an identity is active before allowing application access.
 
 **Actors and access**
 
-- Each identified person or bot uses its visible profile; the sources do not define profile-administration authority.
-- Authentication processing reads identity status and credential validity, while conversation participants read permitted display profile data.
+- The selected human-authentication flow creates or updates person identities; the bot-credential issuance actor is not defined.
+- Authorized conversation surfaces read participant-visible profile fields only in contexts their viewers may access, while authentication components read and write credential state and identity access state.
 
 **Tenant and authorization boundary**
 
-Identity is application-wide; no organization or tenant key is defined. Conversation authority is derived separately through Membership, never from identity type, credential identifiers, or provider subjects.
+Identity is application-wide; conversation authority is derived through Membership rather than from an identity or credential identifier alone.
 
 **Security posture**
 
-Profiles combine display data visible with authorized conversation activity and private provider identifiers. Bot credential digests, prefixes, lifecycle state, and usage timestamps are sensitive credential material even though plaintext tokens are not retained.
+Profiles include participant-visible display identity plus potentially sensitive proper names and external authentication subjects. Bot Credential contains secret-derived credential material even though plaintext tokens are not retained.
 
 **Workload and cache posture**
 
-Profile display may use coherent copies, but authentication must use fresh identity status and credential state. Credential lookup and revocation checks cannot rely on potentially stale data.
+Profile display may use coherent copies, but identity status and credential validity require fresh reads for authentication and access decisions.
 
 **Consistency boundary**
 
-A Bot Credential must reference an Identity with `type: bot`; authentication also requires that both the credential and Identity are active and that an optional credential expiry has not passed.
+A Bot Credential must reference a bot Identity. Authentication requires both an active credential and active Identity, plus a non-expired credential when an expiry is present.
 
 **Belongs here when**
 
-A new object defines an application-wide actor, profile, authentication factor, credential lifecycle, or authentication eligibility.
+An object defines an application-wide actor, profile, authentication credential, or actor access lifecycle independent of conversation membership.
 
 **Does not belong here when**
 
-The object governs conversation-scoped participation, roles, content, moderation, or another domain's resource authorization.
+The object's authority is scoped to a conversation role, participation state, message, tag, or moderation case.
 
 **Open decisions**
 
-- **Open:** The human authentication mechanism and its administration boundary are not selected.
-- **Open:** Whether a profile retains a separate proper name in addition to the required display name is unresolved.
+- **Open:** The human authentication mechanism and its authority over `humanAuthSubject` are not selected.
+- **Open:** Bot token issuance and administration actors are not defined.
+- **Open:** Whether profiles retain both proper and display names remains unresolved.
 
 ### Objects
 
@@ -70,31 +71,31 @@ The object governs conversation-scoped participation, roles, content, moderation
 
 **Why it belongs here**
 
-It is the stable application-wide actor and visible profile used for authentication eligibility, authorship, and audit attribution.
+It is the stable application-wide actor record used by every conversation-scoped capability.
 
 **Record role**
 
-Authoritative mutable record for a person or bot profile and its enabled state.
+Authoritative mutable record for actor type, visible profile, and application access status.
 
 **Ownership path**
 
-Direct application-wide identity key `id`; no tenant owner key is defined.
+Directly owned by `Identity.id`; no conversation or provider identifier establishes its authority.
 
 **Authoritative writers and readers**
 
-Profile and authentication administration write it, although the responsible actor is unspecified; authentication, conversation participation, content display, and audit workflows read it.
+The unresolved human-authentication/profile process and bot provisioning process write it; authorized product surfaces read it for attributable activity, and authorization checks read its access state.
 
 **Sensitivity**
 
-The display name is visible with conversation activity; `properName` and `humanAuthSubject` are sensitive personal/provider data.
+Participant-visible display name with potentially sensitive proper name and external human-authentication subject.
 
 **Freshness and cache posture**
 
-Fresh read required for authentication and access denial based on `status`; visible profile copies require coherence with profile changes.
+Fresh read required for access status; profile copies are safe only with coherence and the correct audience.
 
 **Consistency and lineage**
 
-Its type constrains Bot Credential ownership, and its stable identifier preserves attribution after memberships end or the identity is disabled.
+Disabled identities remain stable attribution targets for retained messages and audit history. Bot credentials may authenticate only identities whose `type` is `bot`.
 
 #### Bot Credential
 
@@ -104,174 +105,90 @@ Its type constrains Bot Credential ownership, and its stable identifier preserve
 
 **Why it belongs here**
 
-It authenticates one bot identity and has a credential lifecycle independent of that bot's conversation memberships.
+It governs authentication of one bot Identity independently of that bot's conversation memberships.
 
 **Record role**
 
-Authoritative mutable record for a revocable and optionally expiring bot credential.
+Authoritative mutable record for credential validity, revocation, expiry, and use metadata.
 
 **Ownership path**
 
-Owned directly through `identityId`, which must resolve to an Identity whose type is `bot`.
+`identityId` points to the bot Identity that owns the credential.
 
 **Authoritative writers and readers**
 
-Credential issuance and administration write lifecycle state; bot authentication reads the digest, status, expiry, and owning Identity status.
+The unresolved bot credential-management process issues, rotates, and revokes it; authentication components read it and may update `lastUsedAt`.
 
 **Sensitivity**
 
-Secret or credential material: `tokenDigest`, identifying prefix, lifecycle timestamps, and usage timestamps require restricted access; the plaintext token is explicitly not retained.
+Secret or credential material: the digest and identifying prefix remain sensitive even though the plaintext token is never stored.
 
 **Freshness and cache posture**
 
-Fresh read required for authentication, revocation, expiry, and identity-disablement decisions.
+Fresh read required for every authentication decision because revocation, expiry, and Identity disablement must take effect.
 
 **Consistency and lineage**
 
-An active credential authenticates only while its owning bot Identity is active and the optional expiry remains in the future; revoked state requires `revokedAt`.
+An active credential cannot carry `revokedAt`; a revoked credential requires it. Authentication also depends on the referenced Identity remaining an active bot.
 
-## Tag Vocabulary
+## Discovery
 
 ### Purpose
 
-Owns the canonical, reusable tag values shared across conversations. It does not own conversation-specific tag assignments or decide who may join a conversation.
+Own conversation identity and lifecycle, the shared tag vocabulary, and effective tag assignments used to create, discover, and enter conversations.
 
 ### Justification
 
-Tags are explicitly shared identifiers owned by neither users nor conversations, with application-wide normalization and reuse rules; that neutral vocabulary governance is distinct from the owner- or administrator-governed assignment of tags to a particular conversation.
+Discovery is a separate boundary because it governs application-wide tag meaning and privacy-sensitive listed versus unlisted lookup behavior, while conversation-scoped participation and content have different writers, authorization rules, and retained lifecycles.
 
 ### Domain Profile
 
 **Primary workflows and access patterns**
 
-- Normalize and reuse case-insensitive simple or key/value tags.
-- Resolve a canonical tag during conversation creation, assignment, discovery, and known-unlisted entry.
-- Supply autocomplete candidates only through eligibility derived from active assignments to listed conversations.
+- Create a listed or unlisted conversation with one to ten ordered tags.
+- Suggest only tags eligible through active listed-conversation assignments.
+- Match identifiable listed conversations or count hidden unlisted matches without disclosing their identity.
+- Maintain tags and archive a conversation under conversation-role authority.
 
 **Actors and access**
 
-- Identified people and bots may introduce or use tag values through conversation workflows.
-- Discovery users may read only values eligible for suggestions; conversation owners and administrators govern assignments, not the shared values themselves.
+- Identified people and bots create conversations and tags.
+- Conversation owners and administrators maintain tag assignments; only owners archive conversations.
+- Identified users read listed discovery data. Standard unlisted identifiers and private-only tags remain protected until their join rules are satisfied; confidential moderation-discussion data remains limited to authorized participants and cannot be exposed by tag knowledge alone.
 
 **Tenant and authorization boundary**
 
-Tags are application-wide and have no user, conversation, organization, or tenant owner. A tag's existence never authorizes access to a conversation.
+Conversation is the owner boundary for lifecycle and tag assignments. Tags are globally reusable and unowned, so `Tag.id` never grants access to a conversation; in particular, knowing the tags of a confidential moderation discussion is not sufficient authorization to join it.
 
 **Security posture**
 
-The canonical vocabulary is controlled reference data, but a value used only by unlisted conversations is privacy-sensitive and must not be exposed through autocomplete.
+Listed discovery attributes are visible to identified users. Unlisted conversation identity, private tag combinations, optional title and description, and moderator-discussion links are tenant-private and may be moderation-sensitive.
 
 **Workload and cache posture**
 
-Canonical values support exact normalized lookup. Autocomplete is a derived view whose eligibility must remain coherent with current listed Conversation Tag assignments and Conversation visibility.
+Search and autocomplete may use coherent derived results, but join eligibility, unlisted privacy, active tag count, and archival decisions require current authoritative state.
 
 **Consistency boundary**
 
-Tag normalization must remain canonical and case-insensitive; suggestion eligibility is derived rather than stored authority and must follow active listed-conversation associations.
+Conversation creation changes Conversation, the first-owner Membership and Membership Role Period, and initial Conversation Tags together. Active assignments must preserve one to ten tags, and autocomplete eligibility is derived from active listed assignments.
 
 **Belongs here when**
 
-A new object defines a reusable, conversation-neutral tag value or a controlled rule intrinsic to the vocabulary itself.
+An object defines conversation identity or lifecycle, canonical tag meaning, effective conversation-tag assignment, or privacy-sensitive discovery behavior.
 
 **Does not belong here when**
 
-The object assigns a tag to a conversation, ranks that assignment, exposes a conversation in discovery, or governs joining and access.
+The object governs who participates, authored conversation content, actor authentication, or report-driven moderation.
 
 **Open decisions**
 
-- **Open:** Display casing policy and the final exact tag grammar remain unresolved.
-
-### Objects
-
-#### Tag
-
-**Schema file**
-
-`tag.yaml`
-
-**Why it belongs here**
-
-It is the canonical application-wide value reused by any number of conversations and owned by none of them.
-
-**Record role**
-
-Reference or controlled configuration for a normalized tag value.
-
-**Ownership path**
-
-Direct application-wide key `id`; there is no tenant, identity, or conversation owner.
-
-**Authoritative writers and readers**
-
-Conversation creation and tag-management workflows may establish canonical values; conversation assignment, matching, joining, and eligible autocomplete read them.
-
-**Sensitivity**
-
-The value is not inherently public: a tag associated only with unlisted conversations must be treated as private discovery data and excluded from suggestions.
-
-**Freshness and cache posture**
-
-Current controlled configuration: reusable copies of the canonical value require coherence with normalization or display changes. Autocomplete eligibility is derived or replaceable and must never become an independent source of exposure truth.
-
-**Consistency and lineage**
-
-`normalizedValue` is the case-insensitive authority; optional `displayValue` must not change equality, and discovery eligibility depends on current cross-domain assignments.
-
-## Conversations and Discovery
-
-### Purpose
-
-Owns each conversation's purpose, discovery and matching policy, lifecycle, and governed tag assignments. It is the aggregate boundary for creating, finding, joining, and archiving a tagged space.
-
-### Justification
-
-Conversation owners and administrators govern discovery policy, lifecycle, and tag assignments under privacy and ownership-continuity rules, creating a conversation-scoped authority boundary distinct from shared tag vocabulary, participant authorization history, and content authored inside the space.
-
-### Domain Profile
-
-**Primary workflows and access patterns**
-
-- Create a listed or unlisted conversation with one to ten active tag assignments and a first owner.
-- Find identifiable listed matches or evaluate non-identifying hidden matches from supplied tags.
-- Change tag assignments, resolve joined-conversation context, and archive a conversation.
-- Link an unlisted moderation-discussion conversation to the ticket it discusses.
-
-**Actors and access**
-
-- Any identified person or token-authenticated bot may create or attempt to find and join a conversation.
-- Owners and administrators manage tags; only owners archive.
-- Listed discovery exposes eligible conversation identity, while unlisted discovery withholds identity and private tags until the complete unique match rule is satisfied.
-
-**Tenant and authorization boundary**
-
-The Conversation is the conversation-scoped resource boundary. Membership grants participation; possession of tags, `moderationTicketId`, or a conversation identifier alone does not authorize access.
-
-**Security posture**
-
-Listed discovery attributes are discoverable only to identified users. Unlisted identity, tag combinations, moderation-discussion purpose, descriptions, and ticket linkage are tenant-private and may be confidential.
-
-**Workload and cache posture**
-
-Common access shapes are joined-conversation lists, tag-set matching, privacy-safe hidden-match counts, and direct conversation context. Current visibility, archive state, matching mode, and active tag assignments require coherent reads for discovery and joining.
-
-**Consistency boundary**
-
-Creation must establish the Conversation, first-owner Membership and role period, and one to ten active Conversation Tags together. Active tag assignments must have unique tag and position values, and removing the final active tag is forbidden.
-
-**Belongs here when**
-
-A new object is governed by a conversation owner or administrator and defines that conversation's discovery identity, lifecycle, settings, or assignment of shared classification values.
-
-**Does not belong here when**
-
-The object is a reusable global value, establishes an identity's participation or role, contains participant-authored content, or records a moderation case or action.
-
-**Open decisions**
-
-- **Open:** Extra-tag behavior for listed and unlisted matching and the interface for multiple complete hidden matches are unresolved.
-- **Open:** Archived-conversation visibility and read behavior are unresolved.
-- **Open:** Whether titles or descriptions are required and how changes to unlisted tags affect existing access paths are unresolved.
-- **Open:** Whether a linked moderation-discussion conversation is required, optional, or deferred is unresolved; when it exists, it remains a Conversation owned here.
+- **Open:** Extra-tag matching and multiple hidden-match behavior are not fully defined and affect safe unlisted lookup.
+- **Open:** Archived-conversation search and participant visibility are unresolved.
+- **Open:** Tag display casing and some tag grammar details remain unresolved.
+- **Open:** The effect of changing an unlisted conversation's tags on in-progress joins or saved access is not defined.
+- **Open:** Conversation title and description requirements remain unresolved.
+- **Open:** Authority and behavior for changing visibility or matching mode after creation are not established; any future rule must preserve listed and unlisted privacy guarantees.
+- **Open:** The eligibility rule for joining a confidential moderation-discussion Conversation is not defined; its unlisted `allTags` configuration hides discovery data but must not be treated as sufficient authorization.
 
 ### Objects
 
@@ -283,31 +200,65 @@ The object is a reusable global value, establishes an identity's participation o
 
 **Why it belongs here**
 
-It is the aggregate root that defines the tagged space's discovery mode, purpose, and active or archived lifecycle.
+It is the authoritative record for a conversation's discoverability, matching behavior, purpose, and archival lifecycle.
 
 **Record role**
 
-Authoritative mutable record for conversation policy and lifecycle.
+Authoritative mutable record for conversation discovery and lifecycle state.
 
 **Ownership path**
 
-Direct conversation key `id`; governance authority derives through an active Membership in the same conversation with the required owner or administrator role.
+Directly owned by `Conversation.id`; governance authority is derived through an active Membership and allowed role in that conversation.
 
 **Authoritative writers and readers**
 
-The creator establishes it; owners and permitted administrators govern supported settings, while only owners archive. Identified discovery users, members, and dependent domains read the permitted state.
+Identified creators establish it; owners and administrators govern its tag assignments, while only owners archive it. Authority to change other Conversation settings after creation is not established. Discovery, participation, content, and moderation workflows read it.
 
 **Sensitivity**
 
-Listed identity is discoverable to identified users; unlisted identity, tag linkage, and moderation ticket linkage are tenant-private or confidential.
+Listed records expose discovery identity to identified users; unlisted and moderation-discussion records are tenant-private and can reveal confidential tag combinations or ticket linkage.
 
 **Freshness and cache posture**
 
-Fresh read required for join, archive, and authorization-sensitive discovery decisions; ordinary presentation copies require coherence with visibility and lifecycle changes.
+Fresh read required for joining, archival, and correctness decisions; discovery copies require coherence with visibility, matching mode, status, purpose, and active tag changes. A moderation-discussion join must also enforce its still-open confidential eligibility rule rather than rely on tag knowledge alone.
 
 **Consistency and lineage**
 
-Archive fields must agree with status; purpose controls ticket linkage and unlisted all-tag matching. Archival is coordinated with the last-owner rule and retains all dependent history.
+Unlisted conversations use `allTags`; moderation discussions are unlisted, use `allTags`, and pin a Moderation Ticket. Archival requires actor and time, and ownership continuity must be enforced with Participation state.
+
+#### Tag
+
+**Schema file**
+
+`tag.yaml`
+
+**Why it belongs here**
+
+It defines the shared canonical vocabulary used by conversation discovery and joining.
+
+**Record role**
+
+Reference or controlled configuration for a globally reusable normalized tag.
+
+**Ownership path**
+
+Directly owned by `Tag.id`; it has no identity or conversation owner.
+
+**Authoritative writers and readers**
+
+Identified conversation creators or tag managers can introduce reusable values; discovery and conversation configuration read them.
+
+**Sensitivity**
+
+The value is not automatically public: a tag known only through unlisted assignments must not be exposed through autocomplete.
+
+**Freshness and cache posture**
+
+Current-state reference; normalized values may be reused, but discovery eligibility must be recalculated from current Conversation and Conversation Tag state.
+
+**Consistency and lineage**
+
+`normalizedValue` is the canonical case-insensitive meaning. Whether `displayValue` preserves creator casing remains open.
 
 #### Conversation Tag
 
@@ -317,85 +268,85 @@ Archive fields must agree with status; purpose controls ticket linkage and unlis
 
 **Why it belongs here**
 
-It records an owner- or administrator-governed assignment that controls one conversation's classification, discovery, and joining behavior.
+It is the retained authoritative assignment connecting the shared tag vocabulary to one conversation.
 
 **Record role**
 
-Authoritative mutable temporal association, stable after removal.
+Authoritative mutable record for an effective, ordered tag assignment that becomes stable after removal.
 
 **Ownership path**
 
-Owned through `conversationId`; `tagId` references the shared Tag without transferring assignment ownership.
+`conversationId` is the direct owner; `tagId` references the shared Tag and does not confer conversation access.
 
 **Authoritative writers and readers**
 
-Conversation owners and administrators add or remove assignments; creation, discovery, joining, tag management, and the Tag domain's autocomplete-eligibility derivation read them.
+Conversation owners and administrators add and remove assignments; discovery, joining, and conversation settings read active assignments.
 
 **Sensitivity**
 
-Assignments on unlisted conversations are tenant-private and must not leak private tag combinations; actor identifiers and removal history are internal operational data.
+Assignments on an unlisted conversation are tenant-private even when the same Tag appears in listed conversations.
 
 **Freshness and cache posture**
 
-Fresh read required for matching, joining, and last-tag enforcement; removed assignment history is immutable by identifier once its end metadata is complete.
+Fresh read required for join matching, privacy-safe suggestions, and the one-to-ten invariant; derived discovery results require coherence.
 
 **Consistency and lineage**
 
-Each conversation must retain one to ten active assignments with unique `(conversationId, tagId)` and positions; `removedAt` and `removedById` change together.
+Active assignments require unique tag and position within the conversation, must number one to ten, and cannot remove the final active tag. Removal time and actor appear together.
 
-## Membership and Authorization
+## Participation
 
 ### Purpose
 
-Owns the current and historical relationship between an identity and a conversation. It is the authority for participation state, conversation role, ownership continuity, and historical role evidence.
+Own the current and historical relationship between an identity and a conversation, including role authority, joining, leaving, removal, banning, and restoration.
 
 ### Justification
 
-Membership state is the conversation-scoped authorization boundary used across joining, viewing, posting, governance, and moderation, and its temporal role and event history must preserve authority after current state changes; that security and lineage responsibility is distinct from conversation settings and authored content.
+Participation is a separate boundary because Membership is the conversation tenant and authorization boundary for ordinary use and governance, and its current state must remain consistent with temporal role history and append-only change evidence independently of actor identity, conversation discovery, or authored content.
 
 ### Domain Profile
 
 **Primary workflows and access patterns**
 
-- Verify current membership and role for viewing, posting, member lists, governance, and moderation.
-- Join, rejoin, leave, remove, ban, unban, or change a participant's role.
-- List active participants and expose former participants only to authorized owners or administrators.
-- Reconstruct role periods and explanatory membership transitions for historical authorization and audit.
+- Check current membership and role for viewing, joining, posting, governance, and moderation.
+- List active participants and, for authorized moderators, retained former participants.
+- Join, rejoin, leave, remove, ban, unban, and change roles while preserving history.
+- Inspect role periods and explanatory events for historical authorization or audit.
 
 **Actors and access**
 
-- Identified people and bots hold memberships under the same role model.
-- Owners manage roles including ownership; administrators manage non-owner participants but cannot alter owners.
-- Ordinary members read only the current participant view permitted by the conversation.
+- Identified actors create their eligible membership by joining.
+- Owners and administrators manage participants within role limits; only owners alter owner roles.
+- Active participants read the permitted roster, while owners and administrators may inspect former membership history.
 
 **Tenant and authorization boundary**
 
-Every record is owned by the `conversationId` and identity relationship established by Membership. `identityId`, external provider data, or globally unique identifiers alone never grant conversation access.
+`Membership.conversationId` establishes the conversation scope; authorization requires current active status and an allowed current role, not merely an identity, external identifier, or historical role.
 
 **Security posture**
 
-Membership status, roles, ban state, change reasons, actor attribution, and historical periods are tenant-private authorization and operational data.
+Membership and role state are tenant-private. Former participation, bans, reasons, actor identities, and ticket links are privileged governance or audit data.
 
 **Workload and cache posture**
 
-Current membership and role require fresh reads for every consequential permission decision. History is owner- or administrator-scoped and closed periods or append-only events may be reused only with authorization preserved.
+Current Membership is a fresh-read authorization record. Closed role periods and append-only events may be reused by identifier within conversation-authorized audit contexts.
 
 **Consistency boundary**
 
-Membership, its current open role period, and Membership Events must describe the same transitions. Role changes close and open periods together, active ownership cannot drop to zero unless the Conversation is archived, and copied conversation and identity keys must match Membership.
+Membership current state, non-overlapping role periods, and explanatory events must describe the same transition. A conversation must retain an active owner unless it is archived in the same change.
 
 **Belongs here when**
 
-A new object defines or explains an identity's conversation participation, role, ban state, authorization interval, or membership transition.
+An object defines current or historical conversation participation, role authority, or an explanatory participation transition.
 
 **Does not belong here when**
 
-The object defines application authentication, conversation settings, participant-authored content, or the moderation case and sanction evidence that causes a membership change.
+The object defines global actor authentication, conversation discovery, authored content, or a conduct restriction and audit trail imposed through moderation.
 
 **Open decisions**
 
-- **Open:** The exact rejoin treatment on an existing Membership and any additional eligibility restrictions are unresolved.
-- **Open:** Whether posting can be denied for reasons other than bans and time-limited Posting Suspensions is unresolved.
+- **Open:** Rejoin behavior and how new participation periods are represented on the retained Membership are not finalized.
+- **Open:** Whether posting can be denied for reasons other than bans and Posting Suspensions is unresolved.
 
 ### Objects
 
@@ -407,31 +358,31 @@ The object defines application authentication, conversation settings, participan
 
 **Why it belongs here**
 
-It is the authoritative current identity-to-conversation relationship used for participation and role authorization.
+It is the current authoritative relationship used to decide whether one identity may participate in one conversation.
 
 **Record role**
 
-Authoritative mutable record for current participation and role state.
+Authoritative mutable record for current conversation participation and role.
 
 **Ownership path**
 
-Owned by `conversationId`, with `identityId` identifying the participant; authorization is derived from `currentStatus: active` and an allowed `currentRole`.
+`conversationId` is the tenant owner and `identityId` identifies the participant; authorization is derived from both plus `currentStatus` and `currentRole`.
 
 **Authoritative writers and readers**
 
-Join and self-leave workflows plus authorized owner or administrator governance write it. All conversation participation, governance, messaging, and moderation permission checks read it.
+Eligible identities create or reactivate their membership; owners and administrators change non-owner participation, and owners govern owner roles. All conversation-scoped capabilities read it for authorization.
 
 **Sensitivity**
 
-Tenant-private authorization data including current role, inactive or banned state, and actor-attributed end history.
+Tenant-private access and role state; former, removed, and banned states have restricted visibility.
 
 **Freshness and cache posture**
 
-Fresh read required for viewing, joining, posting, leaving, role changes, moderation authority, and banned-identity checks.
+Fresh read required for viewing, joining, posting, role management, moderation authority, and ban enforcement.
 
 **Consistency and lineage**
 
-It must agree with its role periods and events; current active and banned states constrain `currentRole`, and ownership changes must preserve another active owner unless archival occurs in the same change.
+Current state must agree with the open Membership Role Period and the latest Membership Event. Ending the last active owner is forbidden unless the Conversation is archived in the same change.
 
 #### Membership Role Period
 
@@ -441,31 +392,31 @@ It must agree with its role periods and events; current active and banned states
 
 **Why it belongs here**
 
-It preserves the effective interval for each role so historical conversation authority remains inspectable.
+It preserves the time-bounded authority history of one Membership.
 
 **Record role**
 
-Authoritative mutable temporal record while open, then an immutable snapshot after `effectiveTo`.
+Authoritative mutable record while open; terminally stable after the role period ends.
 
 **Ownership path**
 
-Owned through `membershipId`; copied `conversationId` and `identityId` must equal the referenced Membership values.
+`membershipId` is the direct owner, and its copied `conversationId` and `identityId` must match that Membership.
 
 **Authoritative writers and readers**
 
-Join and authorized role-governance workflows open or close periods; permission investigation and audit readers use the historical intervals.
+The participation transition workflow opens and closes periods under owner or administrator authority; governance and audit workflows read them.
 
 **Sensitivity**
 
-Tenant-private role and authorization history with assigning and ending actor identifiers.
+Tenant-private historical authorization, including bans represented by role `none` and the assigning or ending actors.
 
 **Freshness and cache posture**
 
-Fresh read required when an open period informs current authority; a closed period is immutable by identifier but remains restricted to authorized use.
+Terminally stable after `effectiveTo`; the current open period requires fresh reads and must not substitute for current Membership authorization.
 
 **Consistency and lineage**
 
-Periods for one Membership cannot overlap and only one may remain open; a role change ends the prior period and creates the next atomically.
+Periods for one Membership cannot overlap, at most one may remain open, and a role change closes the current period and opens its successor together.
 
 #### Membership Event
 
@@ -475,84 +426,85 @@ Periods for one Membership cannot overlap and only one may remain open; a role c
 
 **Why it belongs here**
 
-It is the append-only explanation of how participation and role state changed, including moderation-driven transitions.
+It explains the cause, actor, and optional moderation lineage for each participation transition.
 
 **Record role**
 
-Append-only audit evidence for a membership transition.
+Append-only audit evidence for membership and role changes.
 
 **Ownership path**
 
-Owned through `membershipId` and its matching `conversationId` and `identityId`; optional `moderationTicketId` provides cause lineage, not ownership.
+`membershipId` is the direct owner; copied conversation and identity fields derive from that Membership.
 
 **Authoritative writers and readers**
 
-Join, leave, role-management, and moderation workflows append events; authorized governance, moderation, and audit investigation read them.
+The participation transition workflow appends it; authorized owners, administrators, and audit processes read it.
 
 **Sensitivity**
 
-Tenant-private audit evidence that may include role changes, ban state, actor identity, reasons, and moderation-ticket linkage.
+Privileged tenant audit data including reasons, actor identity, role changes, bans, and optional ticket linkage.
 
 **Freshness and cache posture**
 
-Immutable by identifier after creation; reusable copies must preserve conversation authorization and sensitive-reason handling.
+Immutable by identifier after creation, but reuse remains limited to authorized tenant and audit contexts.
 
 **Consistency and lineage**
 
-Transition type constrains role values, and the event must explain the corresponding Membership and role-period change while retaining optional ticket provenance.
+Event role values must describe the transition type, and `moderationTicketId` preserves lineage when moderation prompted the change.
 
-## Messaging
+## Content
 
 ### Purpose
 
-Owns participant-authored conversation messages and retained emoji responses. It preserves authorship and visibility state after membership changes without owning participant authorization.
+Own participant-authored messages, retained emoji responses, and contextual notes attached to conversation work.
 
 ### Justification
 
-Messages and reactions are authored interaction records with retention, soft-removal, chronological access, and content sensitivity distinct from the authorization history that permits creation and the case-oriented moderation records that may later change visibility.
+Content is a separate boundary because participants author and interact with retained expressive content under conversation access, while its visibility, soft deletion, attribution, and potentially personal or moderator-only audiences differ from discovery configuration, participation authority, and case-governed moderation evidence.
 
 ### Domain Profile
 
 **Primary workflows and access patterns**
 
-- Read a conversation's visible message history in chronological context.
-- Post a message as an active participant and retain attribution after departure.
-- Soft-delete a permitted message and add or withdraw an emoji reaction.
-- Supply the reported message and surrounding context for moderation review.
+- Read chronological visible messages and post within an active conversation.
+- Soft-delete a message under author or moderator authority.
+- Add or withdraw emoji reactions on visible messages.
+- Attach, read, and soft-delete contextual notes according to their eventual audience.
 
 **Actors and access**
 
-- Active members, whether people or bots, create messages and reactions.
-- Authors delete their own messages; owners and administrators may delete messages under conversation authority.
-- Only actors allowed to view the conversation may read content and reactions.
+- Active people and bots author messages and reactions and may add notes.
+- Authors delete their own permitted content; owners and administrators may delete messages and may use privileged notes.
+- Readers require conversation access plus any object-specific visibility rule.
 
 **Tenant and authorization boundary**
 
-Every record is owned by `conversationId`; read and write permission derives from fresh Membership state, with historical role evidence used where a deletion authorization must be reconstructed.
+Conversation and current Membership determine ordinary content access. A Note may impose a narrower audience, but that audience model is unresolved.
 
 **Security posture**
 
-Message bodies, deleted content, deletion reasons, authorship, and reactions are tenant-private user content. Soft-deleted bodies remain sensitive even when hidden from participant views.
+Tenant-private user-generated content can contain sensitive personal information. Deleted message bodies remain retained, and ticket notes or restricted notes may contain privileged moderation context.
 
 **Workload and cache posture**
 
-Conversation-scoped chronological reads and reaction display dominate. Visible-content views must remain coherent with soft deletion and withdrawal; posting and reaction writes require fresh authorization.
+Thread reads and message-context lookups are conversation-scoped. Current deletion, reaction removal, note deletion, and note audience state require coherent or fresh reads before display.
 
 **Consistency boundary**
 
-Message deletion metadata changes together and the deletion actor must be the author or an authorized moderator at deletion time. Reactions must reference a Message in the same Conversation and an active participant at creation.
+Message authorship remains attributable after membership ends. Reactions must reference a Message in the same Conversation, and a Note targets exactly one Conversation, Message, or Moderation Ticket.
 
 **Belongs here when**
 
-A new object is participant-authored conversational content, a retained response to that content, or a subordinate replaceable presentation of message history.
+An object is participant-authored expressive content, a lightweight response to that content, or contextual annotation whose primary lifecycle is content creation and visibility.
 
 **Does not belong here when**
 
-The object grants participation, records a report or moderation sanction, or adds separately governed annotation content with its own audience rules.
+The object establishes participation authority, discovery settings, authentication, or the authoritative workflow and enforcement evidence for a moderation case.
 
 **Open decisions**
 
-- **Open:** The supported emoji set and uniqueness or multiplicity rules for one identity's reactions remain unresolved.
+- **Open:** Note audiences, access when `visibility` is absent, audience-change authority, and visibility enforcement are not finalized; Note placement here is **Provisional** because ticket notes may ultimately require a stronger moderation ownership boundary.
+- **Open:** The supported emoji set and per-identity reaction multiplicity are unresolved.
 
 ### Objects
 
@@ -564,31 +516,31 @@ The object grants participation, records a report or moderation sanction, or add
 
 **Why it belongs here**
 
-It is the authoritative participant-authored content record for a conversation and retains its author relationship after departure.
+It is the authoritative participant-authored content record for a conversation thread.
 
 **Record role**
 
-Authoritative mutable record with retained content and soft-deletion visibility state.
+Authoritative mutable record with retained body and mutable soft-deletion metadata.
 
 **Ownership path**
 
-Owned by `conversationId`; `authorIdentityId` attributes authorship, while permission derives through the author's Membership at posting time.
+`conversationId` is the tenant owner; `authorIdentityId` preserves attribution, while current Membership governs access and posting.
 
 **Authoritative writers and readers**
 
-Active participants create messages; the author or an authorized owner or administrator may soft-delete them. Authorized participants and moderation reviewers read permitted content.
+Active participants create messages; the author or a conversation owner or administrator may soft-delete them. Authorized participants read visible messages, and moderators read reported context.
 
 **Sensitivity**
 
-Tenant-private message content, authorship, retained deleted body, deletion actor, and optional deletion reason.
+Tenant-private message content and deletion rationale; soft-deleted content remains sensitive even when omitted from participant views.
 
 **Freshness and cache posture**
 
-Current authoritative content: any cached visible-history projection requires coherence with message soft-deletion changes; creation and deletion authorization require fresh Membership or historical role evidence.
+Fresh read required before display or moderation action so soft deletion and current conversation access are honored.
 
 **Consistency and lineage**
 
-Deletion fields must agree, and moderator deletion lineage is preserved through Moderation Action rather than a single backward ticket reference.
+Deletion actor must be the author or an identity with active owner or administrator authority at deletion time. Ticket-driven deletion lineage is preserved by Moderation Action.
 
 #### Emoji Reaction
 
@@ -598,86 +550,120 @@ Deletion fields must agree, and moderator deletion lineage is preserved through 
 
 **Why it belongs here**
 
-It is a subordinate participant response to one Message and follows that Message's conversation access boundary.
+It is a participant-authored retained response whose meaning and display are subordinate to one Message.
 
 **Record role**
 
-Authoritative mutable association with soft-removal state.
+Authoritative mutable record for a reaction association and its soft removal.
 
 **Ownership path**
 
-Owned through `messageId` and its `conversationId`; `identityId` identifies the reacting active participant.
+`messageId` is the direct content owner; copied `conversationId` must match the Message, and `identityId` identifies the reacting participant.
 
 **Authoritative writers and readers**
 
-Active participants add or withdraw their reactions; authorized message viewers read active reaction displays.
+Active participants add and withdraw their reactions; authorized conversation participants read active reactions.
 
 **Sensitivity**
 
-No override to the domain posture; reacting identity and response remain tenant-private conversation activity.
+Tenant-private interaction metadata; no override to Message content access.
 
 **Freshness and cache posture**
 
-Current authoritative association: any cached active-reaction projection requires coherence with `removedAt`; creation must use fresh Membership authorization.
+Current-state read; displayed reaction sets require coherence with `removedAt`, Message visibility, and current conversation access.
 
 **Consistency and lineage**
 
-The referenced Message and copied `conversationId` must agree, and the reacting identity must have active Membership when the reaction is created.
+The referenced Message must belong to the copied Conversation, and the reacting Identity must have active Membership when the reaction is created.
+
+#### Note
+
+**Schema file**
+
+`note.yaml`
+
+**Why it belongs here**
+
+**Provisional:** It is authored contextual content attached to conversation work, although ticket-note governance may justify a future split after the visibility model is decided.
+
+**Record role**
+
+Authoritative mutable record for contextual content, audience, and soft deletion.
+
+**Ownership path**
+
+Exactly one of `conversationId`, `messageId`, or `moderationTicketId` is the direct target; access derives through that target's Conversation plus the Note audience.
+
+**Authoritative writers and readers**
+
+Identified participants or moderators create notes in permitted contexts; author and moderator edit/delete authority is not fully defined, and readers depend on the unresolved visibility model.
+
+**Sensitivity**
+
+Potentially sensitive user-authored or moderator-only content; a ticket note may include report evidence or operational reasoning.
+
+**Freshness and cache posture**
+
+Fresh read required until visibility and deletion authority are defined; potentially stale or broadly shared copies must not determine or expand the audience.
+
+**Consistency and lineage**
+
+Each Note targets exactly one supported object. Ticket notes retain lineage to Moderation Ticket, while message notes derive conversation scope through Message.
 
 ## Moderation
 
 ### Purpose
 
-Owns message reports, moderator decisions, action evidence, and time-bounded posting restrictions. It preserves case provenance and the consequences of privileged conduct review.
+Own reports of concerning messages, moderator enforcement decisions, and time-bounded posting restrictions.
 
 ### Justification
 
-Moderation is a conversation-scoped privileged trust boundary with case-specific sensitive evidence, authorized owner or administrator writers, append-only action lineage, and sanction state used for permission decisions; these governance and audit requirements differ from ordinary content and general membership administration.
+Moderation is a separate boundary because owners and administrators govern sensitive report evidence and enforcement under conversation-scoped trust, with case lineage, append-only action evidence, and fresh restriction checks that differ materially from ordinary participation and content lifecycles.
 
 ### Domain Profile
 
 **Primary workflows and access patterns**
 
-- Create a numbered report from a visible message and participant explanation.
-- List and review cases only for conversations the reviewer governs.
-- Retain evidence, resolution context, and supported actions such as deletion, removal, banning, restoration, or posting restriction.
-- Check whether a time-bounded posting restriction is currently effective.
+- Create a numbered report from a visible message.
+- List and review reports only for conversations the reviewer governs.
+- Record message deletion, participant changes, and posting-restriction actions with ticket lineage when applicable.
+- Check, impose, and lift time-bounded posting restrictions.
 
 **Actors and access**
 
-- An active participant who can view a message creates its ticket.
-- Conversation owners and administrators read reports and write supported actions, suspensions, and resolution data; exact action parity is unresolved.
-- Affected participants do not gain access to privileged case data merely because they are targets or reporters.
+- Active participants create reports.
+- Conversation owners and administrators read tickets and take supported actions; the exact division of moderation authority remains open.
+- Messaging and Participation consume enforcement results but do not own moderation evidence.
 
 **Tenant and authorization boundary**
 
-Each case and action is owned by `conversationId`; reporter, target, ticket number, or linked message identifiers do not grant access. Moderator authority derives through fresh conversation Membership.
+`conversationId` governs ticket, action, and suspension access; reviewer authority derives from fresh active Membership and role state in that conversation.
 
 **Security posture**
 
-Reports, reasons, flagged content linkage, assignments, reviewer outcomes, sanction details, and action rationales are sensitive tenant-private moderation data.
+Sensitive tenant-private report reasons, reported content references, reviewer assignment or resolution, enforcement rationales, affected identities, and operational notes require privileged access.
 
 **Workload and cache posture**
 
-Access includes conversation-scoped case lists, ticket detail, audit investigation, and active posting-restriction checks. Authorization, sanction, external mutation, and resolution decisions require fresh reads; append-only action evidence may be reused only within its access boundary.
+Review uses conversation-scoped case lists and ticket detail. Authorization, current workflow state, posting permission, and enforcement mutations require fresh authoritative reads.
 
 **Consistency boundary**
 
-Tickets must match their Message conversation and eligible reporter. Actions must match their targets and linked suspensions; restrictions must match Membership, identity, and conversation and derive active state from their interval and optional lift.
+Tickets must reference a Message in the same Conversation and an eligible reporter. Actions and suspensions must agree on conversation, target, ticket lineage, and restriction identity; message or membership mutations preserve their own authoritative state.
 
 **Belongs here when**
 
-A new object represents a conduct report, privileged review decision, moderation action, sanction, or immutable evidence explaining a moderator-triggered consequence.
+An object represents a participant report, privileged conduct decision, enforcement restriction, or immutable evidence of a moderator action.
 
 **Does not belong here when**
 
-The object is the underlying message, the resulting membership state, general conversation governance, or annotation content whose audience is governed independently.
+The object merely describes current participation, ordinary authored content, actor authentication, or conversation discovery configuration.
 
 **Open decisions**
 
-- **Open:** Final ticket statuses, assignment rules, notifications, and closure behavior are unresolved.
-- **Open:** Whether owners and administrators may perform every supported moderation action is unresolved.
-- **Open:** Whether every ticket has a linked private discussion is unresolved; any such discussion remains owned by Conversations and Discovery.
+- **Open:** Ticket statuses, assignments, notifications, and closure behavior are not finalized, so the schema's current workflow fields are provisional.
+- **Open:** Whether every supported moderation action is available equally to owners and administrators is unresolved.
+- **Open:** Whether a private moderation discussion is optional or required remains unresolved.
 
 ### Objects
 
@@ -689,31 +675,31 @@ The object is the underlying message, the resulting membership state, general co
 
 **Why it belongs here**
 
-It is the authoritative case record for a participant report and its review state.
+It is the authoritative case record for a participant report and its privileged review lifecycle.
 
 **Record role**
 
-Authoritative mutable operational case record, stable only after a defined terminal outcome.
+Authoritative mutable record with provisional workflow state.
 
 **Ownership path**
 
-Owned by `conversationId`; `messageId` identifies the evidence and `reportingIdentityId` the reporter, while reviewer authorization derives from Membership in that conversation.
+`conversationId` is the tenant owner; `messageId` identifies the reported evidence and `reportingIdentityId` identifies the reporter.
 
 **Authoritative writers and readers**
 
-An eligible participant creates the report; authorized owners or administrators review and update it. Unauthorized conversations and ordinary case-list readers are excluded.
+An active participant who could view the Message creates it; owners and administrators for the Conversation review and update it.
 
 **Sensitivity**
 
-Sensitive moderation data including reporter identity, flagged-message link, participant explanation, assignment, outcome, and resolution summary.
+Sensitive report reason, reporter identity, message reference, assignment, resolution actor, and resolution summary.
 
 **Freshness and cache posture**
 
-Terminally stable only after a final terminal workflow is established; until then, current review state requires coherent or fresh reads for decisions.
+Fresh read required for reviewer authorization and workflow changes; case-list copies require coherence and must stay conversation-scoped.
 
 **Consistency and lineage**
 
-The Message must belong to the same Conversation, the reporter must have been allowed to view it at `reportedAt`, and `ticketNumber` must remain application-unique.
+The Message must belong to the same Conversation, the reporter must have been eligible to view it at report time, and `ticketNumber` is application-unique. Actions, notes, events, suspensions, and an optional moderation-discussion Conversation may reference it.
 
 #### Moderation Action
 
@@ -723,31 +709,31 @@ The Message must belong to the same Conversation, the reporter must have been al
 
 **Why it belongs here**
 
-It is the immutable evidence of each concrete action a moderator takes while governing conduct or resolving a case.
+It is the append-only evidence of a privileged enforcement decision, whether or not a ticket prompted it.
 
 **Record role**
 
-Append-only audit evidence for a moderation action.
+Append-only audit evidence for moderator actions.
 
 **Ownership path**
 
-Owned by `conversationId`; `actorIdentityId` must have the required active Membership, while optional ticket and target references preserve lineage.
+`conversationId` is the tenant owner; actor authority derives from active owner or administrator Membership at `occurredAt`.
 
 **Authoritative writers and readers**
 
-Authorized owners or administrators append actions; authorized moderation, governance, and audit readers inspect them.
+Authorized owners or administrators append it; authorized moderators and audit processes read it.
 
 **Sensitivity**
 
-Sensitive operational evidence including actor, target identities or messages, action type, reason, ticket linkage, and sanction linkage.
+Privileged enforcement history including actor, target identity or message, reason, restriction reference, and optional ticket lineage.
 
 **Freshness and cache posture**
 
-Immutable by identifier after creation, but copies must preserve tenant authorization and must not replace fresh current-state checks.
+Immutable by identifier after creation, but fresh authorization is required before action and reuse remains tenant-restricted.
 
 **Consistency and lineage**
 
-Action type constrains target fields; suspension actions must reference the exact Posting Suspension with matching target identity and conversation, and ticket-driven changes retain ticket provenance.
+Action type determines its required target. Suspension actions reference the exact Posting Suspension, and ticket-driven actions retain the Moderation Ticket link.
 
 #### Posting Suspension
 
@@ -757,119 +743,31 @@ Action type constrains target fields; suspension actions must reference the exac
 
 **Why it belongs here**
 
-It is a moderator-imposed sanction whose effective interval directly governs posting while leaving Membership active.
+It is a moderator-imposed conduct restriction whose authoritative meaning is the enforcement decision, even though Messaging consumes it for posting eligibility.
 
 **Record role**
 
-Authoritative mutable temporal restriction, terminally stable after expiry or early lift.
+Authoritative mutable record for a bounded restriction and optional early lift.
 
 **Ownership path**
 
-Owned by `conversationId` and linked through `membershipId` to the affected `identityId`; an optional ticket supplies cause lineage.
+`membershipId` identifies the restricted relationship, while copied `conversationId` and `identityId` must match that Membership.
 
 **Authoritative writers and readers**
 
-Authorized owners or administrators impose or lift the restriction; message-posting authorization, governance, moderation, and audit workflows read it.
+Authorized owners or administrators impose or lift it; posting authorization, moderators, and audit workflows read it.
 
 **Sensitivity**
 
-Sensitive tenant-private sanction data including affected identity, imposing or lifting actors, reason, interval, and ticket linkage.
+Tenant-private enforcement state including affected identity, imposing or lifting moderator, reason, timing, and optional ticket.
 
 **Freshness and cache posture**
 
-Fresh read required for posting authorization and lifting decisions; it is stable only after the interval ends or an early lift is final.
+Fresh read required for every posting decision; active state is derived from the current time interval and any early lift.
 
 **Consistency and lineage**
 
-Membership, identity, and conversation must agree; `endsAt` follows `startsAt`, lift fields change together, and action records identify the exact restriction imposed or lifted.
-
-## Annotations
-
-### Purpose
-
-Owns identified user-authored contextual notes attached to conversations, messages, or moderation tickets. It keeps note authorship, visibility, and soft-deletion governance independent of each target's authoritative record.
-
-### Justification
-
-A Note may cross conversation, messaging, and moderation targets while remaining authored and potentially visible to an audience different from the target's ordinary readers; its unresolved audience policy and independent soft-deletion lifecycle create a distinct security and governance boundary rather than making each target domain authoritative for note content.
-
-### Domain Profile
-
-**Primary workflows and access patterns**
-
-- Add contextual notes to a Conversation or Message.
-- Add operational review notes to a Moderation Ticket.
-- Read target-scoped notes according to the eventual audience policy.
-- Soft-delete a retained note without altering its target.
-
-**Actors and access**
-
-- Identified participants author notes; owners and administrators also add operational notes.
-- Read, update, and delete authority cannot be finalized until the visibility model is resolved.
-
-**Tenant and authorization boundary**
-
-Authorization derives through exactly one target relationship and the target Conversation, then must be narrowed by the Note's audience policy. An author or target identifier alone is not sufficient access.
-
-**Security posture**
-
-Note bodies, author identity, target linkage, visibility, and deletion metadata are sensitive user or moderator content. A note described as configuration or context is not harmless when it includes message or case details.
-
-**Workload and cache posture**
-
-Target-scoped note lists are expected. Current visibility and soft-deletion state require coherent reads, and authorization must not rely on stale audience or membership data.
-
-**Consistency boundary**
-
-Each Note attaches to exactly one target. The target must resolve to a Conversation authorization boundary, and changes to note visibility or deletion must remain independent of the target's authority.
-
-**Belongs here when**
-
-A new object is user-authored contextual annotation with its own author, audience, or retention state and can attach across authoritative domains.
-
-**Does not belong here when**
-
-The content is the authoritative target record, append-only system audit evidence, a moderation action, or a derived presentation without independent user-authored meaning.
-
-**Open decisions**
-
-- **Open:** Supported note audiences, whether visibility may change, and who may read, edit, or delete each kind of note are unresolved and materially affect authorization.
-
-### Objects
-
-#### Note
-
-**Schema file**
-
-`note.yaml`
-
-**Why it belongs here**
-
-It has independent authorship, audience, and soft-deletion state while attaching to exactly one resource owned by another domain.
-
-**Record role**
-
-Authoritative mutable record for contextual user-authored content.
-
-**Ownership path**
-
-Owned through exactly one of `conversationId`, `messageId`, or `moderationTicketId` and that target's governing Conversation; `authorIdentityId` attributes authorship but does not establish the authorization boundary. Final audience authority is Open.
-
-**Authoritative writers and readers**
-
-Identified participants and authorized moderators create notes; exact read, update, and deletion authority depends on the unresolved visibility model.
-
-**Sensitivity**
-
-Sensitive personal, conversation, or moderation content; ticket notes can inherit the stronger moderation-case posture.
-
-**Freshness and cache posture**
-
-Current authoritative content: cached note views require coherence with visibility and soft-deletion changes, while every read must use fresh target authorization and the eventual audience rule.
-
-**Consistency and lineage**
-
-Exactly one target reference is required; target lineage must preserve the governing Conversation even when the direct target is a Message or Moderation Ticket.
+`endsAt` follows `startsAt`; lift time and actor appear together. Moderation Action identifies the exact restriction created or lifted, and copied membership fields must agree.
 
 ## Shared Object Relationships
 
@@ -877,15 +775,14 @@ Exactly one target reference is required; target lineage must preserve the gover
 
 **Authoritative domain**
 
-Identity and Authentication
+Identity
 
 **Consuming domains**
 
-- Conversations and Discovery
-- Membership and Authorization
-- Messaging
+- Discovery
+- Participation
+- Content
 - Moderation
-- Annotations
 
 **Dependency type**
 
@@ -893,119 +790,45 @@ Current-state read and audit lineage.
 
 **Logical use**
 
-Consumers attribute creators, participants, authors, moderators, targets, and note authors to stable identified actors.
+All domains attribute actions and retained history to an identified person or bot, while authentication status determines application access.
 
 **Freshness or consistency implication**
 
-Authentication uses fresh enabled state, while retained historical references preserve attribution after disablement and do not independently grant resource access.
-
-### Bot Credential
-
-**Authoritative domain**
-
-Identity and Authentication
-
-**Consuming domains**
-
-- Conversations and Discovery
-- Membership and Authorization
-- Messaging
-- Moderation
-- Annotations
-
-**Dependency type**
-
-Current-state read.
-
-**Logical use**
-
-A bot must authenticate before performing the same conversation actions available to a person in its role.
-
-**Freshness or consistency implication**
-
-Every authenticated bot action depends on current credential validity and current Identity status in addition to domain-specific authorization.
-
-### Tag
-
-**Authoritative domain**
-
-Tag Vocabulary
-
-**Consuming domains**
-
-- Conversations and Discovery
-
-**Dependency type**
-
-Current-state read and projection/index use.
-
-**Logical use**
-
-Conversation Tag references canonical values for assignment, matching, joining, display, and eligible autocomplete.
-
-**Freshness or consistency implication**
-
-Autocomplete is a subordinate derivation of active listed assignments and must not expose a tag merely because its canonical record exists.
+Fresh Identity status is required for access; retained identifiers remain valid attribution even after disablement.
 
 ### Conversation
 
 **Authoritative domain**
 
-Conversations and Discovery
+Discovery
 
 **Consuming domains**
 
-- Membership and Authorization
-- Messaging
+- Participation
+- Content
 - Moderation
-- Annotations
 
 **Dependency type**
 
-Current-state read and ownership path.
+Current-state read and pinned tenant reference.
 
 **Logical use**
 
-Consumers derive their tenant boundary, lifecycle context, and permitted access from the governing conversation.
+The consuming domains scope memberships, content, reports, and enforcement to one conversation.
 
 **Freshness or consistency implication**
 
-Archive, visibility, and purpose changes must remain coherent with dependent behavior, but conversation identifiers alone never authorize access.
+Current status and privacy state must be honored, and no copied `conversationId` independently grants access.
 
-### Conversation Tag
-
-**Authoritative domain**
-
-Conversations and Discovery
-
-**Consuming domains**
-
-- Tag Vocabulary
-
-**Dependency type**
-
-Projection/index use.
-
-**Logical use**
-
-The Tag Vocabulary domain derives whether a canonical value is eligible for autocomplete from active assignments to listed conversations.
-
-**Freshness or consistency implication**
-
-The derived autocomplete view must track assignment removal and Conversation visibility without becoming an authority for joining.
-
-### Membership
+### Tag and Conversation Tag
 
 **Authoritative domain**
 
-Membership and Authorization
+Discovery
 
 **Consuming domains**
 
-- Conversations and Discovery
-- Messaging
-- Moderation
-- Annotations
+- Participation
 
 **Dependency type**
 
@@ -1013,90 +836,68 @@ Current-state read.
 
 **Logical use**
 
-Consumers verify join eligibility, current participation, content access, posting, conversation governance, moderation authority, and target-scoped note access.
+Participation uses the authoritative active tag set to determine whether an identified actor can join a listed or known unlisted conversation.
 
 **Freshness or consistency implication**
 
-All consequential permission checks require fresh active status and role; stale membership data cannot authorize viewing, posting, joining, or moderation.
+Join checks must not use stale assignments or autocomplete results, particularly for unlisted privacy.
+
+### Membership
+
+**Authoritative domain**
+
+Participation
+
+**Consuming domains**
+
+- Discovery
+- Content
+- Moderation
+
+**Dependency type**
+
+Current-state read.
+
+**Logical use**
+
+Discovery uses role state for tag maintenance and archival, Content uses it for viewing and posting, and Moderation uses it for reporter and reviewer authority.
+
+**Freshness or consistency implication**
+
+Every authorization, ban, owner-continuity, and enforcement mutation decision requires current Membership state.
 
 ### Membership Role Period
 
 **Authoritative domain**
 
-Membership and Authorization
+Participation
 
 **Consuming domains**
 
-- Messaging
+- Content
 - Moderation
 
 **Dependency type**
 
-Audit lineage.
+Pinned historical reference and audit lineage.
 
 **Logical use**
 
-Historical intervals establish whether an actor held the required role when a retained message deletion or moderation action occurred.
+Historical periods explain whether an actor held a required role when a retained message deletion or moderation action occurred.
 
 **Freshness or consistency implication**
 
-Closed periods are stable evidence, while an open period must remain consistent with current Membership and cannot be treated as historical final truth.
+Closed periods are stable, but the current open period does not replace a fresh Membership check.
 
 ### Membership Event
 
 **Authoritative domain**
 
-Membership and Authorization
+Participation
 
 **Consuming domains**
 
 - Moderation
-
-**Dependency type**
-
-Audit lineage.
-
-**Logical use**
-
-Moderation investigation uses membership events to explain removal, ban, unban, and role transitions caused by a ticket or action.
-
-**Freshness or consistency implication**
-
-The append-only event must agree with the resulting Membership and role period and retain the originating ticket reference when applicable.
-
-### Moderation Action
-
-**Authoritative domain**
-
-Moderation
-
-**Consuming domains**
-
-- Membership and Authorization
-- Messaging
-
-**Dependency type**
-
-Work handoff and audit lineage.
-
-**Logical use**
-
-Participant removal, ban, restoration, and message-deletion workflows apply the authorized consequence in the consuming domain while retaining the moderator action as evidence.
-
-**Freshness or consistency implication**
-
-The action's conversation and target must agree with the resulting Membership transition or Message deletion, and the immutable action does not replace a fresh current-state authorization check.
-
-### Message
-
-**Authoritative domain**
-
-Messaging
-
-**Consuming domains**
-
-- Moderation
-- Annotations
 
 **Dependency type**
 
@@ -1104,11 +905,55 @@ Current-state read and audit lineage.
 
 **Logical use**
 
-Moderation Ticket identifies the reported content, Moderation Action identifies a deleted target, and Note may attach contextual content to the message.
+Moderation follows an optional ticket reference from a participation transition to the case that prompted it.
 
 **Freshness or consistency implication**
 
-Ticket creation must pin the message and conversation relationship, while readers honor current visibility and stronger authorized review access for retained deleted content.
+The event remains immutable evidence and must agree with the authoritative Membership transition.
+
+### Message
+
+**Authoritative domain**
+
+Content
+
+**Consuming domains**
+
+- Moderation
+
+**Dependency type**
+
+Current-state read and pinned evidence reference.
+
+**Logical use**
+
+A Moderation Ticket reports one Message, and reviewers use its retained content and conversation lineage as evidence.
+
+**Freshness or consistency implication**
+
+Ticket lineage remains pinned after soft deletion, while participant display and further action must honor current deletion and authorization state.
+
+### Note
+
+**Authoritative domain**
+
+Content
+
+**Consuming domains**
+
+- Moderation
+
+**Dependency type**
+
+Current-state read and audit lineage.
+
+**Logical use**
+
+Moderation uses Notes attached to tickets as reviewer context.
+
+**Freshness or consistency implication**
+
+Until the audience model is finalized, ticket notes require fresh, narrowly authorized reads and must not be exposed through general content caches.
 
 ### Moderation Ticket
 
@@ -1118,21 +963,44 @@ Moderation
 
 **Consuming domains**
 
-- Conversations and Discovery
-- Membership and Authorization
-- Annotations
+- Discovery
+- Participation
+- Content
 
 **Dependency type**
 
-Current-state read and audit lineage.
+Audit lineage.
 
 **Logical use**
 
-A moderation-discussion Conversation links to its case, membership transitions retain case provenance, and ticket notes attach review context.
+A moderation-discussion Conversation links to its case, moderation-driven Membership Events preserve the prompting ticket, and ticket-targeted Notes attach reviewer context to it.
 
 **Freshness or consistency implication**
 
-The linked records must preserve ticket and Conversation alignment; ticket linkage never grants access to the confidential discussion or case.
+References must preserve the ticket's conversation scope, and a ticket reference never grants access to the case or a confidential discussion by itself. Ticket-targeted Note access derives through that scope and current reviewer authority; current ticket workflow state is not needed merely to validate historical lineage.
+
+### Moderation Action
+
+**Authoritative domain**
+
+Moderation
+
+**Consuming domains**
+
+- Participation
+- Content
+
+**Dependency type**
+
+Work handoff and audit lineage.
+
+**Logical use**
+
+Participation and Content use the action as evidence for moderator-driven membership changes, posting restrictions, and message deletion while retaining their own authoritative current state.
+
+**Freshness or consistency implication**
+
+The action must agree with the affected Membership, Posting Suspension, or Message and does not replace a fresh read of that object's current state.
 
 ### Posting Suspension
 
@@ -1142,41 +1010,17 @@ Moderation
 
 **Consuming domains**
 
-- Membership and Authorization
-- Messaging
+- Content
+- Participation
 
 **Dependency type**
 
-Current-state read.
+Current-state read and enforcement handoff.
 
 **Logical use**
 
-Participation remains active in Membership while message creation checks whether a moderator-imposed restriction is currently effective.
+Content checks the restriction before accepting a message, while Participation presents and governs participant restriction context.
 
 **Freshness or consistency implication**
 
-Posting decisions require the current interval and lift state and cannot use a stale cached restriction result.
-
-### Note
-
-**Authoritative domain**
-
-Annotations
-
-**Consuming domains**
-
-- Conversations and Discovery
-- Messaging
-- Moderation
-
-**Dependency type**
-
-Current-state read.
-
-**Logical use**
-
-Target domains display contextual notes without making those notes part of the target's authoritative state.
-
-**Freshness or consistency implication**
-
-Consumers must resolve the target Conversation and apply current note visibility and deletion rules; until the audience model is decided, broader access is unsafe.
+Posting decisions require current interval and lift state and must not rely on potentially stale copies.

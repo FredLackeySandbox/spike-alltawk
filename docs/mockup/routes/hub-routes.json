@@ -1,0 +1,82 @@
+{
+  "openApiSchema": {
+    "package": "atk-ux-api-contract",
+    "file": "openapi/openapi.yaml",
+    "description": "Canonical request, response, validation, and error schemas for these routes."
+  },
+  "routes": [
+    {
+      "operationId": "hub.create-conversation",
+      "method": "POST",
+      "path": "/api/v0/hub/create-conversation",
+      "description": "Create a conversation.",
+      "inputs": {
+        "tags": "string[]",
+        "visibility": "string",
+        "matchingMode": "string"
+      }
+    },
+    {
+      "operationId": "hub.retrieve-listed-tag-suggestions",
+      "method": "GET",
+      "path": "/api/v0/hub/retrieve-listed-tag-suggestions",
+      "description": "Retrieve listed tag suggestions.",
+      "inputs": {
+        "partialTag": "string",
+        "selectedTag": "string[]"
+      }
+    },
+    {
+      "operationId": "hub.search-listed-conversations",
+      "method": "GET",
+      "path": "/api/v0/hub/search-listed-conversations",
+      "description": "Search listed conversations.",
+      "inputs": {
+        "selectedTag": "string[]"
+      }
+    },
+    {
+      "operationId": "hub.join-listed-conversation",
+      "method": "POST",
+      "path": "/api/v0/hub/join-listed-conversation",
+      "description": "Join a listed conversation.",
+      "inputs": {
+        "conversationUid": "string"
+      }
+    },
+    {
+      "operationId": "hub.evaluate-known-unlisted-conversation-tags",
+      "method": "POST",
+      "path": "/api/v0/hub/evaluate-known-unlisted-conversation-tags",
+      "description": "Evaluate known unlisted conversation tags.",
+      "inputs": {
+        "tags": "string[]"
+      }
+    },
+    {
+      "operationId": "hub.join-unlisted-conversation",
+      "method": "POST",
+      "path": "/api/v0/hub/join-unlisted-conversation",
+      "description": "Join an unlisted conversation.",
+      "inputs": {
+        "unlistedJoinChallengeUid": "string"
+      }
+    },
+    {
+      "operationId": "hub.retrieve-joined-conversations",
+      "method": "GET",
+      "path": "/api/v0/hub/retrieve-joined-conversations",
+      "description": "Retrieve joined conversations.",
+      "inputs": {}
+    },
+    {
+      "operationId": "hub.resolve-joined-conversation-access",
+      "method": "GET",
+      "path": "/api/v0/hub/resolve-joined-conversation-access",
+      "description": "Resolve joined conversation access.",
+      "inputs": {
+        "conversationUid": "string"
+      }
+    }
+  ]
+}

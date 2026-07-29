@@ -1,84 +1,93 @@
-# Moderation Route Rules Tightener Handoff
+# Phase 5 Route Rules Tightener Handoff
 
-## Scope
+## Target And Scope
 
-- solutionArtifactRoot: `/Users/flackey/Source/Personal/FredLackeySandbox/spike-alltawk`
-- Platform/work unit: desktop `moderation`
-- Route file tightened: `docs/mockup/routes/moderation-routes.md`
-- Read `docs/concepts/REQUIREMENTS.md`, `docs/concepts/APP_PAGES.md`, both moderation companions, both moderation HTML pages, the directly referenced `docs/mockup/desktop/assets/app.js` and `docs/mockup/desktop/assets/styles.css`, and the Phase 3 and Phase 4 handoffs.
-- Repository-relative paths in this handoff, the route file, `### Source Actions`, and `### Mockup Files` are relative to `solutionArtifactRoot`; all filesystem operations used absolute paths under that root.
+- `solutionArtifactRoot`: `/Users/flackey/Source/Personal/FredLackeySandbox/spike-alltawk`
+- Scenario: `root-artifact-monorepo`
+- Work unit: desktop `moderation`
+- Tightened route file: `docs/mockup/routes/moderation-routes.md`
+- Requirements and page catalog read: `docs/concepts/REQUIREMENTS.md`, `docs/concepts/APP_PAGES.md`
+- Source companions and pages read:
+  - `docs/mockup/desktop/moderation/index.md`
+  - `docs/mockup/desktop/moderation/index.html`
+  - `docs/mockup/desktop/moderation/ticket.md`
+  - `docs/mockup/desktop/moderation/ticket.html`
+- Directly referenced behavior inspected: `docs/mockup/desktop/assets/app.js`
+- Prior handoffs read:
+  - `ai-docs/draft-routes/moderation/03-area-route-drafter.md`
+  - `ai-docs/draft-routes/moderation/04-route-payload-drafter.md`
+
+All artifact path references in this handoff, the route file, `### Source Actions`, and `### Mockup Files` are repository-relative to `solutionArtifactRoot`; all filesystem operations used absolute paths under that root.
 
 ## Rendered Inspection
 
-Rendered `docs/mockup/desktop/moderation/index.html` and `docs/mockup/desktop/moderation/ticket.html` at the discovered 1080-pixel viewport before tightening the contracts. Safe local inspection covered:
+Playwright rendered both referenced HTML pages at viewport width `1080` and exercised every safely reachable source-action state:
 
-- Queue populated, empty, mixed-authority, denied, loading, retry-success, retry-failure, authorized-origin, filter-change, and return-context states.
-- Ticket normal, loading, missing, unauthorized, failed, timeout, retry-success, deleted-message, unavailable-source, and no-related-discussion states.
-- Reviewer-note creation and the delete-message, create-suspension, update-suspension with shorter-period acknowledgment, remove-participant, and ban-participant confirmation and applied states.
+- Queue: populated, empty, mixed-authority, denied, persistent loading, recoverable failure, repeated failure, retry success, authorized origin selection, stale-origin normalization, in-memory filtering, and return-context updates.
+- Ticket retrieval: normal, retained deletion, unavailable source, no related discussion, persistent loading, missing, unauthorized, failed, timeout, and retry recovery.
+- Ticket actions: blank-note validation, pending/successful note creation, message-deletion confirmation and retained-evidence result, posting-suspension creation, shorter-period acknowledgment and suspension update, participant removal, and participant banning.
 
-The inspection exercised only local mockup behavior and did not call APIs, authentication services, live backends, or third parties.
+Fixtures, timers, generated display timestamps, simulated authorization branches, and local action-state transitions were treated as evidence for intended backend retrieval, persistence, and privileged moderation behavior. Five Playwright tests passed. Inspection remained local and called no API, authentication service, backend, or third party.
 
 ## Playwright Runner Contract
 
-- id: `npm-exec-no-cli`
-- label: `npm exec --no --package playwright -- playwright`
-- usage: `npm exec --no --package playwright -- playwright`
-- command: `npm`
-- baseArgs: `["exec", "--no", "--package", "playwright", "--", "playwright"]`
-- version: `1.61.1`
-- testRunnerModule: `/Users/flackey/.npm/_npx/e41f203b7505f1fb/node_modules/playwright/test.js`
-- Invocation: `npm exec --no --package playwright -- playwright test moderation.spec.cjs --config playwright.config.cjs`
-- Result: four Playwright tests passed.
+- `id`: `local-node-modules-cli`
+- `label`: `./node_modules/.bin/playwright`
+- `usage`: `./node_modules/.bin/playwright`
+- `command`: `/Users/flackey/Source/Personal/FredLackeySandbox/spike-alltawk/node_modules/.bin/playwright`
+- `baseArgs`: `[]`
+- `version`: `1.62.0`
+- `testRunnerModule`: `/Users/flackey/Source/Personal/FredLackeySandbox/spike-alltawk/node_modules/playwright/test.js`
+- Invocation used the supplied command with the `test` subcommand and the private specification/configuration paths.
 
-The CommonJS specification imported `test` and `expect` from the exact absolute `testRunnerModule`. No package-name import, alternate route, dependency installation, runner rediscovery, `npx`, or smoke-test command was used.
+The CommonJS specification imported `test` and `expect` from the exact absolute `testRunnerModule`. No package-name import, alternate runner, rediscovery, `npx`, dependency installation, or smoke-test command was used.
 
 ## Routes Tightened
 
-Added exactly one `### Route` subsection with a fenced `http` request shape and kept exactly one `### Request Context` subsection for each of the eight existing routes:
+The fixed eight-route scope and all eight approved `### Source Actions` mappings were preserved:
 
-- Retrieve Reviewable Reports
-- Retrieve Moderation Ticket
-- Create Reviewer Note
-- Delete Reported Message
-- Create Posting Suspension
-- Update Posting Suspension
-- Remove Participant
-- Ban Participant
+1. `GET /api/v0/moderation/retrieve-reviewable-reports`
+2. `GET /api/v0/moderation/retrieve-moderation-ticket`
+3. `POST /api/v0/moderation/create-reviewer-note`
+4. `DELETE /api/v0/moderation/delete-reported-message`
+5. `POST /api/v0/moderation/create-posting-suspension`
+6. `PATCH /api/v0/moderation/update-posting-suspension`
+7. `DELETE /api/v0/moderation/remove-participant`
+8. `POST /api/v0/moderation/ban-participant`
 
-Every request shape now names the API path, browser-managed session cookie, `Accept` or `Content-Type` header as applicable, query parameters for retrieval, and the body values for mutations. Placeholders are used for public identifiers, user-entered values, and the opaque session reference. No cookie value, session identifier, token, secret, database ID, authorization internals, or lower-layer contract appears in an example.
+Every route has exactly one `### Route` subsection with a fenced `http` request shape and exactly one `### Request Context` subsection. The request shapes name the method, path, query values or JSON body values, browser-managed `tawk_session` cookie, and applicable `Accept` or `Content-Type` header. All public identifiers, user-entered values, and the cookie use parameterized placeholders; no secret-looking or hard-coded UID value appears in the transport shapes.
 
 ## Route Authoring Rules Applied
 
-- Preserved all eight route headings, purposes, source-action mappings, mockup-file lists, and approved action coverage. No route was added, removed, renamed, or broadened.
-- Normalized queue origin provenance as `originConversationUid`, sourced from the current page URL and a prior UI-facing response. The UX API honors it only within the reviewer's current governed scope.
-- Made ticket continuation concrete with `reportNumber` and `conversationUid` carried from the queue response into the current ticket URL and the ticket retrieval request.
-- Added `conversationUid` to every ticket mutation example so the browser carries the visible source-conversation context while the UX API still binds and authorizes the report, conversation, message, participant, and suspension server-side.
-- Kept create and update suspension contracts separate. Creation carries no suspension UID or current end. Update carries the prior public `suspensionUid`, the current displayed end, the reviewer-entered replacement end, and the explicit shorter-period acknowledgment.
-- Documented that queue and ticket retrieval recheck current authority and return non-disclosing denied, missing, or failed states without trusting mockup fixture data.
-- Documented the exact source of note text, confirmations, suspension times, participant UID, reported-message UID, suspension UID, and current suspension end.
-- Preserved UI-ready responses for editable suspension state, report evidence, reviewer notes, governed conversation choices, source and related-discussion navigation, applied effects, allowed actions, public continuation identifiers, and retained-history outcomes.
-- Kept returned conversation URLs and UIDs public-safe. Authentication, authorization, role enforcement, target binding, state validation, note ordering, server time, joins, and retention behavior remain behind the UX API boundary.
-- Kept every request/response JSON example parseable and every example UID in 32-character hyphenless v4 form.
+- Preserved route headings, descriptions, source-action mappings, mockup-file lists, create/update separation, and all approved page-state coverage; no route was added, removed, renamed, or broadened.
+- Confirmed queue origin provenance comes from the current page URL or prior UI-facing response and is accepted only within the signed-in reviewer's current governed scope.
+- Confirmed ticket continuation uses `reportNumber` and `conversationUid` carried from the queue response into the page URL.
+- Confirmed ticket mutations receive every browser-supplied value from that page URL, reviewer input, or the prior moderation-ticket/create-suspension response.
+- Kept posting-suspension creation free of a pre-existing suspension UID and current end time. Kept update bound to the public `suspensionUid`, displayed `currentEndsAt`, reviewer-entered replacement, and explicit shorter-period acknowledgment.
+- Kept identity, owner/administrator scope, authorization, report/message/participant binding, authoritative current state, note attribution and ordering, server time, retained history, and data joins behind the UX API boundary.
+- Kept responses UI-facing with public continuation UIDs, editable/current suspension values, display-ready notes and effects, and allowed-action affordances. Raw credentials, tokens, database IDs, audit rows, permission internals, and lower-layer contracts remain omitted.
+- Clarified concrete alternate response branches for queue empty/denied/failed states; ticket retained-deletion, unavailable-source, no-discussion, missing, unauthorized, failed, and timeout states; note unavailability; already-deleted message; ineligible suspension; stale suspension update; already-inactive removal; and already-banned outcomes.
+- Documented which fields remain, become `null`, or are omitted in those branches and whether the page retries, returns to the queue, keeps a form open, or reloads current ticket state.
+- Preserved the exact no-body sentence for both retrieval routes and retained parseable JSON for every request and response example.
 
-## Response Branches And Continuation
+## Validation
 
-- The queue contract supports populated, filtered, empty, denied, failed, and retry outcomes while exposing only currently governed conversations.
-- The ticket contract supports ready, deleted-evidence, unavailable-source, no-discussion, missing, unauthorized, failed, timeout, retry, and post-action refresh states.
-- Mutation responses preserve the display-ready applied effect and allowed next actions needed by the page after message deletion, suspension creation or replacement, removal, and banning.
-- Public source-conversation provenance remains available for returning to the normalized filtered queue.
+- `validate-route-coverage.mjs` passed with eight approved actions, eight mapped actions, and eight routes.
+- Structural inspection confirmed every route has one `### Source Actions`, `### Mockup Files`, `### Route`, `### Request Context`, `### Example Request Payload`, and `### Example Response Payload` subsection.
+- All eight `http` route blocks are present.
+- Every JSON request and response example parses.
 
 ## Unresolved Ambiguities
 
-- Ticket status, assignment, notification, and closure behavior remain unresolved in `REQUIREMENTS.md`; no fields or routes were invented.
-- The static ticket page always renders report `#1048` even when alternate URL values are supplied. The tightened contract requires the production page to render the report returned for the requested continuation values.
-- The mockup uses `origin` on queue entry but `conversation` on ticket return links. The tightened transport uses one public `originConversationUid` value; implementation must normalize the browser page URL accordingly.
-- The mockup exposes suspension update only after an in-page creation and has no initially suspended ticket fixture. The update contract remains continuable from either the ticket response or the create-suspension response.
-- Mutation submission failure presentations and related-discussion creation are absent from the initialized mockup and requirements; no speculative payload branches were added.
+- Ticket status, assignment, notification, closure, note visibility, suspension lifting, and related-discussion creation remain unresolved or absent; no routes, fields, or workflow states were invented for them.
+- The static ticket page always renders report `#1048` even when alternate URL values are supplied; the production page must render the returned report for its public continuation values.
+- The mockup uses `origin` for queue entry and `conversation` for ticket return links. The route contract retains normalized `originConversationUid` transport for production.
+- The mockup has no initially suspended fixture, but its post-create Change state proves update continuation. The route remains continuable from either the ticket response or the create-suspension response.
 
 ## Cleanup And Write Confirmation
 
 - Private Playwright directory used: `/Users/flackey/Source/Personal/FredLackeySandbox/spike-alltawk/.solpoc-tmp/draft-routes/moderation/05-route-rules-tightener/`
-- The private directory, including specifications, screenshots, reports, traces, and test output, was removed before this handoff was written.
+- The private directory, including specifications, configuration, reports, test output, screenshots, and traces, was removed before this handoff was written.
 - No root-level Playwright specification, `test-results/`, `playwright-report/`, screenshot, trace, or temporary configuration was created.
 - Changed only `docs/mockup/routes/moderation-routes.md` and `ai-docs/draft-routes/moderation/05-route-rules-tightener.md`.
-- Did not change HTML, CSS, JavaScript, companions, concept documents, schemas, mock data, package files, application code, OpenAPI files, another area's routes, source-action mappings, mockup-file lists, or downstream handoffs.
+- Did not change HTML, CSS, JavaScript, companions, concept documents, schemas, mock data, package files, application code, OpenAPI files, another area's routes, neighboring review files, or downstream handoffs.

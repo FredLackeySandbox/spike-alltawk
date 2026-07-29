@@ -1,0 +1,118 @@
+# Local AI tooling
+.claude/
+.sidecar/
+
+# Local credentials and keys
+.credentials/
+keys/
+
+# Terraform
+**/.terraform/
+*.tfstate
+*.tfstate.*
+*.tfplan
+crash.log
+crash.*.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+.terraformrc
+terraform.rc
+*.tfvars
+*.tfvars.json
+!*.tfvars.example
+!*.tfvars.json.example
+
+# Terragrunt
+**/.terragrunt-cache/
+**/.terragrunt-download/
+**/.terragrunt-stack/
+**/.terragrunt-debug.tfvars.json
+
+# Node.js package managers
+**/node_modules/
+**/.npm/
+**/.pnpm-store/
+**/.cache/
+**/.parcel-cache/
+**/.vite/
+**/.yarn/cache/
+**/.yarn/unplugged/
+**/.yarn/build-state.yml
+**/.yarn/install-state.gz
+**/.pnp.*
+.eslintcache
+.stylelintcache
+.node_repl_history
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Next.js and JavaScript build output
+**/.next/
+**/.turbo/
+**/.swc/
+**/.vercel/
+**/out/
+**/dist/
+**/build/
+**/coverage/
+**/.nyc_output/
+**/*.tsbuildinfo
+**/next-env.d.ts
+
+# Local environment files (keep documented examples)
+.env
+.env.*
+!.env.example
+!.env.*.example
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.DocumentRevisions-V100/
+.fseventsd/
+.Spotlight-V100/
+.TemporaryItems/
+.Trashes/
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+[Dd]esktop.ini
+$RECYCLE.BIN/
+*.stackdump
+
+# Linux and freedesktop desktops
+*~
+.directory
+.Trash-*/
+.nfs*
+
+# Python bytecode and tool caches
+**/__pycache__/
+*.py[cod]
+**/.pytest_cache/
+**/.mypy_cache/
+**/.ruff_cache/
+
+# Editor and temporary files
+*.swp
+*.swo
+*.tmp
+*.temp
+*.bak
+*.orig
+*#
+.#*
+
+# Skill runtime data (queue, decisions, results)
+skills/*/data/*.json

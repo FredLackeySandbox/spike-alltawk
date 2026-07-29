@@ -44,13 +44,64 @@ No JSON request body is sent for this route.
   "view": "MEMBERS",
   "lifecycleStatus": "ACTIVE",
   "viewerRole": "OWNER",
-  "activeCount": 5,
-  "formerCount": 2,
+  "displayTimeZone": "America/New_York",
+  "activeCount": 3,
+  "formerCount": 1,
   "ownerContinuity": {
     "isCurrentViewerLastActiveOwner": true,
     "message": "Promote another participant to owner or archive the conversation before leaving."
   },
-  "participants": []
+  "participants": [
+    {
+      "participantUid": "8f14e45fceea467a9b53c3f5e5d5c918",
+      "displayName": "Rowan Ellis",
+      "identityType": "PERSON",
+      "role": "OWNER",
+      "membershipState": "ACTIVE",
+      "accessState": "ACTIVE",
+      "memberSince": "2026-05-14T13:00:00Z",
+      "postingSuspension": null,
+      "allowedActions": []
+    },
+    {
+      "participantUid": "a3bb189e8bf943f4a3f107c4b6bb12e3",
+      "displayName": "Avery Brooks",
+      "identityType": "PERSON",
+      "role": "MEMBER",
+      "membershipState": "ACTIVE",
+      "accessState": "ACTIVE",
+      "memberSince": "2026-06-02T15:30:00Z",
+      "postingSuspension": null,
+      "allowedActions": ["PROMOTE_TO_OWNER", "PROMOTE_TO_ADMINISTRATOR", "CREATE_POSTING_SUSPENSION", "REMOVE_PARTICIPANT", "BAN_IDENTITY"]
+    },
+    {
+      "participantUid": "c7d934725d23424daf163bf811a3506e",
+      "displayName": "Patchwork Bot",
+      "identityType": "BOT",
+      "role": "MEMBER",
+      "membershipState": "ACTIVE",
+      "accessState": "POSTING_SUSPENDED",
+      "memberSince": "2026-06-08T12:15:00Z",
+      "postingSuspension": {
+        "suspensionUid": "9d19c22f3a024ee08c9bcf677dab8f2b",
+        "endsAt": "2026-08-01T14:30:00Z",
+        "displayTimeZone": "America/New_York"
+      },
+      "allowedActions": ["UPDATE_POSTING_SUSPENSION", "END_POSTING_SUSPENSION", "REMOVE_PARTICIPANT", "BAN_IDENTITY"]
+    },
+    {
+      "participantUid": "4be219f68d0b4e6486fe7d9cc4e8717b",
+      "displayName": "Release Notes Bot",
+      "identityType": "BOT",
+      "role": "MEMBER",
+      "membershipState": "BANNED",
+      "accessState": "INACTIVE",
+      "memberSince": "2026-04-09T09:00:00Z",
+      "bannedAt": "2026-07-10T17:05:00Z",
+      "postingSuspension": null,
+      "allowedActions": ["RESTORE_BANNED_PARTICIPANT"]
+    }
+  ]
 }
 ```
 
@@ -201,8 +252,8 @@ The UX API derives the viewer and current roles from the session and conversatio
       "BAN_IDENTITY"
     ]
   },
-  "activeCount": 4,
-  "formerCount": 3
+  "activeCount": 2,
+  "formerCount": 2
 }
 ```
 
@@ -259,8 +310,8 @@ The UX API derives the viewer's authority, the target's current membership, and 
       "RESTORE_BANNED_PARTICIPANT"
     ]
   },
-  "activeCount": 4,
-  "formerCount": 3
+  "activeCount": 2,
+  "formerCount": 2
 }
 ```
 
@@ -296,7 +347,7 @@ The UX API derives the viewer's current authority and the participant's retained
 ```json
 {
   "conversationUid": "f47ac10b58cc4372a5670e02b2c3d479",
-  "participantUid": "a3bb189e8bf943f4a3f107c4b6bb12e3"
+  "participantUid": "4be219f68d0b4e6486fe7d9cc4e8717b"
 }
 ```
 
@@ -306,7 +357,7 @@ The UX API derives the viewer's current authority and the participant's retained
 {
   "result": "SUCCEEDED",
   "participant": {
-    "participantUid": "a3bb189e8bf943f4a3f107c4b6bb12e3",
+    "participantUid": "4be219f68d0b4e6486fe7d9cc4e8717b",
     "displayName": "Release Notes Bot",
     "identityType": "BOT",
     "role": "MEMBER",
@@ -321,8 +372,8 @@ The UX API derives the viewer's current authority and the participant's retained
       "BAN_IDENTITY"
     ]
   },
-  "activeCount": 6,
-  "formerCount": 1
+  "activeCount": 4,
+  "formerCount": 0
 }
 ```
 
@@ -349,7 +400,7 @@ Content-Type: application/json
 
 ### Request Context
 
-The browser sends the browser-managed `tawk_session` cookie. `conversationUid` comes from the current conversation page route, and `participantUid` comes from the selected unsuspended row in the prior `MEMBERS` governance response. `endsAt` is the UTC instant produced from the visible end-date and end-time fields; `displayTimeZone` is the time-zone label shown beside those fields. No suspension UID exists in this create request.
+The browser sends the browser-managed `tawk_session` cookie. `conversationUid` comes from the current conversation page route, and `participantUid` comes from the selected unsuspended row whose `allowedActions` includes `CREATE_POSTING_SUSPENSION` in the prior `MEMBERS` governance response. `endsAt` is the UTC instant produced from the visible end-date and end-time fields. `displayTimeZone` carries the exact IANA value from that response's display context (`America/New_York`); the visible `ET` label alone is not used as the request value. No suspension UID exists in this create request.
 
 The UX API derives authority and current membership from the session, validates that the target remains active and unsuspended and that the end is in the future, then creates the restriction while preserving membership and reading access. Validation responses identify the visible field to correct; stale-permission, already-suspended, or retryable-failure responses keep posting active. Success returns the public suspension UID and editable authoritative end needed by later update and end actions.
 
@@ -408,7 +459,7 @@ Content-Type: application/json
 
 ### Request Context
 
-The browser sends the browser-managed `tawk_session` cookie. `conversationUid` comes from the current conversation page route. `suspensionUid` and the form's prefilled current end come from the selected suspended row in the prior `MEMBERS` governance response; the UX API resolves the participant from that suspension reference. `endsAt` is the revised UTC instant produced from the visible date and time; `displayTimeZone` is the displayed time-zone context.
+The browser sends the browser-managed `tawk_session` cookie. `conversationUid` comes from the current conversation page route. `suspensionUid`, the form's prefilled current `endsAt`, and the exact IANA `displayTimeZone` come from the selected suspended row and display context in the prior `MEMBERS` governance response; that row's `allowedActions` includes `UPDATE_POSTING_SUSPENSION`. The UX API resolves the participant from that suspension reference. `endsAt` is the revised UTC instant produced from the visible date and time, while `displayTimeZone` carries the response value `America/New_York`.
 
 The UX API derives authority and current restriction state from the session and supplied public UIDs, verifies that the identified suspension is still current, and validates the revised future end. Validation responses identify the visible field to correct; stale, missing, stale-permission, and retryable-failure responses preserve the existing end. Success returns the same public suspension UID with its authoritative revised editable end and current allowed actions.
 
@@ -428,7 +479,7 @@ The UX API derives authority and current restriction state from the session and 
 ```json
 {
   "result": "SUCCEEDED",
-  "participantUid": "a3bb189e8bf943f4a3f107c4b6bb12e3",
+  "participantUid": "c7d934725d23424daf163bf811a3506e",
   "accessState": "POSTING_SUSPENDED",
   "postingSuspension": {
     "suspensionUid": "9d19c22f3a024ee08c9bcf677dab8f2b",
@@ -467,7 +518,7 @@ Content-Type: application/json
 
 ### Request Context
 
-The browser sends the browser-managed `tawk_session` cookie. `conversationUid` comes from the current conversation page route, and `suspensionUid` comes from the selected suspended row in the prior `MEMBERS` governance response; the UX API resolves the participant from that suspension reference. The browser invokes this route only after the visible immediate-end confirmation; no duplicate confirmation field is sent.
+The browser sends the browser-managed `tawk_session` cookie. `conversationUid` comes from the current conversation page route, and `suspensionUid` comes from the selected suspended row whose `allowedActions` includes `END_POSTING_SUSPENSION` in the prior `MEMBERS` governance response; the UX API resolves the participant from that suspension reference. The browser invokes this route only after the visible immediate-end confirmation; no duplicate confirmation field is sent.
 
 The UX API derives authority and current restriction state server-side, verifies that the public suspension still applies to the selected participant, and ends it while retaining history. Missing, already-ended, stale-permission, and retryable-failure responses keep the visible suspension until the roster is reconciled and return safe feedback; success returns active posting access and replacement allowed actions.
 
@@ -485,7 +536,7 @@ The UX API derives authority and current restriction state server-side, verifies
 ```json
 {
   "result": "SUCCEEDED",
-  "participantUid": "a3bb189e8bf943f4a3f107c4b6bb12e3",
+  "participantUid": "c7d934725d23424daf163bf811a3506e",
   "accessState": "ACTIVE",
   "postingSuspension": null,
   "endedAt": "2026-07-23T16:52:00Z",

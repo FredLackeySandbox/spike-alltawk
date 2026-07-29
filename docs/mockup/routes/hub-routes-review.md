@@ -24,7 +24,7 @@ The page supplies the visible tags, visibility, and listed-only matching choice 
 
 Operations reviewed: `GET /api/v0/hub/retrieve-listed-tag-suggestions?partialTag={partialTag}&selectedTag={selectedTag}`
 
-The current input and selected chips supply every query value, with the documented session cookie supplying private access context. The response echoes the active partial value and returns only discovery-eligible suggestion strings, including a concrete empty-array outcome, so the listed UI can render safely without exposing unlisted-only tags or backend details.
+The current input and selected chips supply every query value, with the documented session cookie supplying private access context. The response echoes the active partial value and returns only discovery-eligible suggestion strings, including a documented empty-array outcome, so the listed UI can render safely without exposing unlisted-only tags or backend details.
 
 ## Search Listed Conversations : (`GET /api/v0/hub/search-listed-conversations`)
 
@@ -56,7 +56,7 @@ The visible validated chips provide the complete request body and the documented
 
 Operations reviewed: `POST /api/v0/hub/join-unlisted-conversation`
 
-The request uses the exact challenge UID concretely returned by the immediately preceding eligible evaluation, with the same documented session and CSRF context. The UX API recovers and revalidates the hidden match server-side, and the concrete success, denial, expiry, and retry contracts provide the visible outcome and safe workspace handoff without exposing hidden identity or permission decisions.
+The request uses the exact challenge UID concretely returned by the immediately preceding eligible evaluation, with the same documented session and CSRF context. The UX API recovers and revalidates the hidden match server-side; its concrete success response and documented denial, expiry, and retry outcomes provide the visible result and safe workspace handoff without exposing hidden identity or permission decisions.
 
 ## Retrieve Joined Conversations : (`GET /api/v0/hub/retrieve-joined-conversations`)
 
@@ -72,4 +72,4 @@ This page-lifecycle request needs no browser value beyond the explicitly documen
 
 Operations reviewed: `GET /api/v0/hub/resolve-joined-conversation-access?conversationUid={conversationUid}`
 
-The selected card receives its public conversation UID from the joined-list response, and the route explicitly derives identity from the session cookie rather than trusting browser role or membership state. The concrete response provides the authorized workspace continuation or the exact stale-removal and retry signals the page needs, without disclosing private workspace or storage details.
+The selected card receives its public conversation UID from the joined-list response, and the route explicitly derives identity from the session cookie rather than trusting browser role or membership state. The concrete active-access response provides the authorized workspace continuation, while the documented alternate outcomes define the exact stale-removal and retry signals the page needs without disclosing private workspace or storage details.

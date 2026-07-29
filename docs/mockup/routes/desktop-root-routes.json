@@ -1,0 +1,8 @@
+{
+  "openApiSchema": {
+    "package": "atk-ux-api-contract",
+    "file": "openapi/openapi.yaml",
+    "description": "Canonical request, response, validation, and error schemas for these routes."
+  },
+  "routes": []
+}

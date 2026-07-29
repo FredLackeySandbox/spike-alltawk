@@ -2,7 +2,7 @@
 
 ## Retrieve Conversation Workspace : (`GET /api/v0/conversation/retrieve-workspace`)
 
-Retrieves the display-ready state for the active conversation workspace, including conversation tags and matching mode, the current participant's role and allowed actions, posting restrictions, participants, messages, reactions, and ownership-continuity guidance. It supports initial loading, retry, populated and empty threads, read-only and suspended participation, and each documented owner or member entry state. The current conversation is selected by the safe public conversation UID carried by the incoming page route; the UX API derives identity, membership, permissions, and organization or session state behind the browser-facing boundary.
+Retrieves the display-ready state for the active conversation workspace, including conversation tags and matching mode, the current participant's role and allowed actions, posting restrictions, participants, messages, reactions, and ownership-continuity guidance. It supports initial loading, retry, populated and empty threads, read-only and suspended participation, and each documented owner or member entry state. The current conversation is selected by the safe public conversation UID carried by the incoming page route; the UX API derives identity, membership, permissions, organization or session state, and each participant summary's or message author's `isCurrentParticipant` value from the identified session and membership context behind the browser-facing boundary. The presentation app uses that server-derived flag for “You” labels, current-participant roster treatment, and own-message treatment without comparing `displayName`.
 
 ### Source Actions
 
@@ -23,7 +23,7 @@ Cookie: tawk_session={opaqueSessionRef}
 
 ### Request Context
 
-The browser sends `Cookie: tawk_session={opaqueSessionRef}` automatically. `conversationUid` is the safe public UID carried by the incoming conversation page route from the conversation list, search/join result, creation result, or another authorized conversation link. The UX API validates the identified session, derives the participant and active membership, authorizes access, and returns display-ready role and allowed-action decisions without asking the browser for permission inputs. The presentation app renders governance controls from `canManageTagsAndLifecycle`, `canManageMembers`, and `canReviewReports` rather than interpreting `role` as permission policy. If the cookie is absent or invalid, the UX API returns an identified-session-required response and no conversation data. A ready response may contain an empty `messages` array, a populated thread, or posting restrictions; a load failure returns no partial workspace, while owner-continuity decisions are expressed through `canLeave` and `leaveBlockReason`.
+The browser sends `Cookie: tawk_session={opaqueSessionRef}` automatically. `conversationUid` is the safe public UID carried by the incoming conversation page route from the conversation list, search/join result, creation result, or another authorized conversation link. The UX API validates the identified session, derives the participant and active membership, authorizes access, and returns display-ready role and allowed-action decisions without asking the browser for permission inputs. From that identified session and membership context, the UX API also derives `isCurrentParticipant` for every `participants` summary and every `messages[].author`; the presentation app uses the boolean for “You” labels, current-participant roster treatment, and own-message treatment without comparing `displayName`. The presentation app renders governance controls from `canManageTagsAndLifecycle`, `canManageMembers`, and `canReviewReports` rather than interpreting `role` as permission policy. If the cookie is absent or invalid, the UX API returns an identified-session-required response and no conversation data. A ready response may contain an empty `messages` array, a populated thread, or posting restrictions; a load failure returns no partial workspace, while owner-continuity decisions are expressed through `canLeave` and `leaveBlockReason`.
 
 ### Example Request Payload
 
@@ -65,35 +65,40 @@ No JSON request body is sent for this route.
       "displayName": "Maya Chen",
       "participantType": "PERSON",
       "roleLabel": "Owner",
-      "presence": "ACTIVE"
+      "presence": "ACTIVE",
+      "isCurrentParticipant": true
     },
     {
       "displayName": "Nadia Rivera",
       "participantType": "PERSON",
       "roleLabel": "Administrator",
-      "presence": "ACTIVE"
+      "presence": "ACTIVE",
+      "isCurrentParticipant": false
     },
     {
       "displayName": "Theo Walker",
       "participantType": "PERSON",
       "roleLabel": "Member",
-      "presence": "ACTIVE"
+      "presence": "ACTIVE",
+      "isCurrentParticipant": false
     },
     {
       "displayName": "SoilWatch",
       "participantType": "BOT",
       "roleLabel": "Member",
-      "presence": "ACTIVE"
+      "presence": "ACTIVE",
+      "isCurrentParticipant": false
     }
   ],
   "messages": [
     {
       "messageUid": "7c9e6679742f40de944be07fc1f90ae7",
       "author": {
-        "displayName": "Nadia Rivera",
+        "displayName": "Maya Chen",
         "participantType": "PERSON",
-        "roleLabel": "Administrator",
-        "isFormerParticipant": false
+        "roleLabel": "Owner",
+        "isFormerParticipant": false,
+        "isCurrentParticipant": true
       },
       "text": "I can bring two flats of mountain mint on Saturday.",
       "postedAt": "2026-07-22T09:18:00-04:00",

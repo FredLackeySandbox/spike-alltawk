@@ -1,0 +1,944 @@
+openapi: 3.1.0
+info:
+  title: Moderation UX API
+  version: 0.1.0
+x-solpoc-route-markdown: docs/mockup/routes/moderation-routes.md
+paths:
+  /api/v0/moderation/retrieve-reviewable-reports:
+    get:
+      operationId: retrieveReviewableReports
+      summary: Retrieve reviewable reports
+      description: Retrieves the signed-in reviewer's governed moderation queue and conversation filter choices without disclosing reports outside the reviewer's current scope.
+      tags:
+        - moderation
+      x-solpoc-source-actions:
+        - "docs/mockup/desktop/moderation/index.md — Retrieve Reviewable Reports"
+      x-solpoc-mockup-files:
+        - docs/mockup/desktop/moderation/index.html
+        - docs/mockup/desktop/moderation/index.md
+      security:
+        - sessionCookie: []
+      parameters:
+        - name: originConversationUid
+          in: query
+          required: false
+          description: Optional public conversation UID used to preselect a governed conversation.
+          schema:
+            type: string
+        - name: Accept
+          in: header
+          required: true
+          description: Response media type requested by the browser.
+          schema:
+            type: string
+            enum:
+              - application/json
+      responses:
+        "200":
+          description: The reviewable queue start state, an empty or populated queue, a denied state, or retry guidance.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - result
+                properties:
+                  result:
+                    type: string
+                    enum:
+                      - READY
+                      - DENIED
+                      - FAILED
+                  selectedConversationUid:
+                    type:
+                      - string
+                      - "null"
+                  governedConversations:
+                    type: array
+                    items:
+                      type: object
+                      required:
+                        - conversationUid
+                        - tags
+                      properties:
+                        conversationUid:
+                          type: string
+                        tags:
+                          type: array
+                          items:
+                            type: string
+                  reports:
+                    type: array
+                    items:
+                      type: object
+                      required:
+                        - reportNumber
+                        - conversationUid
+                        - conversationTags
+                        - reporter
+                        - reasonExcerpt
+                      properties:
+                        reportNumber:
+                          type: string
+                        conversationUid:
+                          type: string
+                        conversationTags:
+                          type: array
+                          items:
+                            type: string
+                        reporter:
+                          type: object
+                          required:
+                            - displayName
+                            - identityType
+                            - membershipLabel
+                          properties:
+                            displayName:
+                              type: string
+                            identityType:
+                              type: string
+                              enum:
+                                - PERSON
+                            membershipLabel:
+                              type: string
+                        reasonExcerpt:
+                          type: string
+                  totalCount:
+                    type: integer
+                    minimum: 0
+              example:
+                result: READY
+                selectedConversationUid: a12bc34d56ef4789a1234567890abcde
+                governedConversations:
+                  - conversationUid: a12bc34d56ef4789a1234567890abcde
+                    tags:
+                      - "#product-design"
+                      - "#accessibility"
+                      - "#research"
+                reports:
+                  - reportNumber: "1048"
+                    conversationUid: a12bc34d56ef4789a1234567890abcde
+                    conversationTags:
+                      - "#product-design"
+                      - "#accessibility"
+                      - "#research"
+                    reporter:
+                      displayName: Priya Nair
+                      identityType: PERSON
+                      membershipLabel: Member
+                    reasonExcerpt: Personal attack after the keyboard test results were shared.
+                totalCount: 1
+  /api/v0/moderation/retrieve-moderation-ticket:
+    get:
+      operationId: retrieveModerationTicket
+      summary: Retrieve a moderation ticket
+      description: Retrieves one authorized moderation ticket with UI-ready evidence, notes, participant state, related discussion, suspension state, and allowed moderation actions.
+      tags:
+        - moderation
+      x-solpoc-source-actions:
+        - "docs/mockup/desktop/moderation/ticket.md — Retrieve Moderation Ticket"
+      x-solpoc-mockup-files:
+        - docs/mockup/desktop/moderation/ticket.html
+        - docs/mockup/desktop/moderation/ticket.md
+      security:
+        - sessionCookie: []
+      parameters:
+        - name: reportNumber
+          in: query
+          required: true
+          description: Public report number carried from the selected queue result.
+          schema:
+            type: string
+        - name: conversationUid
+          in: query
+          required: true
+          description: Public UID of the report's source conversation.
+          schema:
+            type: string
+        - name: Accept
+          in: header
+          required: true
+          description: Response media type requested by the browser.
+          schema:
+            type: string
+            enum:
+              - application/json
+      responses:
+        "200":
+          description: The requested ticket, or a non-disclosing missing, unauthorized, failed, or timeout state with display-ready guidance.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - result
+                properties:
+                  result:
+                    type: string
+                    enum:
+                      - READY
+                      - MISSING
+                      - UNAUTHORIZED
+                      - FAILED
+                      - TIMEOUT
+                  reportNumber:
+                    type: string
+                  conversation:
+                    type: object
+                    required:
+                      - conversationUid
+                      - tags
+                      - sourceAvailable
+                    properties:
+                      conversationUid:
+                        type: string
+                      tags:
+                        type: array
+                        items:
+                          type: string
+                      sourceAvailable:
+                        type: boolean
+                  reportedMessage:
+                    type: object
+                    required:
+                      - messageUid
+                      - author
+                      - sentAt
+                      - text
+                      - isDeleted
+                    properties:
+                      messageUid:
+                        type: string
+                      author:
+                        type: object
+                        required:
+                          - participantUid
+                          - displayName
+                        properties:
+                          participantUid:
+                            type: string
+                          displayName:
+                            type: string
+                      sentAt:
+                        type: string
+                        format: date-time
+                      text:
+                        type: string
+                      isDeleted:
+                        type: boolean
+                  contextMessages:
+                    type: array
+                    items:
+                      type: object
+                      required:
+                        - position
+                        - authorDisplayName
+                        - identityType
+                        - sentAt
+                        - text
+                      properties:
+                        position:
+                          type: string
+                          enum:
+                            - BEFORE
+                            - AFTER
+                        authorDisplayName:
+                          type: string
+                        identityType:
+                          type: string
+                          enum:
+                            - BOT
+                            - PERSON
+                        sentAt:
+                          type: string
+                          format: date-time
+                        text:
+                          type: string
+                  reporter:
+                    type: object
+                    required:
+                      - displayName
+                      - explanation
+                    properties:
+                      displayName:
+                        type: string
+                      explanation:
+                        type: string
+                  reviewerNotes:
+                    type: array
+                    items:
+                      type: object
+                      required:
+                        - authorDisplayName
+                        - createdAt
+                        - text
+                      properties:
+                        authorDisplayName:
+                          type: string
+                        createdAt:
+                          type: string
+                          format: date-time
+                        text:
+                          type: string
+                  participant:
+                    type: object
+                    required:
+                      - participantUid
+                      - displayName
+                      - status
+                      - canRead
+                      - canPost
+                      - canRejoin
+                      - postingSuspension
+                    properties:
+                      participantUid:
+                        type: string
+                      displayName:
+                        type: string
+                      status:
+                        type: string
+                        enum:
+                          - ACTIVE
+                      canRead:
+                        type: boolean
+                      canPost:
+                        type: boolean
+                      canRejoin:
+                        type: boolean
+                      postingSuspension:
+                        oneOf:
+                          - type: "null"
+                          - type: object
+                            required:
+                              - suspensionUid
+                              - endsAt
+                            properties:
+                              suspensionUid:
+                                type: string
+                              endsAt:
+                                type: string
+                                format: date-time
+                  relatedDiscussion:
+                    oneOf:
+                      - type: "null"
+                      - type: object
+                        required:
+                          - conversationUid
+                          - tags
+                        properties:
+                          conversationUid:
+                            type: string
+                          tags:
+                            type: array
+                            items:
+                              type: string
+                  appliedEffects:
+                    type: array
+                    items:
+                      type: object
+                  allowedActions:
+                    type: object
+                    required:
+                      - createReviewerNote
+                      - deleteReportedMessage
+                      - createPostingSuspension
+                      - updatePostingSuspension
+                      - removeParticipant
+                      - banParticipant
+                    properties:
+                      createReviewerNote:
+                        type: boolean
+                      deleteReportedMessage:
+                        type: boolean
+                      createPostingSuspension:
+                        type: boolean
+                      updatePostingSuspension:
+                        type: boolean
+                      removeParticipant:
+                        type: boolean
+                      banParticipant:
+                        type: boolean
+              example:
+                result: READY
+                reportNumber: "1048"
+                conversation:
+                  conversationUid: a12bc34d56ef4789a1234567890abcde
+                  tags:
+                    - "#product-design"
+                    - "#accessibility"
+                    - "#research"
+                  sourceAvailable: true
+                reportedMessage:
+                  messageUid: b23cd45e67f8490ab234567890abcdef
+                  author:
+                    participantUid: c34de56f78a9412ba34567890abcdef1
+                    displayName: Declan Gray
+                  sentAt: "2026-07-22T10:13:00-04:00"
+                  text: "Maybe if Priya understood basic interaction design, we wouldn't waste another review on this."
+                  isDeleted: false
+                contextMessages:
+                  - position: BEFORE
+                    authorDisplayName: AccessCheck
+                    identityType: BOT
+                    sentAt: "2026-07-22T10:11:00-04:00"
+                    text: "Keyboard path check completed: 7 of 8 tasks passed. The modal close control still needs a visible focus state."
+                  - position: AFTER
+                    authorDisplayName: Maya Chen
+                    identityType: PERSON
+                    sentAt: "2026-07-22T10:15:00-04:00"
+                    text: "Please keep feedback about the work. Priya's test notes clearly identify the remaining keyboard issue."
+                reporter:
+                  displayName: Priya Nair
+                  explanation: "This was directed at me rather than the design issue. It followed two similar comments in yesterday's keyboard-review discussion."
+                reviewerNotes:
+                  - authorDisplayName: Maya Chen
+                    createdAt: "2026-07-22T10:22:00-04:00"
+                    text: "Reporter flagged this within minutes. Two similar comments appeared in yesterday's keyboard-review discussion."
+                participant:
+                  participantUid: c34de56f78a9412ba34567890abcdef1
+                  displayName: Declan Gray
+                  status: ACTIVE
+                  canRead: true
+                  canPost: true
+                  canRejoin: true
+                  postingSuspension: null
+                relatedDiscussion:
+                  conversationUid: f6701892abcd445ea67890abcdef1234
+                  tags:
+                    - "#mod-review"
+                    - "#ticket-1048"
+                appliedEffects: []
+                allowedActions:
+                  createReviewerNote: true
+                  deleteReportedMessage: true
+                  createPostingSuspension: true
+                  updatePostingSuspension: false
+                  removeParticipant: true
+                  banParticipant: true
+  /api/v0/moderation/create-reviewer-note:
+    post:
+      operationId: createReviewerNote
+      summary: Create a reviewer note
+      description: Creates one operational reviewer note on the loaded moderation ticket after deriving the reviewer identity, attribution, timestamp, authority, and ordering server-side.
+      tags:
+        - moderation
+      x-solpoc-source-actions:
+        - "docs/mockup/desktop/moderation/ticket.md — Create Reviewer Note"
+      x-solpoc-mockup-files:
+        - docs/mockup/desktop/moderation/ticket.html
+        - docs/mockup/desktop/moderation/ticket.md
+      security:
+        - sessionCookie: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - reportNumber
+                - conversationUid
+                - noteText
+              properties:
+                reportNumber:
+                  type: string
+                conversationUid:
+                  type: string
+                noteText:
+                  type: string
+            example:
+              reportNumber: "1048"
+              conversationUid: a12bc34d56ef4789a1234567890abcde
+              noteText: Reviewed the surrounding context and confirmed that the reported message should remain in the retained evidence.
+      responses:
+        "201":
+          description: The created reviewer note, an unavailable-ticket outcome, or display-ready validation guidance.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - result
+                properties:
+                  result:
+                    type: string
+                    enum:
+                      - CREATED
+                      - UNAVAILABLE
+                      - INVALID
+                  note:
+                    type: object
+                    required:
+                      - authorDisplayName
+                      - createdAt
+                      - text
+                    properties:
+                      authorDisplayName:
+                        type: string
+                      createdAt:
+                        type: string
+                        format: date-time
+                      text:
+                        type: string
+              example:
+                result: CREATED
+                note:
+                  authorDisplayName: Rowan Ellis
+                  createdAt: "2026-07-22T10:31:00-04:00"
+                  text: Reviewed the surrounding context and confirmed that the reported message should remain in the retained evidence.
+  /api/v0/moderation/delete-reported-message:
+    delete:
+      operationId: deleteReportedMessage
+      summary: Delete a reported message
+      description: Soft-deletes the reported source message while preserving its retained moderation evidence and returning the applied effect and current allowed actions.
+      tags:
+        - moderation
+      x-solpoc-source-actions:
+        - "docs/mockup/desktop/moderation/ticket.md — Delete Reported Message"
+      x-solpoc-mockup-files:
+        - docs/mockup/desktop/moderation/ticket.html
+        - docs/mockup/desktop/moderation/ticket.md
+      security:
+        - sessionCookie: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - reportNumber
+                - conversationUid
+                - reportedMessageUid
+              properties:
+                reportNumber:
+                  type: string
+                conversationUid:
+                  type: string
+                reportedMessageUid:
+                  type: string
+            example:
+              reportNumber: "1048"
+              conversationUid: a12bc34d56ef4789a1234567890abcde
+              reportedMessageUid: b23cd45e67f8490ab234567890abcdef
+      responses:
+        "200":
+          description: The deletion state and current allowed actions, or a non-disclosing unavailable outcome.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - result
+                properties:
+                  result:
+                    type: string
+                    enum:
+                      - DELETED
+                      - ALREADY_DELETED
+                      - UNAVAILABLE
+                  reportedMessage:
+                    type: object
+                    required:
+                      - messageUid
+                      - isDeleted
+                      - deletedAt
+                    properties:
+                      messageUid:
+                        type: string
+                      isDeleted:
+                        type: boolean
+                      deletedAt:
+                        type: string
+                        format: date-time
+                  appliedEffect:
+                    $ref: "#/components/schemas/AppliedEffect"
+                  allowedActions:
+                    $ref: "#/components/schemas/ModerationActionAvailability"
+              example:
+                result: DELETED
+                reportedMessage:
+                  messageUid: b23cd45e67f8490ab234567890abcdef
+                  isDeleted: true
+                  deletedAt: "2026-07-22T10:32:00-04:00"
+                appliedEffect:
+                  title: Message hidden from the conversation
+                  description: The message no longer appears in the source conversation. Its retained evidence stays on this report.
+                allowedActions:
+                  deleteReportedMessage: false
+                  createPostingSuspension: true
+                  removeParticipant: true
+                  banParticipant: true
+  /api/v0/moderation/create-posting-suspension:
+    post:
+      operationId: createPostingSuspension
+      summary: Create a posting suspension
+      description: Creates one time-bounded posting restriction for the active participant while retaining reading and membership access.
+      tags:
+        - moderation
+      x-solpoc-source-actions:
+        - "docs/mockup/desktop/moderation/ticket.md — Create Posting Suspension"
+      x-solpoc-mockup-files:
+        - docs/mockup/desktop/moderation/ticket.html
+        - docs/mockup/desktop/moderation/ticket.md
+      security:
+        - sessionCookie: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - reportNumber
+                - conversationUid
+                - participantUid
+                - endsAt
+              properties:
+                reportNumber:
+                  type: string
+                conversationUid:
+                  type: string
+                participantUid:
+                  type: string
+                endsAt:
+                  type: string
+                  format: date-time
+            example:
+              reportNumber: "1048"
+              conversationUid: a12bc34d56ef4789a1234567890abcde
+              participantUid: c34de56f78a9412ba34567890abcdef1
+              endsAt: "2026-07-29T17:00:00-04:00"
+      responses:
+        "201":
+          description: The created suspension, a not-applicable outcome, or rejected input guidance.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - result
+                properties:
+                  result:
+                    type: string
+                    enum:
+                      - CREATED
+                      - NOT_APPLICABLE
+                      - REJECTED
+                  postingSuspension:
+                    $ref: "#/components/schemas/PostingSuspension"
+                  appliedEffect:
+                    $ref: "#/components/schemas/AppliedEffect"
+                  allowedActions:
+                    $ref: "#/components/schemas/ModerationActionAvailability"
+              example:
+                result: CREATED
+                postingSuspension:
+                  suspensionUid: e56f07819abc434da567890abcdef123
+                  endsAt: "2026-07-29T17:00:00-04:00"
+                appliedEffect:
+                  title: Posting suspended
+                  description: "Declan Gray cannot post until Jul 29, 2026, 5:00 PM. He can continue reading the conversation."
+                allowedActions:
+                  createPostingSuspension: false
+                  updatePostingSuspension: true
+                  removeParticipant: true
+                  banParticipant: true
+  /api/v0/moderation/update-posting-suspension:
+    patch:
+      operationId: updatePostingSuspension
+      summary: Update a posting suspension
+      description: Replaces the effective end time of the existing posting suspension and returns the authoritative restriction, applied effect, and allowed actions.
+      tags:
+        - moderation
+      x-solpoc-source-actions:
+        - "docs/mockup/desktop/moderation/ticket.md — Update Posting Suspension"
+      x-solpoc-mockup-files:
+        - docs/mockup/desktop/moderation/ticket.html
+        - docs/mockup/desktop/moderation/ticket.md
+      security:
+        - sessionCookie: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - reportNumber
+                - conversationUid
+                - participantUid
+                - suspensionUid
+                - currentEndsAt
+                - replacementEndsAt
+                - shorterPeriodAcknowledged
+              properties:
+                reportNumber:
+                  type: string
+                conversationUid:
+                  type: string
+                participantUid:
+                  type: string
+                suspensionUid:
+                  type: string
+                currentEndsAt:
+                  type: string
+                  format: date-time
+                replacementEndsAt:
+                  type: string
+                  format: date-time
+                shorterPeriodAcknowledged:
+                  type: boolean
+            example:
+              reportNumber: "1048"
+              conversationUid: a12bc34d56ef4789a1234567890abcde
+              participantUid: c34de56f78a9412ba34567890abcdef1
+              suspensionUid: e56f07819abc434da567890abcdef123
+              currentEndsAt: "2026-07-29T17:00:00-04:00"
+              replacementEndsAt: "2026-07-25T17:00:00-04:00"
+              shorterPeriodAcknowledged: true
+      responses:
+        "200":
+          description: The updated suspension, a stale state, or rejected replacement guidance.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - result
+                properties:
+                  result:
+                    type: string
+                    enum:
+                      - UPDATED
+                      - STALE
+                      - REJECTED
+                  postingSuspension:
+                    $ref: "#/components/schemas/PostingSuspension"
+                  appliedEffect:
+                    $ref: "#/components/schemas/AppliedEffect"
+                  allowedActions:
+                    $ref: "#/components/schemas/ModerationActionAvailability"
+              example:
+                result: UPDATED
+                postingSuspension:
+                  suspensionUid: e56f07819abc434da567890abcdef123
+                  endsAt: "2026-07-25T17:00:00-04:00"
+                appliedEffect:
+                  title: Posting suspended
+                  description: "Declan Gray cannot post until Jul 25, 2026, 5:00 PM. He can continue reading the conversation."
+                allowedActions:
+                  createPostingSuspension: false
+                  updatePostingSuspension: true
+                  removeParticipant: true
+                  banParticipant: true
+  /api/v0/moderation/remove-participant:
+    delete:
+      operationId: removeParticipant
+      summary: Remove a participant
+      description: Ends the target participant's active membership in the source conversation without banning the identity or deleting retained history.
+      tags:
+        - moderation
+      x-solpoc-source-actions:
+        - "docs/mockup/desktop/moderation/ticket.md — Remove Participant"
+      x-solpoc-mockup-files:
+        - docs/mockup/desktop/moderation/ticket.html
+        - docs/mockup/desktop/moderation/ticket.md
+      security:
+        - sessionCookie: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - reportNumber
+                - conversationUid
+                - participantUid
+              properties:
+                reportNumber:
+                  type: string
+                conversationUid:
+                  type: string
+                participantUid:
+                  type: string
+            example:
+              reportNumber: "1048"
+              conversationUid: a12bc34d56ef4789a1234567890abcde
+              participantUid: c34de56f78a9412ba34567890abcdef1
+      responses:
+        "200":
+          description: The participant's current inactive state and allowed actions, or a non-disclosing unavailable outcome.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - result
+                properties:
+                  result:
+                    type: string
+                    enum:
+                      - REMOVED
+                      - ALREADY_INACTIVE
+                      - UNAVAILABLE
+                  participant:
+                    type: object
+                    required:
+                      - participantUid
+                      - status
+                      - canRejoin
+                    properties:
+                      participantUid:
+                        type: string
+                      status:
+                        type: string
+                        enum:
+                          - FORMER
+                      canRejoin:
+                        type: boolean
+                  appliedEffect:
+                    $ref: "#/components/schemas/AppliedEffect"
+                  allowedActions:
+                    $ref: "#/components/schemas/ModerationActionAvailability"
+              example:
+                result: REMOVED
+                participant:
+                  participantUid: c34de56f78a9412ba34567890abcdef1
+                  status: FORMER
+                  canRejoin: true
+                appliedEffect:
+                  title: Participant removed
+                  description: Declan Gray is now a former participant and is not blocked from rejoining.
+                allowedActions:
+                  createPostingSuspension: false
+                  updatePostingSuspension: false
+                  removeParticipant: false
+                  banParticipant: true
+  /api/v0/moderation/ban-participant:
+    post:
+      operationId: banParticipant
+      summary: Ban a participant
+      description: Blocks the target identity from participating in or rejoining the source conversation while retaining membership, message, and ticket history.
+      tags:
+        - moderation
+      x-solpoc-source-actions:
+        - "docs/mockup/desktop/moderation/ticket.md — Ban Participant"
+      x-solpoc-mockup-files:
+        - docs/mockup/desktop/moderation/ticket.html
+        - docs/mockup/desktop/moderation/ticket.md
+      security:
+        - sessionCookie: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - reportNumber
+                - conversationUid
+                - participantUid
+              properties:
+                reportNumber:
+                  type: string
+                conversationUid:
+                  type: string
+                participantUid:
+                  type: string
+            example:
+              reportNumber: "1048"
+              conversationUid: a12bc34d56ef4789a1234567890abcde
+              participantUid: c34de56f78a9412ba34567890abcdef1
+      responses:
+        "200":
+          description: The participant's current banned state and allowed actions, or a non-disclosing unavailable outcome.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - result
+                properties:
+                  result:
+                    type: string
+                    enum:
+                      - BANNED
+                      - ALREADY_BANNED
+                      - UNAVAILABLE
+                  participant:
+                    type: object
+                    required:
+                      - participantUid
+                      - status
+                      - canRejoin
+                    properties:
+                      participantUid:
+                        type: string
+                      status:
+                        type: string
+                        enum:
+                          - BANNED
+                      canRejoin:
+                        type: boolean
+                  appliedEffect:
+                    $ref: "#/components/schemas/AppliedEffect"
+                  allowedActions:
+                    $ref: "#/components/schemas/ModerationActionAvailability"
+              example:
+                result: BANNED
+                participant:
+                  participantUid: c34de56f78a9412ba34567890abcdef1
+                  status: BANNED
+                  canRejoin: false
+                appliedEffect:
+                  title: Participant banned
+                  description: "Declan Gray cannot post or rejoin. Retained messages, membership history, and report evidence remain available to authorized reviewers."
+                allowedActions:
+                  createPostingSuspension: false
+                  updatePostingSuspension: false
+                  removeParticipant: false
+                  banParticipant: false
+components:
+  securitySchemes:
+    sessionCookie:
+      type: apiKey
+      in: cookie
+      name: tawk_session
+      description: Opaque shared browser session reference used to derive the signed-in reviewer and current authority.
+  schemas:
+    AppliedEffect:
+      type: object
+      required:
+        - title
+        - description
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+    PostingSuspension:
+      type: object
+      required:
+        - suspensionUid
+        - endsAt
+      properties:
+        suspensionUid:
+          type: string
+        endsAt:
+          type: string
+          format: date-time
+    ModerationActionAvailability:
+      type: object
+      properties:
+        createPostingSuspension:
+          type: boolean
+        updatePostingSuspension:
+          type: boolean
+        deleteReportedMessage:
+          type: boolean
+        removeParticipant:
+          type: boolean
+        banParticipant:
+          type: boolean

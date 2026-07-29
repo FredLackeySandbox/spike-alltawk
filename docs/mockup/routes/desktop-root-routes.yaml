@@ -1,0 +1,6 @@
+openapi: 3.1.0
+info:
+  title: Desktop Root UX API
+  version: 0.1.0
+x-solpoc-route-markdown: docs/mockup/routes/desktop-root-routes.md
+paths: {}
