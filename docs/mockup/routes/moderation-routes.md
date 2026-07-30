@@ -2,7 +2,7 @@
 
 ## Retrieve Reviewable Reports : (`GET /api/v0/moderation/retrieve-reviewable-reports`)
 
-Retrieves the moderation queue and governed-conversation filter choices for the signed-in reviewer. It supports the queue page's initial load, retry, authorized origin preselection, populated and empty results, and non-disclosing denied or failed outcomes while keeping report visibility scoped to conversations the reviewer currently owns or administers.
+Retrieves the moderation reports the current reviewer is authorized to review, together with the governed-conversation choices needed by the Reported Messages page. It supports the initial load, retry, populated and empty results, non-disclosing denied results, and an optional conversation-origin selection only when that conversation is in the reviewer’s authorized scope.
 
 ### Source Actions
 
@@ -16,14 +16,18 @@ Retrieves the moderation queue and governed-conversation filter choices for the 
 ### Route
 
 ```http
-GET /api/v0/moderation/retrieve-reviewable-reports?originConversationUid={conversationUid}
+GET /api/v0/moderation/retrieve-reviewable-reports?conversationUid={conversationUid}
 Cookie: tawk_session={opaqueSessionRef}
 Accept: application/json
 ```
 
 ### Request Context
 
-The browser sends `Cookie: tawk_session={opaqueSessionRef}`. Optional `originConversationUid` comes from the current queue page URL and is the public conversation UID returned by an earlier conversation or ticket response; an absent value starts at all governed conversations. The browser should use this one normalized URL value when returning from a ticket rather than the mockup's inconsistent `origin` and `conversation` keys. The UX API derives the reviewer and current owner or administrator scope from the session, honors the origin only when it is in that current scope, and otherwise returns the same non-disclosing queue start state.
+The browser automatically sends the HttpOnly `tawk_session` cookie. The UX API derives the current reviewer, active conversation roles, and authorized governed-conversation scope server-side; no reviewer identity, role, or permission value is supplied by JSON or the query string.
+
+`conversationUid` is optional. It comes from the current queue page’s public-safe `origin` value, which was issued in a prior UX response or navigation URL. The static mockup uses aliases such as `design`, but production transport uses the public UID. The browser omits the query parameter when the origin is absent, `reports`, stale, or not among the governed conversations returned for the current session. Ticket return navigation preserves this same public value as `conversationUid`.
+
+An empty authorized queue returns `queueState: READY` with empty `reports`; a reviewer with no governed report scope receives `queueState: DENIED` with no conversation or report data. A retryable load failure returns no partial report data, so the page can keep its current display and retry this same request.
 
 ### Example Request Payload
 
@@ -33,22 +37,31 @@ No JSON request body is sent for this route.
 
 ```json
 {
-  "result": "READY",
-  "selectedConversationUid": "a12bc34d56ef4789a1234567890abcde",
+  "queueState": "READY",
+  "selectedConversationUid": null,
   "governedConversations": [
     {
-      "conversationUid": "a12bc34d56ef4789a1234567890abcde",
+      "conversationUid": "f47ac10b58cc4372a5670e02b2c3d479",
       "tags": [
         "#product-design",
         "#accessibility",
         "#research"
       ]
+    },
+    {
+      "conversationUid": "2c1b6b8e4f3a4c9d8e7f1a2b3c4d5e6f",
+      "tags": [
+        "#urban-gardening",
+        "#atlanta",
+        "#pollinators"
+      ]
     }
   ],
   "reports": [
     {
+      "reportUid": "550e8400e29b41d4a716446655440000",
       "reportNumber": "1048",
-      "conversationUid": "a12bc34d56ef4789a1234567890abcde",
+      "conversationUid": "f47ac10b58cc4372a5670e02b2c3d479",
       "conversationTags": [
         "#product-design",
         "#accessibility",
@@ -56,21 +69,19 @@ No JSON request body is sent for this route.
       ],
       "reporter": {
         "displayName": "Priya Nair",
+        "initials": "PN",
         "identityType": "PERSON",
-        "membershipLabel": "Member"
+        "roleLabel": "Member"
       },
       "reasonExcerpt": "Personal attack after the keyboard test results were shared."
     }
-  ],
-  "totalCount": 1
+  ]
 }
 ```
 
-An authorized zero-result branch returns `result: "READY"`, the authorized `governedConversations`, an empty `reports` array, and `totalCount: 0`; `selectedConversationUid` is `null` when no governed conversation is selected. When the reviewer has no governed scope, the response returns `result: "DENIED"` and omits conversation and report collections so the page shows its non-disclosing denied state. A recoverable retrieval failure returns `result: "FAILED"` with only display-ready retry guidance and no report data; the page keeps its current URL values and invokes this same route again.
-
 ## Retrieve Moderation Ticket : (`GET /api/v0/moderation/retrieve-moderation-ticket`)
 
-Retrieves one selected moderation ticket and the UI-ready evidence, ordered notes, participant and suspension state, existing related-discussion reference, and allowed moderation actions needed by the ticket page. The report number and source-conversation value come from the current page URL or the selected queue result; the result must support normal, retained-deletion, unavailable-source, no-discussion, missing, unauthorized, failed, timeout, retry, and post-action refresh states without disclosing inaccessible evidence. The UX API returns public conversation UIDs for the source and related discussion, and the page constructs its own navigation links from those UIDs.
+Retrieves the selected report’s evidence and current moderation state for the Moderation Ticket page. It uses the report number and source-conversation value carried by the queue link, then returns only evidence the current owner or administrator may review, including current notes, retained message state, participant restrictions, available actions, and any existing related discussion.
 
 ### Source Actions
 
@@ -84,14 +95,16 @@ Retrieves one selected moderation ticket and the UI-ready evidence, ordered note
 ### Route
 
 ```http
-GET /api/v0/moderation/retrieve-moderation-ticket?reportNumber={reportNumber}&conversationUid={conversationUid}
+GET /api/v0/moderation/retrieve-moderation-ticket?reportUid={reportUid}&conversationUid={conversationUid}
 Cookie: tawk_session={opaqueSessionRef}
 Accept: application/json
 ```
 
 ### Request Context
 
-The browser sends `Cookie: tawk_session={opaqueSessionRef}`. `reportNumber` and `conversationUid` come from the selected queue result and are carried in the current ticket page URL; the conversation UID is also the origin used to return to its filtered queue. The static mockup names these values `ticket` and `conversation` but always renders fixture report `#1048`; the production page must render the returned report instead. The UX API binds the report to the source conversation, rechecks current reviewer authority, and returns a non-disclosing missing or unauthorized outcome rather than trusting browser or fixture content.
+The browser automatically sends the HttpOnly `tawk_session` cookie. `reportUid` and `conversationUid` are public-safe values from the selected row returned by `Retrieve Reviewable Reports`; queue navigation carries both in the ticket page URL, and retry reuses those current page-route values. The static mockup displays a report number in its `ticket` parameter and a conversation alias, but production transport uses the public UIDs returned by the queue.
+
+The UX API rechecks the current reviewer’s owner or administrator authority and the report-to-conversation relationship server-side. A missing report returns `ticketState: NOT_FOUND`, and revoked authority returns `ticketState: ACCESS_DENIED`; neither branch includes message, reporter, participant, note, or discussion evidence. A retryable failure returns `ticketState: RETRYABLE_FAILURE` without partial evidence. A deleted message remains in the authorized response with `visibilityState: DELETED` and retained evidence; an unavailable source uses `sourceAvailable: false` with no `sourceConversationUrl`, and an absent related discussion uses `relatedDiscussion: null`.
 
 ### Example Request Payload
 
@@ -101,105 +114,84 @@ No JSON request body is sent for this route.
 
 ```json
 {
-  "result": "READY",
+  "ticketState": "READY",
+  "reportUid": "550e8400e29b41d4a716446655440000",
   "reportNumber": "1048",
   "conversation": {
-    "conversationUid": "a12bc34d56ef4789a1234567890abcde",
+    "conversationUid": "f47ac10b58cc4372a5670e02b2c3d479",
     "tags": [
       "#product-design",
       "#accessibility",
       "#research"
     ],
-    "sourceAvailable": true
+    "sourceAvailable": true,
+    "sourceConversationUrl": "/conversation/thread.html?conversationUid=f47ac10b58cc4372a5670e02b2c3d479&focus=flagged"
   },
   "reportedMessage": {
-    "messageUid": "b23cd45e67f8490ab234567890abcdef",
-    "author": {
-      "participantUid": "c34de56f78a9412ba34567890abcdef1",
-      "displayName": "Declan Gray"
-    },
+    "messageUid": "9f1c2d3e4a5b4c6d8e7f0a1b2c3d4e5f",
+    "authorDisplayName": "Declan Gray",
+    "authorInitials": "DG",
     "sentAt": "2026-07-22T10:13:00-04:00",
-    "text": "Maybe if Priya understood basic interaction design, we wouldn't waste another review on this.",
-    "isDeleted": false
+    "body": "Maybe if Priya understood basic interaction design, we wouldn't waste another review on this.",
+    "visibilityState": "VISIBLE",
+    "retainedEvidenceAvailable": true
   },
-  "contextMessages": [
+  "adjacentMessages": [
     {
-      "position": "BEFORE",
       "authorDisplayName": "AccessCheck",
+      "authorInitials": "AB",
       "identityType": "BOT",
       "sentAt": "2026-07-22T10:11:00-04:00",
-      "text": "Keyboard path check completed: 7 of 8 tasks passed. The modal close control still needs a visible focus state."
+      "body": "Keyboard path check completed: 7 of 8 tasks passed. The modal close control still needs a visible focus state."
     },
     {
-      "position": "AFTER",
       "authorDisplayName": "Maya Chen",
+      "authorInitials": "MC",
       "identityType": "PERSON",
       "sentAt": "2026-07-22T10:15:00-04:00",
-      "text": "Please keep feedback about the work. Priya's test notes clearly identify the remaining keyboard issue."
+      "body": "Please keep feedback about the work. Priya's test notes clearly identify the remaining keyboard issue."
     }
   ],
   "reporter": {
     "displayName": "Priya Nair",
+    "initials": "PN",
     "explanation": "This was directed at me rather than the design issue. It followed two similar comments in yesterday's keyboard-review discussion."
   },
   "reviewerNotes": [
     {
+      "noteUid": "123e4567e89b42d3a456426614174000",
       "authorDisplayName": "Maya Chen",
       "createdAt": "2026-07-22T10:22:00-04:00",
-      "text": "Reporter flagged this within minutes. Two similar comments appeared in yesterday's keyboard-review discussion."
+      "text": "Reporter flagged this within minutes. Two similar comments appeared in yesterday’s keyboard-review discussion."
     }
   ],
-  "participant": {
-    "participantUid": "c34de56f78a9412ba34567890abcdef1",
+  "targetParticipant": {
+    "participantUid": "7c9e6679dafa4d6c8f1b2a3c4d5e6f70",
     "displayName": "Declan Gray",
-    "status": "ACTIVE",
-    "canRead": true,
-    "canPost": true,
-    "canRejoin": true,
-    "postingSuspension": null
+    "status": "ACTIVE"
   },
+  "postingSuspension": null,
+  "allowedActions": [
+    "CREATE_REVIEWER_NOTE",
+    "DELETE_REPORTED_MESSAGE",
+    "CREATE_POSTING_SUSPENSION",
+    "REMOVE_PARTICIPANT",
+    "BAN_PARTICIPANT"
+  ],
   "relatedDiscussion": {
-    "conversationUid": "f6701892abcd445ea67890abcdef1234",
+    "conversationUid": "3f2504e04f8941d39a0c0305e82c3301",
     "tags": [
       "#mod-review",
       "#ticket-1048"
-    ]
-  },
-  "appliedEffects": [],
-  "allowedActions": {
-    "createReviewerNote": true,
-    "deleteReportedMessage": true,
-    "createPostingSuspension": true,
-    "updatePostingSuspension": false,
-    "removeParticipant": true,
-    "banParticipant": true
+    ],
+    "conversationUrl": "/conversation/thread.html?conversationUid=3f2504e04f8941d39a0c0305e82c3301"
   }
 }
 ```
-
-The successful `result: "READY"` guidance also includes this concrete existing-suspension response variant:
-
-```json
-{
-  "participant": {
-    "participantUid": "c34de56f78a9412ba34567890abcdef1",
-    "postingSuspension": {
-      "suspensionUid": "e56f07819abc434da567890abcdef123",
-      "endsAt": "2026-07-29T17:00:00-04:00"
-    }
-  }
-}
-```
-
-For this existing-suspension variant, the page carries `participant.postingSuspension.suspensionUid` value `e56f07819abc434da567890abcdef123` into Update Posting Suspension as `suspensionUid`, and carries `participant.postingSuspension.endsAt` value `2026-07-29T17:00:00-04:00` into Update Posting Suspension as `currentEndsAt`.
-
-When an active suspension exists, `participant.postingSuspension` is an object containing the public `suspensionUid` and current `endsAt` value instead of `null`; `participant.canPost` is `false`, while `participant.canRead` and `participant.canRejoin` remain `true`. `allowedActions.createPostingSuspension` is `false` and `allowedActions.updatePostingSuspension` is `true`. The page carries those returned suspension values forward as `suspensionUid` and `currentEndsAt` when it invokes Update Posting Suspension. The source and related-discussion conversation UIDs remain public navigation values returned in the same ticket response.
-
-For retained deletion, `reportedMessage.isDeleted` is `true` and the retained evidence remains present, while `allowedActions.deleteReportedMessage` is `false`. When the source conversation is unavailable, `conversation.sourceAvailable` is `false` and source-navigation fields are omitted; when no related discussion exists, `relatedDiscussion` is `null`. Missing, unauthorized, failed, and timeout branches return only a display-ready `result` and retry or return guidance, omitting ticket evidence, participant data, notes, related-discussion data, and allowed actions. The page retries this route after failures and returns to the queue after missing or unauthorized results.
 
 ## Create Reviewer Note : (`POST /api/v0/moderation/create-reviewer-note`)
 
-Creates one operational reviewer note on the loaded moderation ticket and returns the display-ready note with its reviewer attribution and timestamp for ordered insertion. The browser can invoke it with the report number carried by the ticket page and the reviewer-entered text; reviewer identity and continued authority are derived and checked by the UX API rather than supplied as editable fields.
+Creates one operational reviewer note on the currently loaded moderation ticket. The browser supplies the reviewer-entered text and the selected report reference from the page route or ticket-load result; reviewer identity and current authority are derived server-side, and the authoritative created note is returned for ordered display.
 
 ### Source Actions
 
@@ -215,26 +207,23 @@ Creates one operational reviewer note on the loaded moderation ticket and return
 ```http
 POST /api/v0/moderation/create-reviewer-note
 Cookie: tawk_session={opaqueSessionRef}
+Origin: {applicationOrigin}
 Content-Type: application/json
-
-{
-  "reportNumber": "{reportNumber}",
-  "conversationUid": "{conversationUid}",
-  "noteText": "{reviewerEnteredNoteText}"
-}
+Accept: application/json
 ```
 
 ### Request Context
 
-The browser sends `Cookie: tawk_session={opaqueSessionRef}`. `reportNumber` and `conversationUid` come from the current ticket page URL, which was populated from the selected queue result, and `noteText` comes from the reviewer notes form. The UX API binds the report to the conversation and derives reviewer identity, current authority, note attribution, timestamp, and authoritative ordering server-side.
+The browser automatically sends the HttpOnly `tawk_session` cookie and its browser-managed `Origin` header. `reportUid` comes from the current ticket page URL or the prior `Retrieve Moderation Ticket` response; `text` is the trimmed value entered in the visible Reviewer notes form. The UX API validates the same-origin request and current report access, derives reviewer identity and authoritative note order server-side, and prevents a repeated pending submission from creating duplicate notes.
+
+Revoked access returns no note or ticket evidence. If the ticket has changed incompatibly, the response identifies a UI-safe conflict and the page reloads `Retrieve Moderation Ticket` rather than appending a speculative note.
 
 ### Example Request Payload
 
 ```json
 {
-  "reportNumber": "1048",
-  "conversationUid": "a12bc34d56ef4789a1234567890abcde",
-  "noteText": "Reviewed the surrounding context and confirmed that the reported message should remain in the retained evidence."
+  "reportUid": "550e8400e29b41d4a716446655440000",
+  "text": "Escalation context confirmed with the reporter."
 }
 ```
 
@@ -242,20 +231,18 @@ The browser sends `Cookie: tawk_session={opaqueSessionRef}`. `reportNumber` and 
 
 ```json
 {
-  "result": "CREATED",
   "note": {
+    "noteUid": "6ba7b8109dad41d180b400c04fd430c8",
     "authorDisplayName": "Rowan Ellis",
     "createdAt": "2026-07-22T10:31:00-04:00",
-    "text": "Reviewed the surrounding context and confirmed that the reported message should remain in the retained evidence."
+    "text": "Escalation context confirmed with the reporter."
   }
 }
 ```
 
-If the ticket is no longer reviewable, the response returns `result: "UNAVAILABLE"` without a `note`; the page does not append anything and reloads the ticket to reconcile current access and action availability. Invalid text returns a display-ready validation outcome without creating or returning a note.
-
 ## Delete Reported Message : (`DELETE /api/v0/moderation/delete-reported-message`)
 
-Soft-deletes the reported source message while preserving its retained moderation evidence and associating the applied effect with the ticket. The browser receives the report number and a public-safe reported-message identifier from the loaded ticket and submits them only after explicit confirmation; the route returns current already-deleted or successful deletion state so duplicate or stale application does not erase evidence or alter participant access.
+Applies the confirmed soft deletion of the reported message while preserving the retained moderation evidence and participant state. The reported-message reference comes from the ticket-load result, so the action remains invocable without exposing an internal identifier or asking the browser to reconstruct message ownership or authorization.
 
 ### Source Actions
 
@@ -271,26 +258,24 @@ Soft-deletes the reported source message while preserving its retained moderatio
 ```http
 DELETE /api/v0/moderation/delete-reported-message
 Cookie: tawk_session={opaqueSessionRef}
+Origin: {applicationOrigin}
 Content-Type: application/json
-
-{
-  "reportNumber": "{reportNumber}",
-  "conversationUid": "{conversationUid}",
-  "reportedMessageUid": "{reportedMessageUid}"
-}
+Accept: application/json
 ```
 
 ### Request Context
 
-The browser sends `Cookie: tawk_session={opaqueSessionRef}`. `reportNumber` and `conversationUid` come from the current ticket page URL, while `reportedMessageUid` comes from the prior moderation-ticket response. The request itself represents the reviewer's delete intent after the page completes its visible confirmation. The UX API binds all three public values, rechecks current access and message state, soft-deletes only the source message, and retains the ticket evidence server-side.
+The browser automatically sends the HttpOnly `tawk_session` cookie and its browser-managed `Origin` header. `reportUid` and `messageUid` are public-safe values carried forward from `Retrieve Moderation Ticket`; `confirmed` records the reviewer’s visible confirmation-dialog intent. The UX API validates the same-origin request, rechecks current authority, verifies that the message belongs to the report, and performs a soft deletion while keeping the retained evidence server-side.
+
+If the message was already deleted, the response returns its current UI-safe `DELETED` state without applying the action twice. Revoked access returns no message or report evidence; another stale or incompatible ticket state returns a conflict that instructs the page to reload the ticket.
 
 ### Example Request Payload
 
 ```json
 {
-  "reportNumber": "1048",
-  "conversationUid": "a12bc34d56ef4789a1234567890abcde",
-  "reportedMessageUid": "b23cd45e67f8490ab234567890abcdef"
+  "reportUid": "550e8400e29b41d4a716446655440000",
+  "messageUid": "9f1c2d3e4a5b4c6d8e7f0a1b2c3d4e5f",
+  "confirmed": true
 }
 ```
 
@@ -298,30 +283,22 @@ The browser sends `Cookie: tawk_session={opaqueSessionRef}`. `reportNumber` and 
 
 ```json
 {
-  "result": "DELETED",
-  "reportedMessage": {
-    "messageUid": "b23cd45e67f8490ab234567890abcdef",
-    "isDeleted": true,
-    "deletedAt": "2026-07-22T10:32:00-04:00"
-  },
-  "appliedEffect": {
-    "title": "Message hidden from the conversation",
-    "description": "The message no longer appears in the source conversation. Its retained evidence stays on this report."
-  },
-  "allowedActions": {
-    "deleteReportedMessage": false,
-    "createPostingSuspension": true,
-    "removeParticipant": true,
-    "banParticipant": true
-  }
+  "messageUid": "9f1c2d3e4a5b4c6d8e7f0a1b2c3d4e5f",
+  "visibilityState": "DELETED",
+  "retainedEvidenceAvailable": true,
+  "allowedActions": [
+    "CREATE_REVIEWER_NOTE",
+    "CREATE_POSTING_SUSPENSION",
+    "REMOVE_PARTICIPANT",
+    "BAN_PARTICIPANT"
+  ],
+  "appliedEffect": "The reported message is hidden from the source conversation and retained on this report."
 }
 ```
 
-If the message was already soft-deleted, the response returns `result: "ALREADY_DELETED"` with the same public message UID, `isDeleted: true`, the retained-evidence effect, and current allowed actions. If access or the report-to-message binding is stale, the response returns `result: "UNAVAILABLE"` without message text or retained evidence; the page closes the pending action and reloads the ticket.
-
 ## Create Posting Suspension : (`POST /api/v0/moderation/create-posting-suspension`)
 
-Creates a time-bounded posting restriction for the active participant represented by the loaded ticket without ending membership or reading access. The browser carries forward the report number and public-safe participant identifier from the ticket response and supplies the reviewer-entered future end time plus confirmation; the route returns the effective restriction, applied effect, and continuation information required to expose the later Change action.
+Creates the first active time-bounded posting restriction for the reported participant while leaving reading membership intact. The browser carries forward the selected report and target-participant references from the ticket-load result and supplies the reviewer-entered future end time plus explicit confirmation; the server determines eligibility and the effective restriction.
 
 ### Source Actions
 
@@ -337,28 +314,25 @@ Creates a time-bounded posting restriction for the active participant represente
 ```http
 POST /api/v0/moderation/create-posting-suspension
 Cookie: tawk_session={opaqueSessionRef}
+Origin: {applicationOrigin}
 Content-Type: application/json
-
-{
-  "reportNumber": "{reportNumber}",
-  "conversationUid": "{conversationUid}",
-  "participantUid": "{participantUid}",
-  "endsAt": "{reviewerEnteredEndTime}"
-}
+Accept: application/json
 ```
 
 ### Request Context
 
-The browser sends `Cookie: tawk_session={opaqueSessionRef}`. `reportNumber` and `conversationUid` come from the current ticket page URL, `participantUid` comes from the prior moderation-ticket response, and `endsAt` comes from the reviewer's suspension form. The request itself represents the reviewer's create intent after the page completes its visible confirmation. This create request does not carry a suspension UID or current end because no restriction exists; the UX API binds the report, conversation, and participant, then evaluates current authority, participant eligibility, and server time before creating one restriction.
+The browser automatically sends the HttpOnly `tawk_session` cookie and its browser-managed `Origin` header. `reportUid` and `participantUid` are public-safe values carried forward from `Retrieve Moderation Ticket`; `endsAt` is entered in the visible date-time field and `confirmed` records the reviewer’s confirmation-dialog intent. The browser sends the ISO 8601 time with its local UTC offset so the server can return one authoritative effective time.
+
+The UX API validates the same-origin request, current authority, report participant, active membership, absence of an existing suspension, and a future end time server-side. If a suspension now exists or the participant is no longer active, it returns a conflict with current UI-safe suspension or participant state and allowed actions so the page can refresh instead of creating a duplicate restriction.
 
 ### Example Request Payload
 
 ```json
 {
-  "reportNumber": "1048",
-  "conversationUid": "a12bc34d56ef4789a1234567890abcde",
-  "participantUid": "c34de56f78a9412ba34567890abcdef1",
-  "endsAt": "2026-07-29T17:00:00-04:00"
+  "reportUid": "550e8400e29b41d4a716446655440000",
+  "participantUid": "7c9e6679dafa4d6c8f1b2a3c4d5e6f70",
+  "endsAt": "2026-08-05T17:00:00-04:00",
+  "confirmed": true
 }
 ```
 
@@ -366,29 +340,23 @@ The browser sends `Cookie: tawk_session={opaqueSessionRef}`. `reportNumber` and 
 
 ```json
 {
-  "result": "CREATED",
-  "postingSuspension": {
-    "suspensionUid": "e56f07819abc434da567890abcdef123",
-    "endsAt": "2026-07-29T17:00:00-04:00"
-  },
-  "appliedEffect": {
-    "title": "Posting suspended",
-    "description": "Declan Gray cannot post until Jul 29, 2026, 5:00 PM. He can continue reading the conversation."
-  },
-  "allowedActions": {
-    "createPostingSuspension": false,
-    "updatePostingSuspension": true,
-    "removeParticipant": true,
-    "banParticipant": true
-  }
+  "suspensionUid": "e7b8c9d0a1f24355b678c901d234e567",
+  "version": 1,
+  "endsAt": "2026-08-05T17:00:00-04:00",
+  "allowedActions": [
+    "CREATE_REVIEWER_NOTE",
+    "DELETE_REPORTED_MESSAGE",
+    "UPDATE_POSTING_SUSPENSION",
+    "REMOVE_PARTICIPANT",
+    "BAN_PARTICIPANT"
+  ],
+  "appliedEffect": "Posting is suspended until Aug 5, 2026, 5:00 PM. Reading access remains available."
 }
 ```
 
-If the participant is no longer eligible for a posting restriction, the response returns `result: "NOT_APPLICABLE"` with current display-ready participant status and allowed actions but no suspension object. Invalid or non-future input returns `result: "REJECTED"` with field-level end-time guidance and no created suspension; the page leaves the form open for correction.
-
 ## Update Posting Suspension : (`PATCH /api/v0/moderation/update-posting-suspension`)
 
-Replaces the effective end time of the existing posting suspension rather than creating a second restriction. The loaded or post-create ticket state supplies the report number, participant identifier, current public-safe suspension identifier, and current effective end time; the reviewer supplies the replacement end time and an explicit shorter-period acknowledgment when applicable, allowing the server to return one authoritative restriction and updated applied effect.
+Replaces the existing posting suspension shown by the ticket’s Change state instead of creating a duplicate restriction. The browser carries forward the public restriction or continuation reference and current effective end time returned by ticket retrieval or suspension creation, then supplies the replacement end time and the explicit shorter-period acknowledgment when required.
 
 ### Source Actions
 
@@ -404,34 +372,26 @@ Replaces the effective end time of the existing posting suspension rather than c
 ```http
 PATCH /api/v0/moderation/update-posting-suspension
 Cookie: tawk_session={opaqueSessionRef}
+Origin: {applicationOrigin}
 Content-Type: application/json
-
-{
-  "reportNumber": "{reportNumber}",
-  "conversationUid": "{conversationUid}",
-  "participantUid": "{participantUid}",
-  "suspensionUid": "{suspensionUid}",
-  "currentEndsAt": "{currentEndsAt}",
-  "replacementEndsAt": "{reviewerEnteredReplacementEndTime}",
-  "shorterPeriodAcknowledged": true
-}
+Accept: application/json
 ```
 
 ### Request Context
 
-The browser sends `Cookie: tawk_session={opaqueSessionRef}`. `reportNumber` and `conversationUid` come from the current ticket page URL. `participantUid`, `suspensionUid`, and `currentEndsAt` come from the prior ticket or create-suspension response, while `replacementEndsAt` comes from the reviewer's suspension form. `shorterPeriodAcknowledged` is true only after the shorter-period guard is visibly confirmed. The UX API binds the report, conversation, participant, and suspension, rechecks the authoritative current restriction and authority, rejects stale `currentEndsAt`, and replaces that restriction rather than creating a second one.
+The browser automatically sends the HttpOnly `tawk_session` cookie and its browser-managed `Origin` header. `reportUid`, public-safe `suspensionUid`, and `version` are carried forward from `Retrieve Moderation Ticket` or `Create Posting Suspension`. `replacementEndsAt` is entered in the visible Change dialog, and `replaceShorterConfirmed` records the extra visible acknowledgment when the proposed time is earlier than the currently displayed end time.
+
+The browser does not send `currentEndsAt`; the UX API compares the replacement with the authoritative current suspension selected by `suspensionUid` and `version`. It validates the same-origin request, current authority, report participant, active membership, and future replacement time server-side. A version mismatch or changed participant state returns a conflict with the current UI-safe suspension or participant state and allowed actions so the page can refresh before retrying.
 
 ### Example Request Payload
 
 ```json
 {
-  "reportNumber": "1048",
-  "conversationUid": "a12bc34d56ef4789a1234567890abcde",
-  "participantUid": "c34de56f78a9412ba34567890abcdef1",
-  "suspensionUid": "e56f07819abc434da567890abcdef123",
-  "currentEndsAt": "2026-07-29T17:00:00-04:00",
-  "replacementEndsAt": "2026-07-25T17:00:00-04:00",
-  "shorterPeriodAcknowledged": true
+  "reportUid": "550e8400e29b41d4a716446655440000",
+  "suspensionUid": "e7b8c9d0a1f24355b678c901d234e567",
+  "version": 1,
+  "replacementEndsAt": "2026-07-30T17:00:00-04:00",
+  "replaceShorterConfirmed": true
 }
 ```
 
@@ -439,29 +399,23 @@ The browser sends `Cookie: tawk_session={opaqueSessionRef}`. `reportNumber` and 
 
 ```json
 {
-  "result": "UPDATED",
-  "postingSuspension": {
-    "suspensionUid": "e56f07819abc434da567890abcdef123",
-    "endsAt": "2026-07-25T17:00:00-04:00"
-  },
-  "appliedEffect": {
-    "title": "Posting suspended",
-    "description": "Declan Gray cannot post until Jul 25, 2026, 5:00 PM. He can continue reading the conversation."
-  },
-  "allowedActions": {
-    "createPostingSuspension": false,
-    "updatePostingSuspension": true,
-    "removeParticipant": true,
-    "banParticipant": true
-  }
+  "suspensionUid": "e7b8c9d0a1f24355b678c901d234e567",
+  "version": 2,
+  "endsAt": "2026-07-30T17:00:00-04:00",
+  "allowedActions": [
+    "CREATE_REVIEWER_NOTE",
+    "DELETE_REPORTED_MESSAGE",
+    "UPDATE_POSTING_SUSPENSION",
+    "REMOVE_PARTICIPANT",
+    "BAN_PARTICIPANT"
+  ],
+  "appliedEffect": "The prior posting suspension is replaced and now ends Jul 30, 2026, 5:00 PM."
 }
 ```
 
-If `currentEndsAt` no longer matches the authoritative suspension, the response returns `result: "STALE"` with the public `suspensionUid`, current `endsAt`, and current allowed actions but does not apply the replacement. If shortening needs acknowledgment and the request does not carry it, the response returns `result: "REJECTED"` with display-ready replacement guidance; the page keeps the dialog open and asks for the explicit acknowledgment.
-
 ## Remove Participant : (`DELETE /api/v0/moderation/remove-participant`)
 
-Ends the target participant's active membership for the ticket's source conversation without banning the identity or deleting retained membership and message history. The report number and public-safe participant identifier are carried forward from the loaded ticket and the action is sent only after confirmation; the route returns the current former-participant result and allowed actions so already-inactive or stale states cannot be applied twice.
+Ends the reported participant’s active conversation membership without banning the identity or deleting retained history. The target-participant and selected-report references come from the loaded ticket, while the browser supplies explicit confirmation; the server rechecks the reviewer’s authority, the participant’s current state, and role constraints before applying the removal.
 
 ### Source Actions
 
@@ -477,26 +431,24 @@ Ends the target participant's active membership for the ticket's source conversa
 ```http
 DELETE /api/v0/moderation/remove-participant
 Cookie: tawk_session={opaqueSessionRef}
+Origin: {applicationOrigin}
 Content-Type: application/json
-
-{
-  "reportNumber": "{reportNumber}",
-  "conversationUid": "{conversationUid}",
-  "participantUid": "{participantUid}"
-}
+Accept: application/json
 ```
 
 ### Request Context
 
-The browser sends `Cookie: tawk_session={opaqueSessionRef}`. `reportNumber` and `conversationUid` come from the current ticket page URL, while `participantUid` comes from the prior moderation-ticket response. The request itself represents the reviewer's removal intent after the page completes its visible confirmation. The UX API binds the target to the ticket's source conversation and rechecks current access, membership status, and owner/administrator role constraints before ending membership without imposing a ban.
+The browser automatically sends the HttpOnly `tawk_session` cookie and its browser-managed `Origin` header. `reportUid` and `participantUid` are public-safe values carried forward from `Retrieve Moderation Ticket`; `confirmed` records the reviewer’s visible removal-dialog intent.
+
+The UX API validates the same-origin request, current authority, report participant, active membership, and role constraints server-side. If the participant is already former or banned, it returns the current UI-safe participant state and allowed actions without applying removal twice. Revoked access returns no participant or report evidence; other stale states instruct the page to reload the ticket.
 
 ### Example Request Payload
 
 ```json
 {
-  "reportNumber": "1048",
-  "conversationUid": "a12bc34d56ef4789a1234567890abcde",
-  "participantUid": "c34de56f78a9412ba34567890abcdef1"
+  "reportUid": "550e8400e29b41d4a716446655440000",
+  "participantUid": "7c9e6679dafa4d6c8f1b2a3c4d5e6f70",
+  "confirmed": true
 }
 ```
 
@@ -504,30 +456,20 @@ The browser sends `Cookie: tawk_session={opaqueSessionRef}`. `reportNumber` and 
 
 ```json
 {
-  "result": "REMOVED",
-  "participant": {
-    "participantUid": "c34de56f78a9412ba34567890abcdef1",
-    "status": "FORMER",
-    "canRejoin": true
-  },
-  "appliedEffect": {
-    "title": "Participant removed",
-    "description": "Declan Gray is now a former participant and is not blocked from rejoining."
-  },
-  "allowedActions": {
-    "createPostingSuspension": false,
-    "updatePostingSuspension": false,
-    "removeParticipant": false,
-    "banParticipant": true
-  }
+  "participantUid": "7c9e6679dafa4d6c8f1b2a3c4d5e6f70",
+  "participantStatus": "FORMER",
+  "allowedActions": [
+    "CREATE_REVIEWER_NOTE",
+    "DELETE_REPORTED_MESSAGE",
+    "BAN_PARTICIPANT"
+  ],
+  "appliedEffect": "Active membership ended; retained messages and membership history remain available."
 }
 ```
 
-If the participant is already inactive, the response returns `result: "ALREADY_INACTIVE"` with the current public participant status, `canRejoin`, the applicable effect, and current allowed actions. If access or the ticket-to-participant binding is stale, the response returns `result: "UNAVAILABLE"` without participant history; the page reloads the ticket before offering another moderation action.
-
 ## Ban Participant : (`POST /api/v0/moderation/ban-participant`)
 
-Applies the durable moderation decision that blocks the target identity from participating in or rejoining the source conversation while retaining its historical membership, messages, and ticket evidence. The browser carries the report number and public-safe participant identifier from the loaded ticket and invokes the action after explicit confirmation; the route returns the banned outcome and updated allowed actions for successful, already-banned, or stale participant states.
+Applies the confirmed ban represented by the ticket, ending active participation and preventing rejoining while preserving membership, message, and moderation history. The target-participant and selected-report references are carried from the ticket-load result, and the server rechecks current authority, target state, and role constraints before returning the banned outcome.
 
 ### Source Actions
 
@@ -543,26 +485,24 @@ Applies the durable moderation decision that blocks the target identity from par
 ```http
 POST /api/v0/moderation/ban-participant
 Cookie: tawk_session={opaqueSessionRef}
+Origin: {applicationOrigin}
 Content-Type: application/json
-
-{
-  "reportNumber": "{reportNumber}",
-  "conversationUid": "{conversationUid}",
-  "participantUid": "{participantUid}"
-}
+Accept: application/json
 ```
 
 ### Request Context
 
-The browser sends `Cookie: tawk_session={opaqueSessionRef}`. `reportNumber` and `conversationUid` come from the current ticket page URL, while `participantUid` comes from the prior moderation-ticket response. The request itself represents the reviewer's ban intent after the page completes its visible confirmation. The UX API binds the target to the ticket's source conversation, rechecks current access, target state, and owner/administrator role constraints, and applies the ban while retaining membership, message, and ticket history.
+The browser automatically sends the HttpOnly `tawk_session` cookie and its browser-managed `Origin` header. `reportUid` and `participantUid` are public-safe values carried forward from `Retrieve Moderation Ticket`; `confirmed` records the reviewer’s visible ban-dialog intent.
+
+The UX API validates the same-origin request, current authority, report participant, current membership state, and role constraints server-side. If the participant is already banned, it returns the current UI-safe banned state and allowed actions without applying the ban twice. Revoked access returns no participant or report evidence; other stale states instruct the page to reload the ticket.
 
 ### Example Request Payload
 
 ```json
 {
-  "reportNumber": "1048",
-  "conversationUid": "a12bc34d56ef4789a1234567890abcde",
-  "participantUid": "c34de56f78a9412ba34567890abcdef1"
+  "reportUid": "550e8400e29b41d4a716446655440000",
+  "participantUid": "7c9e6679dafa4d6c8f1b2a3c4d5e6f70",
+  "confirmed": true
 }
 ```
 
@@ -570,23 +510,12 @@ The browser sends `Cookie: tawk_session={opaqueSessionRef}`. `reportNumber` and 
 
 ```json
 {
-  "result": "BANNED",
-  "participant": {
-    "participantUid": "c34de56f78a9412ba34567890abcdef1",
-    "status": "BANNED",
-    "canRejoin": false
-  },
-  "appliedEffect": {
-    "title": "Participant banned",
-    "description": "Declan Gray cannot post or rejoin. Retained messages, membership history, and report evidence remain available to authorized reviewers."
-  },
-  "allowedActions": {
-    "createPostingSuspension": false,
-    "updatePostingSuspension": false,
-    "removeParticipant": false,
-    "banParticipant": false
-  }
+  "participantUid": "7c9e6679dafa4d6c8f1b2a3c4d5e6f70",
+  "participantStatus": "BANNED",
+  "allowedActions": [
+    "CREATE_REVIEWER_NOTE",
+    "DELETE_REPORTED_MESSAGE"
+  ],
+  "appliedEffect": "The participant cannot post or rejoin; retained messages, membership history, and report evidence remain available."
 }
 ```
-
-If the participant is already banned, the response returns `result: "ALREADY_BANNED"` with the current public participant status, `canRejoin: false`, the applicable retained-history effect, and current allowed actions. If access or the ticket-to-participant binding is stale, the response returns `result: "UNAVAILABLE"` without participant history; the page reloads the ticket before offering another moderation action.

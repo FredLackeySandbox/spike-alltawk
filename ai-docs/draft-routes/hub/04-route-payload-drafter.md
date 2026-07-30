@@ -1,15 +1,16 @@
 # Phase 4 Route Payload Drafter Handoff
 
-## Assignment
+## Target
 
 - `solutionArtifactRoot`: `/Users/flackey/Source/Personal/FredLackeySandbox/spike-alltawk`
+- Scenario: `root-artifact-monorepo`
 - Platform and work unit: `desktop/hub`
-- Route file updated: `docs/mockup/routes/hub-routes.md`
-- Page catalog: `docs/concepts/APP_PAGES.md`
+- Route namespace: `hub`
+- Route file: `docs/mockup/routes/hub-routes.md`
 
-All markdown paths in this handoff and the route file are repository-relative to `solutionArtifactRoot`. Filesystem operations used the corresponding absolute paths under that root.
+All markdown path references in this handoff are repository-relative to `solutionArtifactRoot`. All filesystem reads and writes used absolute paths under `solutionArtifactRoot`.
 
-## Inputs Reviewed
+## Files Reviewed
 
 - `docs/concepts/REQUIREMENTS.md`
 - `docs/concepts/APP_PAGES.md`
@@ -20,33 +21,53 @@ All markdown paths in this handoff and the route file are repository-relative to
 - `docs/mockup/desktop/hub/find.md`
 - `docs/mockup/desktop/hub/index.html`
 - `docs/mockup/desktop/hub/index.md`
+- `docs/mockup/desktop/assets/app.js`
 - `ai-docs/draft-routes/hub/03-area-route-drafter.md`
 
 ## Playwright Runner Contract
 
-- `id`: `npm-exec-no-cli`
-- `label`: `npm exec --no --package playwright -- playwright`
-- `usage`: `npm exec --no --package playwright -- playwright`
-- `command`: `npm`
-- `baseArgs`: `["exec", "--no", "--package", "playwright", "--", "playwright"]`
-- `version`: `1.61.1`
-- `testRunnerModule`: `/Users/flackey/.npm/_npx/e41f203b7505f1fb/node_modules/playwright/test.js`
-- Test invocation: supplied `command` and `baseArgs` followed by the `test` subcommand
-- CommonJS specifications imported `test` and `expect` from the exact absolute `testRunnerModule`.
+- `id`: `local-node-modules-cli`
+- `label`: `./node_modules/.bin/playwright`
+- `usage`: `./node_modules/.bin/playwright`
+- `command`: `/Users/flackey/Source/Personal/FredLackeySandbox/spike-alltawk/node_modules/.bin/playwright`
+- `baseArgs`: `[]`
+- `version`: `1.62.0`
+- `testRunnerModule`: `/Users/flackey/Source/Personal/FredLackeySandbox/spike-alltawk/node_modules/playwright/test.js`
+- Specification format: CommonJS, importing `test` and `expect` from the exact absolute `testRunnerModule`
+- Viewport: `1080 × 900` for the discovered `1080` width
+- Final result: four Playwright tests passed using the exact selected command/module pair
 
-## Rendered Inspection
+The private inspection directory was `/Users/flackey/Source/Personal/FredLackeySandbox/spike-alltawk/.solpoc-tmp/draft-routes/hub/04-route-payload-drafter/`. The specification, screenshots, and Playwright test output were written only there. The directory was removed after the last rendered check and before this handoff was written.
 
-Every referenced page was rendered at the assigned 1080-pixel viewport before payload drafting.
+## Pages And States Rendered
 
-- `create.html`: default listed form, unlisted selection, invalid-tag feedback, pending creation, service failure with preserved draft, timeout with preserved draft, and success continuation.
-- `find.html`: listed populated and empty results, empty suggestions, failed and retried search, pending listed join, banned listed join, retryable listed join failure, known-unlisted empty and partial states, complete eligible hidden match, pending hidden join, complete ineligible hidden match, and retryable hidden join failure.
-- `index.html`: loading, populated, empty, persistent error, retry-success, unavailable session, stale removed membership, and temporarily unresolvable Resume selection.
+- `docs/mockup/desktop/hub/create.html`
+  - Default listed form with existing tags.
+  - Invalid-tag validation.
+  - Pending creation followed by recoverable failure.
+  - Unlisted selection with the listed-only matching option hidden, followed by timeout recovery.
+  - Listed exclusive selection followed by the success confirmation before workspace navigation.
+- `docs/mockup/desktop/hub/find.html`
+  - Default listed suggestions and populated listed results.
+  - Filtered suggestion retrieval from partial visible input.
+  - Listed search failure and successful retry while preserving selected tags.
+  - Listed join denied for an ineligible result.
+  - Listed join pending for an eligible selected result.
+  - Known-unlisted empty, partial, complete unique eligible, complete banned, join-pending, and flaky join-failure states.
+- `docs/mockup/desktop/hub/index.html`
+  - Populated active joined list.
+  - Empty joined list.
+  - Retryable load failure followed by success.
+  - Unavailable identified-session state with private hub content suppressed.
+  - Stale removed membership resolved at Resume, including card removal and count update.
+  - Temporarily unresolvable Resume selection with the list preserved.
+  - Active Resume choice ready with its selected public identifier.
 
-All interactions were local mockup interactions. No real API, live backend, authentication service, or third-party system was called.
+Successful listed, unlisted, and Resume transitions were not followed into the out-of-scope conversation page; their browser-visible pending or ready states and their assigned source behavior were inspected.
 
 ## Routes Updated
 
-The following eight existing route sections received exactly one `### Example Request Payload` and one `### Example Response Payload`:
+Exactly one `### Example Request Payload` and one `### Example Response Payload` were added to each of the eight existing routes:
 
 - `POST /api/v0/hub/create-conversation`
 - `GET /api/v0/hub/retrieve-listed-tag-suggestions`
@@ -57,45 +78,57 @@ The following eight existing route sections received exactly one `### Example Re
 - `GET /api/v0/hub/retrieve-joined-conversations`
 - `GET /api/v0/hub/resolve-joined-conversation-access`
 
-Every route also received `### Request Context` because the private hub depends on an identified-session cookie, query-string provenance, or a carry-forward identifier from a prior visible UX API response. No raw cookie, token, session identifier, provider credential, hidden conversation identifier, or lower-layer contract appears in JSON.
+The eight existing route headings, route identities, purpose descriptions, approved `### Source Actions`, and `### Mockup Files` mappings were preserved. All eight approved companion actions remain covered.
+
+## Payload And Context Decisions
+
+- Added one `### Request Context` subsection to every route because all hub operations require established identified-session context, while the human-auth transport remains unresolved.
+- Did not invent a cookie name, bearer format, authentication provider, or session identifier. The context notes state that the browser sends the eventual established authentication context and that the UX API derives the identified actor.
+- Kept GET request examples body-free using the exact sentence `No JSON request body is sent for this route.` and documented the visible query-value sources separately.
+- Limited create input to ordered tags, visibility, and matching mode; the identified creator is not accepted in JSON.
+- Returned server-issued public conversation UIDs and browser-safe workspace paths only where a visible next action needs them.
+- Carried the listed conversation UID from the listed-search response into the listed-join request.
+- Returned a public-safe `continuationUid` from complete eligible known-unlisted evaluation and carried it, together with the still-visible complete tag set, into unlisted join.
+- Kept the known-unlisted evaluation response non-identifying: it contains a privacy-safe match state, count, continuation UID, and allowed action, but no hidden conversation UID or private tag disclosure.
+- Returned joined conversations as display-ready items with public selection UIDs, visible tags, role, activity cues, and allowed Resume action.
+- Documented concrete alternate response semantics for validation, empty, retryable failure, timeout, ineligible, expired continuation, unavailable-session, stale-membership, and temporarily unresolvable states while keeping one parseable representative JSON example per route.
+- Used 32-character hyphenless v4 UUID examples for every `*Uid` value and all-caps strings for selectable states, roles, matching modes, and allowed actions.
+- Omitted raw credentials, cookie values, session IDs, database IDs, audit data, private workflow state, lower-layer contracts, authorization algorithms, and frontend business-rule inputs.
 
 ## Route Authoring Rules Applied
 
-- Preserved all eight route headings, descriptions, `### Source Actions` mappings, and `### Mockup Files` lists.
-- Kept creation free of a pre-existing conversation UID or version and returned a server-issued public conversation UID plus a browser-safe workspace URL.
-- Kept GET bodies empty and named visible query inputs in request context.
-- Returned display-ready listed results, active joined-conversation cards, public conversation UIDs for later visible actions, and public-safe continuation values for multi-step hidden joining.
-- Kept hidden discovery privacy-safe: incomplete and ambiguous evaluation states expose only state and a hidden count; only a complete eligible match returns `hiddenMatchUid`, never the hidden conversation UID or tag set.
-- Made listed and unlisted join requests feasible from prior visible responses.
-- Documented populated, empty, unavailable, ineligible, stale, and retryable branch behavior without exposing permission internals or frontend business-rule inputs.
-- Used 32-character hyphenless v4 UUID examples for public UID fields and all-caps enum values for selectable/status values.
-- Kept payloads UI-facing and omitted backend joins, database identifiers, audit data, application API contracts, secure API contracts, and authentication internals.
+- Preserved every approved source-action mapping and all eight route identities.
+- Covered create versus join semantics without requiring a pre-existing UID for creation.
+- Traced every request value to a visible field, selected result, prior UX API response, or established browser authentication context.
+- Supplied editable or display-ready UI data only to the extent needed by the referenced hub states and their next visible actions.
+- Kept opaque browser-returned workflow data public-safe and omitted hidden conversation identity before membership is established.
+- Used backend-decided states and allowed-action affordances instead of asking the frontend to reproduce eligibility or discovery rules.
+- Kept the `hub` namespace and lowercase-kebab operation identities unchanged.
 
-## Request Context Sources
+## Structural Verification
 
-- Identified-session cookie supplied by the browser; the UX API derives actor and authorization context.
-- Current partial tag and selected listed tags from visible inputs, sent as query parameters for suggestion retrieval and listed search.
-- `conversationUid` from a visible listed result for listed join.
-- `hiddenMatchUid` from the complete eligible unlisted-evaluation response for unlisted join.
-- `conversationUid` from a visible Joined Resume control for access resolution.
+- Route sections: 8
+- `### Source Actions` subsections: 8
+- `### Mockup Files` subsections: 8
+- `### Request Context` subsections: 8
+- `### Example Request Payload` subsections: 8
+- `### Example Response Payload` subsections: 8
+- JSON blocks parsed successfully: 12
+- Invalid UUID example values: 0
 
-## Validation
+## Unresolved Ambiguities
 
-- `validate-route-coverage.mjs` passed with eight companion actions, eight mapped actions, and eight routes.
-- The route file has eight request-payload sections and eight response-payload sections.
-- All twelve JSON example blocks parse successfully.
+- The human authentication mechanism and concrete cookie/header transport remain unresolved, so Phase 4 documents the required browser-managed identified-session context without choosing a transport name.
+- Extra-tag semantics for listed search and exact-versus-superset semantics for unlisted matching remain unresolved; payloads carry the visible tag sets without settling those backend rules.
+- Multiple complete hidden-match behavior remains unresolved; the example covers the established complete unique eligible branch.
+- Rejoin-period semantics for former voluntary members remain unresolved; join responses expose only the resulting active member role needed by the UI.
+- HTTP status mapping, exact browser-auth transport, and final route-shape placement for the documented alternate response branches remain for route tightening.
 
-## Ambiguities Carried Forward
+## Scope Confirmation
 
-- Human authentication and the concrete session-cookie name remain unresolved; the payload layer records only that the browser supplies an identified-session cookie.
-- Listed extra-tag semantics, exact versus superset hidden matching, and multiple complete hidden-match behavior remain unresolved in `REQUIREMENTS.md`; payload states do not choose new matching rules.
-- Tag display casing remains unresolved; examples preserve the lowercase mockup presentation.
-- Creation failure transport status and the exact validation-error field structure remain for route tightening/review; the documented branches deliberately guarantee no created UID and a reusable browser-held draft.
+This unique Phase 4 agent was assigned only the `desktop/hub` work unit. It changed only:
 
-## Temporary Files And Scope Confirmation
+- `docs/mockup/routes/hub-routes.md`
+- `ai-docs/draft-routes/hub/04-route-payload-drafter.md`
 
-- Private temporary directory used: `.solpoc-tmp/draft-routes/hub/04-route-payload-drafter/`
-- The private temporary directory and all specifications, screenshots, results, and reports inside it were removed before this handoff was written.
-- No root-level Playwright specification, `test-results/`, `playwright-report/`, screenshot, trace, or temporary configuration was created.
-- Only `docs/mockup/routes/hub-routes.md` and `ai-docs/draft-routes/hub/04-route-payload-drafter.md` were changed by this phase.
-- No HTML, CSS, JavaScript, concept document, companion, schema, mock data, application source, package file, OpenAPI file, backend code, application API contract, secure API contract, or frontend business logic was changed.
+No HTML, CSS, JavaScript, concept document, page companion, schema, mock data, OpenAPI file, backend code, frontend logic, application API contract, secure API contract, package file, neighboring route artifact, or other area route file was changed. No file under `projects/**` was read or written.

@@ -3,69 +3,79 @@
 ## Assignment
 
 - Work unit: `desktop-root`
+- Platform and folder: desktop root
+- Route namespace: `desktop-root`
 - Route file: `docs/mockup/routes/desktop-root-routes.md`
-- Covered mockup: `docs/mockup/desktop/index.html`
-- Companion: `docs/mockup/desktop/index.md`
-- `solutionArtifactRoot`: `/Users/flackey/Source/Personal/FredLackeySandbox/spike-alltawk`
-- All markdown path references in this handoff are repository-relative to `solutionArtifactRoot`.
+- Viewport widths: `1080`
+
+All displayed paths are repository-relative to `solutionArtifactRoot`.
 
 ## Files Reviewed
 
 - `docs/concepts/REQUIREMENTS.md`
 - `docs/concepts/APP_PAGES.md`
 - `docs/mockup/routes/desktop-root-routes.md`
-- `docs/mockup/desktop/index.html`
-- `docs/mockup/desktop/index.md`
-- `docs/mockup/desktop/assets/app.js`
 - `ai-docs/draft-routes/desktop-root/03-area-route-drafter.md`
 - `ai-docs/draft-routes/desktop-root/04-route-payload-drafter.md`
 
-## No-Route Disposition
+## Route Tightening Result
 
-- Preserved the exact declaration `No backend action routes are defined for this area.` and its brief covered-page explanation.
-- Tightened zero routes and added no `### Route`, `### Request Context`, or payload subsections because the route file contains no route sections.
-- The public home page provides static product guidance and ordinary navigation to `docs/mockup/desktop/hub/index.html`. Its approved companion contains no backend actions.
+The route file contains no `## {Title} : (...)` backend route sections. It preserves the exact required statement:
+
+`No backend action routes are defined for this area.`
+
+The accompanying explanation covers the public home page at `docs/mockup/desktop/index.html` and its reviewed companion at `docs/mockup/desktop/index.md`. That page provides static product guidance and ordinary navigation into the private conversation hub; it does not establish authoritative retrieval, durable persistence, or a server-controlled action for the `desktop-root` work unit.
+
+No route list was broadened. No `### Route`, `### Request Context`, request payload, response payload, secondary operation, cookie, header, path parameter, query parameter, public handle, or response branch was invented for the zero-route area. The route file required no edits.
 
 ## Mockup Inspection
 
-- Rendered `docs/mockup/desktop/index.html` at the assigned 1080-pixel viewport with Playwright.
-- Visually confirmed the static listed/unlisted conversation guidance, identified-participation context, and single continuation link into the private conversation hub.
-- Confirmed there is no form, modal trigger, toast action, menu trigger, authoritative data initializer, durable persistence control, server-controlled operation, or source-action entry state requiring a UX API route.
-- The directly referenced shared script has no matching interactive hook on this page.
+The route file contains no route sections and therefore has no route-scoped `### Mockup Files` lists, source actions, or safely renderable source-action entry states assigned to Phase 5. Playwright-rendered inspection was not applicable to this zero-route work unit.
 
 ## Playwright Runner Contract
 
-- `id`: `npm-exec-no-cli`
-- `label`: `npm exec --no --package playwright -- playwright`
-- `usage`: `npm exec --no --package playwright -- playwright`
-- `command`: `npm`
-- `baseArgs`: `["exec", "--no", "--package", "playwright", "--", "playwright"]`
-- `version`: `1.61.1`
-- `testRunnerModule`: `/Users/flackey/.npm/_npx/e41f203b7505f1fb/node_modules/playwright/test.js`
-- The CommonJS specification imported `test` and `expect` from the exact absolute `testRunnerModule` and invoked the supplied command and base arguments with the `test` subcommand.
-- Result: one rendered-inspection test passed.
+- `id`: `local-node-modules-cli`
+- `label`: `./node_modules/.bin/playwright`
+- `usage`: `./node_modules/.bin/playwright`
+- `command`: `/Users/flackey/Source/Personal/FredLackeySandbox/spike-alltawk/node_modules/.bin/playwright`
+- `baseArgs`: `[]`
+- `version`: `1.62.0`
+- `testRunnerModule`: `/Users/flackey/Source/Personal/FredLackeySandbox/spike-alltawk/node_modules/playwright/test.js`
 
-## Temporary Inspection Cleanup
-
-- Private directory used: `/Users/flackey/Source/Personal/FredLackeySandbox/spike-alltawk/.solpoc-tmp/draft-routes/desktop-root/05-route-rules-tightener/`
-- The directory contained only this phase's specification, configuration, report, screenshot, and test output.
-- The private directory was removed after visual inspection and before this handoff was written; cleanup was explicitly confirmed.
-- No root-level Playwright specification, `test-results/`, `playwright-report/`, screenshot, trace, or temporary configuration was created.
+The preflight-verified runner contract was retained unchanged and was not invoked because there were no route-referenced pages or states to inspect.
 
 ## Route Authoring Rules Applied
 
-- Preserved source-action coverage: the corrected companion has no approved actions to map.
-- Preserved the required no-route sentence rather than inventing a route for static content or ordinary navigation.
-- Invocation feasibility, create/update separation, editable-value loading, continuation identifiers, browser transport, request-value provenance, response branches, and UI-facing payload minimization are not applicable because the area has no route sections.
-- Zero request-context sources and zero route shapes were added. The continuation link requires no action payload, cookie, header, public UID, version, or prior UX API response on the source page.
+- Preserved the complete empty source-action inventory and exact no-route statement.
+- Preserved the page-specific explanation for navigation-only behavior.
+- Kept the transport-neutral `desktop-root` namespace reserved without inventing an operation identity.
+- Did not add request values, hidden context, editable data, continuation handles, response branches, or lower-layer contracts without an approved route.
+- Did not create or merge lifecycle operations, because no create, update, retrieval, or action-invocation source action exists in this work unit.
+- Preserved the UI-facing API boundary by documenting no API contract where none is required.
 
-## Ambiguities
+## Route Shapes, Request Context, and Branches
 
-- No Phase 5 ambiguity remains for this area.
-- The unresolved human authentication mechanism is intentionally absent from the public home page and does not justify inventing browser transport or a UX API route.
+- Route shapes added or updated: none.
+- Request-context sources clarified: none; there is no browser request.
+- Response branches added or clarified: none; there is no backend response contract.
+- Payload changes: none.
+
+## Temporary Directory
+
+The assigned private path was:
+
+`/Users/flackey/Source/Personal/FredLackeySandbox/spike-alltawk/.solpoc-tmp/draft-routes/desktop-root/05-route-rules-tightener/`
+
+No Playwright specification, configuration, screenshot, trace, report, or test output was created. The assigned phase directory does not remain.
+
+## Unresolved Ambiguities
+
+The human authentication mechanism remains unresolved in the requirements, while the desktop page catalog explicitly treats authentication as already completed for the public-home continuation. This does not support inventing a sign-in route for `desktop-root` and does not block Phase 5.
 
 ## Change Scope Confirmation
 
-- `docs/mockup/routes/desktop-root-routes.md` was inspected and left unchanged.
-- The only artifact written was `ai-docs/draft-routes/desktop-root/05-route-rules-tightener.md`.
-- No HTML, CSS, JavaScript, companion, concept, schema, mock data, application source, OpenAPI file, backend implementation, lower-layer API contract, or frontend business logic was changed.
+- The route file remained unchanged.
+- Wrote only `ai-docs/draft-routes/desktop-root/05-route-rules-tightener.md`.
+- This agent was assigned only the `desktop-root` Phase 5 work unit.
+- Did not change HTML, CSS, JavaScript, concept documents, companion files, prior handoffs, schemas, OpenAPI files, application code, lower-layer contracts, frontend business logic, or neighboring route artifacts.
+- No files were read or written under `projects/**`.

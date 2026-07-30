@@ -4,8 +4,12 @@
 
 - Work unit: `desktop-root`
 - Platform and folder: desktop root
-- Assigned route file: `docs/mockup/routes/desktop-root-routes.md`
-- This agent was assigned only this one area folder and wrote only this one route file plus this Phase 3 handoff.
+- Route namespace: `desktop-root`
+- Route file: `docs/mockup/routes/desktop-root-routes.md`
+- Assigned page: `docs/mockup/desktop/index.html`
+- Corrected companion: `docs/mockup/desktop/index.md`
+
+This agent was assigned only the `desktop-root` area folder and drafted only its one route file.
 
 ## Files Reviewed
 
@@ -17,37 +21,40 @@
 
 ## Complete Approved Action Inventory
 
-- `docs/mockup/desktop/index.md`: no approved backend actions. The companion contains the exact no-actions statement.
+`docs/mockup/desktop/index.md` contains the exact reviewed no-actions statement and has no approved `##` backend action headings. The complete action inventory for this work unit is therefore empty.
 
 ## Action-to-Route Coverage Matrix
 
 | Companion | Approved action | Route disposition |
 | --- | --- | --- |
-| `docs/mockup/desktop/index.md` | None | No route is defined. The page contains only static product guidance and ordinary navigation to `docs/mockup/desktop/hub/index.html`; it performs no authoritative retrieval, durable persistence, or server-controlled action. |
+| `docs/mockup/desktop/index.md` | None | No route is defined. The companion establishes that the static public-home content and navigation require no backend retrieval, persistence, or action invocation. |
 
-## Routes Drafted
+No approved companion action is missing, renamed, consolidated, or orphaned.
 
-- Wrote `docs/mockup/routes/desktop-root-routes.md` with the required no-route declaration and an explanation naming the covered public home page.
-- No route sections were invented because the corrected companion contains no approved backend action.
+## Route Draft Result
 
-## Consolidation and Page-Specific Preservation
+`docs/mockup/routes/desktop-root-routes.md` contains the required exact no-route sentence and a concise explanation covering `docs/mockup/desktop/index.html` and `docs/mockup/desktop/index.md`.
 
-- Common-route consolidation is not applicable because the area has no approved actions.
-- No page-specific action was omitted: the only assigned page has an explicit no-backend-action disposition.
+The page's product explanation, identified-session guidance, brand self-link, and continuation link to the private hub do not establish backend work on this source page. Route namespace `desktop-root` was reserved for this work unit, but no operation identity was invented because there is no approved action.
 
 ## Invocation-Feasibility Findings
 
-- The default, query-string, and hash entry states expose no backend-relevant initializer, form, record lifecycle, carry-forward identifier, selected public identifier, or server-controlled operation.
-- The visible continuation to `hub/index.html` and the brand self-link are ordinary navigation. They require no JSON value, path parameter, query parameter, public UID, version, prior UX API response, cookie, or header for an action on the source page.
-- Human authentication is unresolved and intentionally outside this mockup page; the page catalog treats identification as already completed and provides no authentication control to invoke.
+- There are no approved backend actions and therefore no browser-supplied values, public identifiers, versions, continuation handles, cookies, headers, or action payloads to make invocation-feasible.
+- The continuation to `hub/index.html` is ordinary navigation. The destination area's data needs, if any, belong to that destination work unit rather than a route attributed to the public home page.
+- No create/update lifecycle split is applicable because the page has no durable record lifecycle.
 
-## Ambiguities
+## Consolidation and Page-Specific Coverage
 
-- No route-drafting ambiguity remains for this area.
-- Product-wide open questions in `docs/concepts/REQUIREMENTS.md` do not change the no-action disposition of the public home page.
+- Common logic consolidated: none.
+- Page-specific actions preserved: none were approved.
+- Covered page: `docs/mockup/desktop/index.html`.
+
+## Unresolved Ambiguities
+
+Human authentication remains unresolved in the product requirements, but the page catalog explicitly treats authentication as already completed for this mockup. This does not justify inventing a sign-in route for the assigned page. No ambiguity blocks Phase 3.
 
 ## Change Scope Confirmation
 
-- Only `docs/mockup/routes/desktop-root-routes.md` and this handoff were written.
-- No companion, HTML, CSS, JavaScript, concept document, schema, mock data, application source, OpenAPI file, backend implementation, or frontend business rule was changed.
-- All markdown path references are repository-relative to `solutionArtifactRoot`.
+- Wrote only `docs/mockup/routes/desktop-root-routes.md` and this Phase 3 handoff.
+- Did not change the companion, HTML, CSS, JavaScript, concept documents, prior handoffs, schemas, OpenAPI files, application code, backend implementation, frontend business logic, or neighboring route artifacts.
+- All displayed paths are repository-relative to `solutionArtifactRoot`.

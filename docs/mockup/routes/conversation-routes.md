@@ -2,7 +2,7 @@
 
 ## Retrieve Conversation Workspace : (`GET /api/v0/conversation/retrieve-workspace`)
 
-Retrieves the display-ready state for the active conversation workspace, including conversation tags and matching mode, the current participant's role and allowed actions, posting restrictions, participants, messages, reactions, and ownership-continuity guidance. It supports initial loading, retry, populated and empty threads, read-only and suspended participation, and each documented owner or member entry state. The current conversation is selected by the safe public conversation UID carried by the incoming page route; the UX API derives identity, membership, permissions, organization or session state, and each participant summary's or message author's `isCurrentParticipant` value from the identified session and membership context behind the browser-facing boundary. The presentation app uses that server-derived flag for “You” labels, current-participant roster treatment, and own-message treatment without comparing `displayName`.
+Retrieves the display-ready state needed to open or retry the active conversation workspace. It supports the loading, populated, empty, failed, read-only, suspended, and ownership-continuity states on the Conversation page, including permitted actions derived from the current participant's membership.
 
 ### Source Actions
 
@@ -17,13 +17,15 @@ Retrieves the display-ready state for the active conversation workspace, includi
 
 ```http
 GET /api/v0/conversation/retrieve-workspace?conversationUid={conversationUid}
-Accept: application/json
 Cookie: tawk_session={opaqueSessionRef}
+Accept: application/json
 ```
 
 ### Request Context
 
-The browser sends `Cookie: tawk_session={opaqueSessionRef}` automatically. `conversationUid` is the safe public UID carried by the incoming conversation page route from the conversation list, search/join result, creation result, or another authorized conversation link. The UX API validates the identified session, derives the participant and active membership, authorizes access, and returns display-ready role and allowed-action decisions without asking the browser for permission inputs. From that identified session and membership context, the UX API also derives `isCurrentParticipant` for every `participants` summary and every `messages[].author`; the presentation app uses the boolean for “You” labels, current-participant roster treatment, and own-message treatment without comparing `displayName`. The presentation app renders governance controls from `canManageTagsAndLifecycle`, `canManageMembers`, and `canReviewReports` rather than interpreting `role` as permission policy. If the cookie is absent or invalid, the UX API returns an identified-session-required response and no conversation data. A ready response may contain an empty `messages` array, a populated thread, or posting restrictions; a load failure returns no partial workspace, while owner-continuity decisions are expressed through `canLeave` and `leaveBlockReason`.
+The browser sends `Cookie: tawk_session={opaqueSessionRef}`. `conversationUid` is a safe public UID read from the current page route; that page route is populated by the conversation link selected in the hub, discovery, or related-conversation workflow. The UX API derives the identified participant, membership, role, permissions, posting restriction, and ownership-continuity state from the session and selected conversation before returning display-ready data. If the cookie is absent or invalid, the response contains no protected conversation data and directs the browser to reauthenticate.
+
+A successful empty-thread branch returns `threadState: EMPTY` with `messages: []`; populated, read-only, suspended, last-owner, and eligible-to-leave branches return their applicable display values and allowed actions. An unavailable or unauthorized conversation returns no conversation or message content, and a retryable load failure leaves the existing workspace unavailable until the browser retries this operation.
 
 ### Example Request Payload
 
@@ -33,90 +35,129 @@ No JSON request body is sent for this route.
 
 ```json
 {
-  "workspaceState": "READY",
-  "conversation": {
-    "conversationUid": "f47ac10b58cc4372a5670e02b2c3d479",
-    "access": "LISTED",
-    "matchingMode": "INCLUSIVE",
-    "tags": [
-      "urban-gardening",
-      "atlanta",
-      "pollinators"
-    ],
-    "activeParticipantCount": 5
-  },
+  "conversationUid": "f47ac10b58cc4372a5670e02b2c3d479",
+  "threadState": "POPULATED",
+  "tags": [
+    "urban-gardening",
+    "atlanta",
+    "pollinators"
+  ],
+  "accessType": "LISTED",
+  "matchingMode": "INCLUSIVE",
+  "activeParticipantCount": 5,
   "currentParticipant": {
     "displayName": "Maya Chen",
     "role": "OWNER",
-    "canPost": false,
-    "canLeave": false,
-    "canManageTagsAndLifecycle": true,
-    "canManageMembers": true,
-    "canReviewReports": true,
-    "leaveBlockReason": "Transfer ownership or archive this conversation before leaving."
+    "membershipState": "ACTIVE",
+    "postingState": "ALLOWED",
+    "postingRestrictionMessage": null,
+    "allowedActions": [
+      "POST_MESSAGE",
+      "ADD_CONVERSATION_NOTE",
+      "OPEN_LEAVE_CONVERSATION",
+      "MANAGE_TAGS_AND_LIFECYCLE",
+      "MANAGE_MEMBERS",
+      "REVIEW_REPORTS"
+    ]
   },
-  "postingRestriction": {
-    "kind": "SUSPENDED",
-    "message": "Posting is paused until Fri, Jul 24, 2026, 9:00 AM ET. Your membership stays active in the meantime.",
-    "endsAtDisplay": "Fri, Jul 24, 2026, 9:00 AM ET"
+  "leaveState": {
+    "outcome": "BLOCKED_LAST_OWNER",
+    "message": "Transfer ownership or archive this conversation before leaving.",
+    "allowedActions": [
+      "MANAGE_OWNERS",
+      "ARCHIVE_CONVERSATION"
+    ]
   },
-  "participants": [
+  "participantsHereNow": [
     {
       "displayName": "Maya Chen",
-      "participantType": "PERSON",
-      "roleLabel": "Owner",
-      "presence": "ACTIVE",
-      "isCurrentParticipant": true
-    },
-    {
-      "displayName": "Nadia Rivera",
-      "participantType": "PERSON",
-      "roleLabel": "Administrator",
-      "presence": "ACTIVE",
-      "isCurrentParticipant": false
-    },
-    {
-      "displayName": "Theo Walker",
-      "participantType": "PERSON",
-      "roleLabel": "Member",
-      "presence": "ACTIVE",
-      "isCurrentParticipant": false
+      "identityType": "PERSON",
+      "role": "OWNER"
     },
     {
       "displayName": "SoilWatch",
-      "participantType": "BOT",
-      "roleLabel": "Member",
-      "presence": "ACTIVE",
-      "isCurrentParticipant": false
+      "identityType": "BOT",
+      "role": "MEMBER"
+    },
+    {
+      "displayName": "Nadia Rivera",
+      "identityType": "PERSON",
+      "role": "ADMINISTRATOR"
+    },
+    {
+      "displayName": "Theo Walker",
+      "identityType": "PERSON",
+      "role": "MEMBER"
     }
   ],
   "messages": [
     {
-      "messageUid": "7c9e6679742f40de944be07fc1f90ae7",
+      "messageUid": "9d0cb4ae5f5f4a3ab2ab278fe2c2b5b7",
       "author": {
-        "displayName": "Maya Chen",
-        "participantType": "PERSON",
-        "roleLabel": "Owner",
-        "isFormerParticipant": false,
-        "isCurrentParticipant": true
+        "displayName": "Jules Park",
+        "identityType": "PERSON",
+        "participationState": "FORMER"
       },
-      "text": "I can bring two flats of mountain mint on Saturday.",
-      "postedAt": "2026-07-22T09:18:00-04:00",
+      "postedAt": "2026-07-22T08:42:00-04:00",
+      "text": "The milkweed along the west fence is flowering. I counted six monarch caterpillars there before heading out this morning.",
       "reactions": [
         {
-          "emoji": "🙋",
-          "count": 2,
-          "currentParticipantReacted": true
+          "emoji": "🦋",
+          "count": 4,
+          "reactedByCurrentParticipant": false
         }
       ],
-      "noteIndicator": null,
-      "reportIndicator": null,
-      "allowedActions": {
-        "canReact": true,
-        "canAddNote": true,
-        "canReport": true,
-        "canDelete": false
-      }
+      "allowedActions": [
+        "ADD_REACTION",
+        "ADD_NOTE",
+        "REPORT_MESSAGE"
+      ]
+    },
+    {
+      "messageUid": "7b46c27208e74b1c8bb94a3a55fb28ca",
+      "author": {
+        "displayName": "SoilWatch",
+        "identityType": "BOT",
+        "participationState": "ACTIVE"
+      },
+      "postedAt": "2026-07-22T09:06:00-04:00",
+      "text": "Bed 3 moisture is back in range after last night's watering: 31% at 6 in. No irrigation is recommended this morning.",
+      "reactions": [
+        {
+          "emoji": "🌱",
+          "count": 3,
+          "reactedByCurrentParticipant": true
+        }
+      ],
+      "allowedActions": [
+        "ADD_REACTION",
+        "REMOVE_REACTION",
+        "ADD_NOTE",
+        "REPORT_MESSAGE"
+      ]
+    },
+    {
+      "messageUid": "c3b2f111d9ac49a1a70d39c278843c5e",
+      "author": {
+        "displayName": "Maya Chen",
+        "identityType": "PERSON",
+        "participationState": "ACTIVE"
+      },
+      "postedAt": "2026-07-22T09:24:00-04:00",
+      "text": "Perfect. I marked the south side of the shed for the mint and added hand trowels to Saturday's supply bin.",
+      "reactions": [
+        {
+          "emoji": "👍",
+          "count": 2,
+          "reactedByCurrentParticipant": false
+        }
+      ],
+      "allowedActions": [
+        "ADD_REACTION",
+        "ADD_NOTE",
+        "REPORT_MESSAGE",
+        "DELETE_MESSAGE"
+      ]
     }
   ]
 }
@@ -124,7 +165,7 @@ No JSON request body is sent for this route.
 
 ## Post Message : (`POST /api/v0/conversation/post-message`)
 
-Creates a durable message in the current conversation after rechecking active membership and posting permission. The browser supplies the message text and the current page's public conversation UID; the authenticated author is derived server-side. Success returns the public message identity, attributed display data, timestamp, and initial reaction state needed to insert the message immediately, while a rejected or failed result lets the page retain the user's draft.
+Creates a persistent message in the current conversation for an active participant who is permitted to post. It supports the composer's pending, failed-with-retained-draft, retry, and successful insertion outcomes.
 
 ### Source Actions
 
@@ -138,22 +179,23 @@ Creates a durable message in the current conversation after rechecking active me
 ### Route
 
 ```http
-POST /api/v0/conversation/post-message
+POST /api/v0/conversation/post-message?conversationUid={conversationUid}
+Cookie: tawk_session={opaqueSessionRef}
 Accept: application/json
 Content-Type: application/json
-Cookie: tawk_session={opaqueSessionRef}
 ```
 
 ### Request Context
 
-The browser sends `Cookie: tawk_session={opaqueSessionRef}` automatically. `conversationUid` is read from the current conversation page route, and `text` is the trimmed value entered in the visible composer. The UX API validates the session, derives the author, rechecks active membership and posting permission, and attributes the message server-side. If the cookie is absent or invalid, no message is created. A rejected or failed response omits `message`, reports why posting was unavailable, and directs the page to retain the draft; only `POSTED` returns the created display-ready message.
+The browser sends `Cookie: tawk_session={opaqueSessionRef}`. `conversationUid` is read from the current page route, and `text` comes from the visible composer. The UX API derives the author from the session and revalidates active membership and posting permission; the browser does not send trusted author, role, permission, or suspension values. If the cookie is absent or invalid, no message is created and the browser is directed to reauthenticate.
+
+On success, the response supplies the created message public UID, display attribution, timestamp, and allowed next actions. A blocked or failed submission creates no message; the browser retains the locally entered `text` for retry and displays the returned failure message.
 
 ### Example Request Payload
 
 ```json
 {
-  "conversationUid": "f47ac10b58cc4372a5670e02b2c3d479",
-  "text": "I can bring seed trays on Saturday morning."
+  "text": "Seedling pickup is confirmed for Saturday."
 }
 ```
 
@@ -161,24 +203,22 @@ The browser sends `Cookie: tawk_session={opaqueSessionRef}` automatically. `conv
 
 ```json
 {
-  "outcome": "POSTED",
   "message": {
-    "messageUid": "1b4e28ba2fa14f5ba3c75e06fb7f7e9d",
+    "messageUid": "31c2c8db07894f6598d923b794282467",
     "author": {
       "displayName": "Maya Chen",
-      "participantType": "PERSON",
-      "roleLabel": "Owner",
-      "isFormerParticipant": false
+      "identityType": "PERSON",
+      "participationState": "ACTIVE"
     },
-    "text": "I can bring seed trays on Saturday morning.",
-    "postedAt": "2026-07-23T10:14:00-04:00",
+    "postedAt": "2026-07-22T09:36:00-04:00",
+    "text": "Seedling pickup is confirmed for Saturday.",
     "reactions": [],
-    "allowedActions": {
-      "canReact": true,
-      "canAddNote": true,
-      "canReport": true,
-      "canDelete": true
-    }
+    "allowedActions": [
+      "ADD_REACTION",
+      "ADD_NOTE",
+      "REPORT_MESSAGE",
+      "DELETE_MESSAGE"
+    ]
   },
   "confirmationMessage": "Message posted."
 }
@@ -186,7 +226,7 @@ The browser sends `Cookie: tawk_session={opaqueSessionRef}` automatically. `conv
 
 ## Add Emoji Reaction : (`POST /api/v0/conversation/add-emoji-reaction`)
 
-Adds the current participant's selected emoji reaction to a visible message and returns its display-ready aggregate. The selected message public UID comes from the retrieved workspace and the emoji comes from the reaction chip or picker; the reacting identity and access decision are derived server-side. The route supports both an existing inactive chip and a newly selected picker emoji without requiring hidden frontend state.
+Adds the current participant's selected emoji reaction to a visible message and returns the updated visible aggregate. It supports both selecting an existing inactive reaction and adding a reaction from the picker.
 
 ### Source Actions
 
@@ -200,22 +240,24 @@ Adds the current participant's selected emoji reaction to a visible message and 
 ### Route
 
 ```http
-POST /api/v0/conversation/add-emoji-reaction
+POST /api/v0/conversation/add-emoji-reaction?conversationUid={conversationUid}
+Cookie: tawk_session={opaqueSessionRef}
 Accept: application/json
 Content-Type: application/json
-Cookie: tawk_session={opaqueSessionRef}
 ```
 
 ### Request Context
 
-The browser sends `Cookie: tawk_session={opaqueSessionRef}` automatically. `messageUid` comes from the selected message in the Retrieve Conversation Workspace response, and `emoji` comes from the visible reaction chip or picker. The UX API validates the session, derives the reacting identity, confirms active access to the selected message, and applies the product's current reaction rules server-side. If the cookie or message is unavailable, the response omits a changed aggregate and the page keeps the existing reaction display.
+The browser sends `Cookie: tawk_session={opaqueSessionRef}`. `conversationUid` comes from the current page route, `messageUid` comes from the selected rendered message in the workspace response, and `emoji` comes from the visible reaction chip or picker. The UX API derives the reacting participant and verifies that the participant may view and react to the selected message. If the cookie is absent or invalid, no reaction is created and the browser is directed to reauthenticate.
+
+Success returns the updated aggregate and marks the current participant's reaction active. A stale, unavailable, or unauthorized message returns no replacement aggregate, leaves the displayed reaction unchanged, and supplies a recoverable failure message.
 
 ### Example Request Payload
 
 ```json
 {
-  "messageUid": "7c9e6679742f40de944be07fc1f90ae7",
-  "emoji": "💚"
+  "messageUid": "9d0cb4ae5f5f4a3ab2ab278fe2c2b5b7",
+  "emoji": "🦋"
 }
 ```
 
@@ -223,12 +265,11 @@ The browser sends `Cookie: tawk_session={opaqueSessionRef}` automatically. `mess
 
 ```json
 {
-  "outcome": "ADDED",
-  "messageUid": "7c9e6679742f40de944be07fc1f90ae7",
+  "messageUid": "9d0cb4ae5f5f4a3ab2ab278fe2c2b5b7",
   "reaction": {
-    "emoji": "💚",
-    "count": 2,
-    "currentParticipantReacted": true
+    "emoji": "🦋",
+    "count": 5,
+    "reactedByCurrentParticipant": true
   },
   "confirmationMessage": "Reaction added."
 }
@@ -236,7 +277,7 @@ The browser sends `Cookie: tawk_session={opaqueSessionRef}` automatically. `mess
 
 ## Remove Emoji Reaction : (`DELETE /api/v0/conversation/remove-emoji-reaction`)
 
-Removes only the current participant's selected emoji reaction from a visible message and returns the remaining display-ready aggregate. The browser has the message public UID and emoji from the loaded reaction control, while the UX API derives the reacting identity and verifies that the participant's reaction exists. Stale, unavailable, or unauthorized message outcomes leave the rendered aggregate unchanged.
+Removes only the current participant's selected emoji reaction from a visible message and preserves reactions from other participants. It returns the aggregate needed to render the reaction's remaining count and inactive state.
 
 ### Source Actions
 
@@ -250,22 +291,24 @@ Removes only the current participant's selected emoji reaction from a visible me
 ### Route
 
 ```http
-DELETE /api/v0/conversation/remove-emoji-reaction
+DELETE /api/v0/conversation/remove-emoji-reaction?conversationUid={conversationUid}
+Cookie: tawk_session={opaqueSessionRef}
 Accept: application/json
 Content-Type: application/json
-Cookie: tawk_session={opaqueSessionRef}
 ```
 
 ### Request Context
 
-The browser sends `Cookie: tawk_session={opaqueSessionRef}` automatically. `messageUid` and `emoji` come from the active reaction control rendered from the Retrieve Conversation Workspace response. The UX API validates the session, derives the reacting identity, confirms message access, and removes only that participant's matching reaction. If the cookie, message, or reaction is unavailable, the response omits a changed aggregate and the page keeps the existing reaction display.
+The browser sends `Cookie: tawk_session={opaqueSessionRef}`. `conversationUid` comes from the current page route, while `messageUid` and `emoji` come from the active reaction chip on the selected rendered message. The UX API derives the reacting participant and removes only that participant's association after confirming message visibility and reaction ownership. If the cookie is absent or invalid, no reaction is removed and the browser is directed to reauthenticate.
+
+Success returns the remaining visible aggregate with `reactedByCurrentParticipant: false`. A stale, unavailable, unauthorized, or already-removed reaction leaves the displayed aggregate unchanged and returns a recoverable failure message.
 
 ### Example Request Payload
 
 ```json
 {
-  "messageUid": "7c9e6679742f40de944be07fc1f90ae7",
-  "emoji": "🙋"
+  "messageUid": "9d0cb4ae5f5f4a3ab2ab278fe2c2b5b7",
+  "emoji": "🦋"
 }
 ```
 
@@ -273,179 +316,22 @@ The browser sends `Cookie: tawk_session={opaqueSessionRef}` automatically. `mess
 
 ```json
 {
-  "outcome": "REMOVED",
-  "messageUid": "7c9e6679742f40de944be07fc1f90ae7",
+  "messageUid": "9d0cb4ae5f5f4a3ab2ab278fe2c2b5b7",
   "reaction": {
-    "emoji": "🙋",
-    "count": 1,
-    "currentParticipantReacted": false
-  },
-  "confirmationMessage": "Reaction removed."
+    "emoji": "🦋",
+    "count": 4,
+    "reactedByCurrentParticipant": false
+  }
 }
 ```
 
-## Retrieve Message Note : (`GET /api/v0/conversation/retrieve-message-note`)
+## Retrieve Note : (`GET /api/v0/conversation/retrieve-note`)
 
-Initializes the message-note form for the selected message with either a blank create state or the participant-accessible note's current editable text and safe public note UID. The message public UID comes from the selected message in the loaded workspace. The response also reports whether the target remains available so the page can block attachment to a stale or unauthorized message without inventing a note-visibility policy.
+Retrieves participant-editable note state for either the selected message or the current conversation. This shared route supports blank creation forms, existing-note prefill, and stale or unavailable attachment targets while leaving unresolved note-visibility policy behind the UX API boundary.
 
 ### Source Actions
 
 - `docs/mockup/desktop/conversation/thread.md` — `Retrieve Message Note`
-
-### Mockup Files
-
-- `docs/mockup/desktop/conversation/thread.html`
-- `docs/mockup/desktop/conversation/thread.md`
-
-### Route
-
-```http
-GET /api/v0/conversation/retrieve-message-note?messageUid={messageUid}
-Accept: application/json
-Cookie: tawk_session={opaqueSessionRef}
-```
-
-### Request Context
-
-The browser sends `Cookie: tawk_session={opaqueSessionRef}` automatically. `messageUid` comes from the selected message in the Retrieve Conversation Workspace response. The UX API validates the session, derives participant and note access, and returns only the participant-accessible editable note without exposing the unresolved visibility model. If the cookie is absent or invalid, no note data is returned. `CREATE` returns `note: null` with `canCreate: true`, and its returned `messageUid` is carried into `POST /api/v0/conversation/create-message-note`; `UPDATE` returns the public `noteUid` and editable `text`; an unavailable target returns `targetAvailable: false`, no note content, and no allowed save action.
-
-### Example Request Payload
-
-No JSON request body is sent for this route.
-
-### Example Response Payload
-
-Existing-note `UPDATE` state:
-
-```json
-{
-  "formMode": "UPDATE",
-  "messageUid": "7c9e6679742f40de944be07fc1f90ae7",
-  "targetAvailable": true,
-  "note": {
-    "noteUid": "9f1c2e345a6b4c7d8e9f0123456789ab",
-    "text": "Confirm the sunny strip near the tool shed."
-  },
-  "allowedActions": {
-    "canCreate": false,
-    "canUpdate": true
-  }
-}
-```
-
-Blank-note `CREATE` state:
-
-```json
-{
-  "formMode": "CREATE",
-  "messageUid": "7c9e6679742f40de944be07fc1f90ae7",
-  "targetAvailable": true,
-  "note": null,
-  "allowedActions": {
-    "canCreate": true,
-    "canUpdate": false
-  }
-}
-```
-
-## Create Message Note : (`POST /api/v0/conversation/create-message-note`)
-
-Creates a participant-authored note attached to the selected message when the note initializer reported that no editable note exists. The browser supplies the message public UID from the loaded workspace and the entered note text; it does not supply a pre-existing note UID. Success returns a server-issued public note UID and the display-ready noted state, while stale, unauthorized, failed, or duplicate creation creates no partial note.
-
-### Source Actions
-
-- `docs/mockup/desktop/conversation/thread.md` — `Create Message Note`
-
-### Mockup Files
-
-- `docs/mockup/desktop/conversation/thread.html`
-- `docs/mockup/desktop/conversation/thread.md`
-
-### Route
-
-```http
-POST /api/v0/conversation/create-message-note
-Accept: application/json
-Content-Type: application/json
-Cookie: tawk_session={opaqueSessionRef}
-```
-
-### Request Context
-
-The browser sends `Cookie: tawk_session={opaqueSessionRef}` automatically. `messageUid` comes from the selected message in the Retrieve Conversation Workspace response, and `text` is the value entered in the visible note form. The UX API validates the session, derives the note author and access, confirms that the message remains available and has no editable note for this create flow, and issues the public `noteUid`. If the cookie or target is unavailable, or a note now exists, no partial note is created and the page retains the entered text.
-
-### Example Request Payload
-
-```json
-{
-  "messageUid": "7c9e6679742f40de944be07fc1f90ae7",
-  "text": "Confirm the sunny strip near the tool shed."
-}
-```
-
-### Example Response Payload
-
-```json
-{
-  "outcome": "CREATED",
-  "noteUid": "9f1c2e345a6b4c7d8e9f0123456789ab",
-  "messageIndicator": "Note added",
-  "confirmationMessage": "Note saved to the message."
-}
-```
-
-## Update Message Note : (`PATCH /api/v0/conversation/update-message-note`)
-
-Replaces the editable text of an existing participant-accessible message note while preserving its message attachment. The browser supplies the public note UID returned by message-note retrieval and the replacement text; the UX API resolves the attached message from that note. It revalidates the current note and message state so stale or unauthorized updates preserve the prior durable content and leave the replacement text recoverable in the form.
-
-### Source Actions
-
-- `docs/mockup/desktop/conversation/thread.md` — `Update Message Note`
-
-### Mockup Files
-
-- `docs/mockup/desktop/conversation/thread.html`
-- `docs/mockup/desktop/conversation/thread.md`
-
-### Route
-
-```http
-PATCH /api/v0/conversation/update-message-note
-Accept: application/json
-Content-Type: application/json
-Cookie: tawk_session={opaqueSessionRef}
-```
-
-### Request Context
-
-The browser sends `Cookie: tawk_session={opaqueSessionRef}` automatically. `noteUid` is the safe public UID carried forward from the Retrieve Message Note response, and `text` is the replacement value entered in the visible form. The UX API validates the session, derives note access, resolves and verifies the note's attached message, and updates only the accessible note. If the cookie, note, or attached message is stale or unauthorized, durable content is unchanged and the page retains the replacement text.
-
-### Example Request Payload
-
-```json
-{
-  "noteUid": "9f1c2e345a6b4c7d8e9f0123456789ab",
-  "text": "Reserve the sunny strip and two hand trowels."
-}
-```
-
-### Example Response Payload
-
-```json
-{
-  "outcome": "UPDATED",
-  "noteUid": "9f1c2e345a6b4c7d8e9f0123456789ab",
-  "messageIndicator": "Note added",
-  "confirmationMessage": "Note saved to the message."
-}
-```
-
-## Retrieve Conversation Note : (`GET /api/v0/conversation/retrieve-conversation-note`)
-
-Initializes the conversation-note form with either a blank create state or the participant-accessible note's current editable text and safe public note UID. The public conversation UID comes from the current page route, and the UX API derives the participant and applicable access decision. A retrieval failure does not overwrite unknown durable content, and the contract does not expose or resolve the product's undecided note-visibility model.
-
-### Source Actions
-
 - `docs/mockup/desktop/conversation/thread.md` — `Retrieve Conversation Note`
 
 ### Mockup Files
@@ -456,14 +342,16 @@ Initializes the conversation-note form with either a blank create state or the p
 ### Route
 
 ```http
-GET /api/v0/conversation/retrieve-conversation-note?conversationUid={conversationUid}
-Accept: application/json
+GET /api/v0/conversation/retrieve-note?conversationUid={conversationUid}&targetType={targetType}&targetUid={targetUid}
 Cookie: tawk_session={opaqueSessionRef}
+Accept: application/json
 ```
 
 ### Request Context
 
-The browser sends `Cookie: tawk_session={opaqueSessionRef}` automatically. `conversationUid` is the safe public UID from the current conversation page route. The UX API validates the session, derives participant and note access, and returns only the participant-accessible editable note without exposing the unresolved visibility model. If the cookie is absent or invalid, no note data is returned. `CREATE` returns `note: null` with `canCreate: true` and selects `POST /api/v0/conversation/create-conversation-note`; `UPDATE` returns the public `noteUid` and editable `text`; retrieval failure returns no partial note content so the form does not overwrite an unknown durable value.
+The browser sends `Cookie: tawk_session={opaqueSessionRef}`. `conversationUid` is read from the current page route. `targetType` is the all-caps `MESSAGE` or `CONVERSATION` value implied by the visible note action, and `targetUid` is the selected message public UID from the workspace response or the same current-page conversation UID. The UX API authorizes access to the participant-accessible note and applies the unresolved visibility policy server-side. If the cookie is absent or invalid, the response contains no note data and directs the browser to reauthenticate.
+
+An available target with no note returns `targetState: AVAILABLE`, `noteState: NONE`, `note: null`, and permits creation. An existing note returns editable text, its public `noteUid`, and whether update is allowed. A stale, unavailable, or unauthorized target returns `targetState: UNAVAILABLE`, omits note content and identifiers, and provides a display-ready explanation.
 
 ### Example Request Payload
 
@@ -471,41 +359,27 @@ No JSON request body is sent for this route.
 
 ### Example Response Payload
 
-Existing-note `UPDATE` state:
-
 ```json
 {
-  "formMode": "UPDATE",
+  "targetType": "MESSAGE",
+  "targetUid": "9d0cb4ae5f5f4a3ab2ab278fe2c2b5b7",
+  "targetState": "AVAILABLE",
+  "noteState": "EXISTING",
   "note": {
-    "noteUid": "c1a2b3c4d5e64f708123456789abcdef",
-    "text": "Saturday volunteers should meet by the tool shed."
-  },
-  "allowedActions": {
-    "canCreate": false,
-    "canUpdate": true
+    "noteUid": "6f9619ff8b8642d4a9d30c1dc9f9472c",
+    "text": "Ask Nadia about shade tolerance.",
+    "canEdit": true
   }
 }
 ```
 
-Blank-note `CREATE` state:
+## Create Note : (`POST /api/v0/conversation/create-note`)
 
-```json
-{
-  "formMode": "CREATE",
-  "note": null,
-  "allowedActions": {
-    "canCreate": true,
-    "canUpdate": false
-  }
-}
-```
-
-## Create Conversation Note : (`POST /api/v0/conversation/create-conversation-note`)
-
-Creates participant-authored context attached to the current conversation when the note initializer reported that no editable note exists. The browser supplies the public conversation UID from the current page route and the entered text, with no pre-existing note UID. Success returns a server-issued public note UID and confirmation-ready state; a failure preserves the user's text and creates no partial note.
+Creates participant-authored note text against either a selected message or the current conversation when no note record exists. The common operation preserves the target-specific thread outcomes without requiring a pre-existing note public identifier.
 
 ### Source Actions
 
+- `docs/mockup/desktop/conversation/thread.md` — `Create Message Note`
 - `docs/mockup/desktop/conversation/thread.md` — `Create Conversation Note`
 
 ### Mockup Files
@@ -516,22 +390,25 @@ Creates participant-authored context attached to the current conversation when t
 ### Route
 
 ```http
-POST /api/v0/conversation/create-conversation-note
+POST /api/v0/conversation/create-note?conversationUid={conversationUid}
+Cookie: tawk_session={opaqueSessionRef}
 Accept: application/json
 Content-Type: application/json
-Cookie: tawk_session={opaqueSessionRef}
 ```
 
 ### Request Context
 
-The browser sends `Cookie: tawk_session={opaqueSessionRef}` automatically. `conversationUid` is read from the current conversation page route, and `text` is the value entered in the visible conversation-note form. The UX API validates the session, derives the note author and access, confirms that no participant-accessible note already exists for this create flow, and issues the public `noteUid`. If the cookie or conversation is unavailable, or a note now exists, no partial note is created and the page retains the entered text.
+The browser sends `Cookie: tawk_session={opaqueSessionRef}`. `conversationUid` comes from the current page route. `targetType` is the all-caps value implied by the visible message-note or conversation-note action, `targetUid` comes from the selected rendered message or current page route, and `text` comes from the visible note form. No note UID exists before creation. If the cookie is absent or invalid, no note is created and the browser is directed to reauthenticate.
+
+The UX API derives the author and applies note visibility and attachment rules server-side. Success returns a safe public `noteUid` for later retrieval or update and target-appropriate thread feedback. Empty text is rejected before invocation; a stale, unavailable, unauthorized, or already-noted target creates nothing, returns no note UID, and preserves the entered text in the browser for recovery.
 
 ### Example Request Payload
 
 ```json
 {
-  "conversationUid": "f47ac10b58cc4372a5670e02b2c3d479",
-  "text": "Saturday volunteers should meet by the tool shed."
+  "targetType": "MESSAGE",
+  "targetUid": "9d0cb4ae5f5f4a3ab2ab278fe2c2b5b7",
+  "text": "Ask Nadia about shade tolerance."
 }
 ```
 
@@ -539,18 +416,22 @@ The browser sends `Cookie: tawk_session={opaqueSessionRef}` automatically. `conv
 
 ```json
 {
-  "outcome": "CREATED",
-  "noteUid": "c1a2b3c4d5e64f708123456789abcdef",
-  "confirmationMessage": "Conversation note saved."
+  "noteUid": "6f9619ff8b8642d4a9d30c1dc9f9472c",
+  "targetType": "MESSAGE",
+  "targetUid": "9d0cb4ae5f5f4a3ab2ab278fe2c2b5b7",
+  "text": "Ask Nadia about shade tolerance.",
+  "messageMarkLabel": "Note added",
+  "confirmationMessage": "Note saved to the message."
 }
 ```
 
-## Update Conversation Note : (`PATCH /api/v0/conversation/update-conversation-note`)
+## Update Note : (`PATCH /api/v0/conversation/update-note`)
 
-Replaces the editable text of an existing participant-accessible conversation note. The browser supplies the public note UID returned by conversation-note retrieval and the replacement text; the UX API resolves the attached conversation from that note. It revalidates the current note state so a stale or unauthorized update does not overwrite durable content and the page can retain the proposed replacement for recovery.
+Replaces the editable text of an existing participant-accessible note while preserving its message or conversation attachment. The existing note public identifier comes from note retrieval, allowing both prefilled edit states to use the same lifecycle-specific update operation.
 
 ### Source Actions
 
+- `docs/mockup/desktop/conversation/thread.md` — `Update Message Note`
 - `docs/mockup/desktop/conversation/thread.md` — `Update Conversation Note`
 
 ### Mockup Files
@@ -561,22 +442,24 @@ Replaces the editable text of an existing participant-accessible conversation no
 ### Route
 
 ```http
-PATCH /api/v0/conversation/update-conversation-note
+PATCH /api/v0/conversation/update-note?conversationUid={conversationUid}
+Cookie: tawk_session={opaqueSessionRef}
 Accept: application/json
 Content-Type: application/json
-Cookie: tawk_session={opaqueSessionRef}
 ```
 
 ### Request Context
 
-The browser sends `Cookie: tawk_session={opaqueSessionRef}` automatically. `noteUid` is the safe public UID carried forward from the Retrieve Conversation Note response, and `text` is the replacement value entered in the visible form. The UX API validates the session, derives note access, resolves the note's attached conversation, and updates only the accessible note. If the cookie or note is stale or unauthorized, durable content is unchanged and the page retains the replacement text.
+The browser sends `Cookie: tawk_session={opaqueSessionRef}`. `conversationUid` comes from the current page route, `noteUid` is the safe public UID returned by Retrieve Note and carried by the open existing-note form, and `text` is the participant's visible replacement text. The UX API derives note ownership and edit permission and preserves the existing target attachment server-side. If the cookie is absent or invalid, the note is not changed and the browser is directed to reauthenticate.
+
+Success returns the note's current editable text and target-ready display feedback. A stale, unavailable, or unauthorized note is not overwritten, returns no replacement content, and leaves the participant's entered replacement text in the browser for recovery.
 
 ### Example Request Payload
 
 ```json
 {
-  "noteUid": "c1a2b3c4d5e64f708123456789abcdef",
-  "text": "Saturday volunteers should meet by the south tool-shed door."
+  "noteUid": "6f9619ff8b8642d4a9d30c1dc9f9472c",
+  "text": "Confirm shade tolerance with Nadia before Saturday."
 }
 ```
 
@@ -584,15 +467,18 @@ The browser sends `Cookie: tawk_session={opaqueSessionRef}` automatically. `note
 
 ```json
 {
-  "outcome": "UPDATED",
-  "noteUid": "c1a2b3c4d5e64f708123456789abcdef",
-  "confirmationMessage": "Conversation note saved."
+  "noteUid": "6f9619ff8b8642d4a9d30c1dc9f9472c",
+  "targetType": "MESSAGE",
+  "targetUid": "9d0cb4ae5f5f4a3ab2ab278fe2c2b5b7",
+  "text": "Confirm shade tolerance with Nadia before Saturday.",
+  "messageMarkLabel": "Note added",
+  "confirmationMessage": "Note saved to the message."
 }
 ```
 
 ## Submit Message Report : (`POST /api/v0/conversation/submit-message-report`)
 
-Creates the numbered moderation ticket requested by the participant and makes it available to the affected conversation's authorized moderators. The browser supplies the selected message public UID from the loaded workspace and the entered explanation; the UX API resolves the source conversation from the message, while reporting identity, moderator access, and ticket numbering remain server-side decisions. Success returns the public ticket number and message-reported display state, while stale, unavailable, unauthorized, or duplicate submissions create no ticket.
+Creates a numbered moderation report for the selected message using the participant's explanation. It supports validation, pending submission, successful ticket creation, and stale or unauthorized target outcomes without exposing moderation internals.
 
 ### Source Actions
 
@@ -606,22 +492,24 @@ Creates the numbered moderation ticket requested by the participant and makes it
 ### Route
 
 ```http
-POST /api/v0/conversation/submit-message-report
+POST /api/v0/conversation/submit-message-report?conversationUid={conversationUid}
+Cookie: tawk_session={opaqueSessionRef}
 Accept: application/json
 Content-Type: application/json
-Cookie: tawk_session={opaqueSessionRef}
 ```
 
 ### Request Context
 
-The browser sends `Cookie: tawk_session={opaqueSessionRef}` automatically. `messageUid` comes from the selected message in the Retrieve Conversation Workspace response, and `explanation` is the visible report-form input. The UX API validates the session, derives the reporter and moderator audience, resolves the message's source conversation, confirms that it remains reportable, and assigns the ticket number server-side. If the cookie or target is unavailable, or the same report is rejected as a duplicate, no ticket is created and the page keeps the explanation for recovery.
+The browser sends `Cookie: tawk_session={opaqueSessionRef}`. `conversationUid` comes from the current page route, `messageUid` comes from the rendered message whose Report action opened the form, and `explanation` comes from the visible report form. The UX API derives the reporting participant, links the selected conversation and message, and grants report access to authorized moderators server-side. If the cookie is absent or invalid, no ticket is created and the browser is directed to reauthenticate.
+
+Success returns the public ticket number and display labels needed to mark the message as reported. Empty explanation is rejected before invocation; a stale, unavailable, or unauthorized message creates no ticket, omits `ticketNumber` and report labels, and returns a blocked-outcome message.
 
 ### Example Request Payload
 
 ```json
 {
-  "messageUid": "7c9e6679742f40de944be07fc1f90ae7",
-  "explanation": "Please review whether this message exposes unsafe access details."
+  "messageUid": "9d0cb4ae5f5f4a3ab2ab278fe2c2b5b7",
+  "explanation": "The gate instruction may create a safety issue."
 }
 ```
 
@@ -629,17 +517,16 @@ The browser sends `Cookie: tawk_session={opaqueSessionRef}` automatically. `mess
 
 ```json
 {
-  "outcome": "SUBMITTED",
-  "messageUid": "7c9e6679742f40de944be07fc1f90ae7",
-  "ticketNumber": "1048",
-  "messageIndicator": "Reported #1048",
+  "messageUid": "9d0cb4ae5f5f4a3ab2ab278fe2c2b5b7",
+  "ticketNumber": 1048,
+  "messageMarkLabel": "Reported #1048",
   "confirmationMessage": "Report #1048 was sent to the conversation moderators."
 }
 ```
 
 ## Delete Message : (`DELETE /api/v0/conversation/delete-message`)
 
-Soft-deletes the selected durable message after revalidating that the current participant may delete it, then instructs the workspace to remove it without a placeholder. The message public UID comes from the current participant's visible message in the retrieved workspace, and invoking the DELETE route after modal confirmation is the explicit delete intent; authorship and moderation permission are derived server-side. Stale or unauthorized deletion leaves the thread unchanged, and no retained deletion metadata is exposed to the page.
+Soft-deletes the selected message after revalidating the current participant's permission and explicit confirmation. The Conversation page uses the result to remove the message without a deleted-message placeholder while retained history remains server-owned.
 
 ### Source Actions
 
@@ -653,21 +540,24 @@ Soft-deletes the selected durable message after revalidating that the current pa
 ### Route
 
 ```http
-DELETE /api/v0/conversation/delete-message
+DELETE /api/v0/conversation/delete-message?conversationUid={conversationUid}
+Cookie: tawk_session={opaqueSessionRef}
 Accept: application/json
 Content-Type: application/json
-Cookie: tawk_session={opaqueSessionRef}
 ```
 
 ### Request Context
 
-The browser sends `Cookie: tawk_session={opaqueSessionRef}` automatically. `messageUid` comes from the current participant's selected visible message in the Retrieve Conversation Workspace response. The browser invokes this DELETE route only after the user confirms the visible modal; a redundant confirmation boolean is not sent. The UX API validates the session, derives authorship and moderation permission, confirms that the message remains available, and performs soft deletion behind the UI-facing boundary. If the cookie is absent or the target is stale or unauthorized, the message remains visible and no deletion metadata is returned to the browser.
+The browser sends `Cookie: tawk_session={opaqueSessionRef}`. `conversationUid` comes from the current page route, `messageUid` comes from the rendered message whose Delete action opened the confirmation, and `confirmed` records the participant's explicit confirmation. The UX API derives the participant and revalidates authorship or moderation permission before applying the retained soft deletion. If the cookie is absent or invalid, the message is not changed and the browser is directed to reauthenticate.
+
+Success returns `visibleInConversation: false`, so the browser removes the message without a placeholder. A stale or unauthorized target is not changed, returns no replacement message content, and instructs the browser to keep the current thread unchanged while showing the failure.
 
 ### Example Request Payload
 
 ```json
 {
-  "messageUid": "2d8f7e6c5b4a4938a1230fedcba98765"
+  "messageUid": "c3b2f111d9ac49a1a70d39c278843c5e",
+  "confirmed": true
 }
 ```
 
@@ -675,15 +565,15 @@ The browser sends `Cookie: tawk_session={opaqueSessionRef}` automatically. `mess
 
 ```json
 {
-  "outcome": "DELETED",
-  "removeMessageUid": "2d8f7e6c5b4a4938a1230fedcba98765",
+  "messageUid": "c3b2f111d9ac49a1a70d39c278843c5e",
+  "visibleInConversation": false,
   "confirmationMessage": "Your message was deleted."
 }
 ```
 
 ## Leave Conversation : (`DELETE /api/v0/conversation/leave-conversation`)
 
-Ends the current participant's active membership in the selected conversation while retaining historical attribution. The browser supplies the public conversation UID from the current page route, and invoking the DELETE route after modal confirmation is the explicit leave intent; the UX API derives the current membership and rechecks owner continuity at invocation time. It returns a blocked branch with action codes for a last owner, a successful `LEFT` branch for an eligible owner or member, or a recoverable failure that leaves membership active. The presentation app maps those outcomes and action codes to its conversation-list or governance routes.
+Ends the current participant's active membership after explicit confirmation and a server-side ownership-continuity recheck. It returns either the blocked last-owner outcome or an allowed departure outcome that lets the page return to the conversation list while preserving historical attribution.
 
 ### Source Actions
 
@@ -697,49 +587,33 @@ Ends the current participant's active membership in the selected conversation wh
 ### Route
 
 ```http
-DELETE /api/v0/conversation/leave-conversation
+DELETE /api/v0/conversation/leave-conversation?conversationUid={conversationUid}
+Cookie: tawk_session={opaqueSessionRef}
 Accept: application/json
 Content-Type: application/json
-Cookie: tawk_session={opaqueSessionRef}
 ```
 
 ### Request Context
 
-The browser sends `Cookie: tawk_session={opaqueSessionRef}` automatically. `conversationUid` comes from the current conversation page route. The browser invokes this DELETE route only after the user confirms the allowed leave modal; a redundant confirmation boolean is not sent. The UX API validates the session, derives the active membership and role, rechecks owner continuity at invocation time, and ends only the current participant's membership when allowed. If the cookie is absent, membership stays active. `BLOCKED` returns `LAST_OWNER` with action codes and no membership change; `LEFT` returns the successful outcome and confirmation while omitting owner-management actions; a recoverable failure leaves membership active. The presentation app owns the mapping from `LEFT` to its conversation-list route and from blocked action codes to its governance routes.
+The browser sends `Cookie: tawk_session={opaqueSessionRef}`. `conversationUid` comes from the current page route, and `confirmed` records the participant's explicit confirmation. The UX API derives the current membership and role and rechecks active-owner continuity server-side; the browser sends no trusted role, ownership count, or permission decision. If the cookie is absent or invalid, membership stays active and the browser is directed to reauthenticate.
+
+An eligible departure returns `outcome: LEFT`, the former-membership display state, and a browser-safe application-relative redirect target. If owner continuity changed or the participant is the last owner, the operation returns `outcome: BLOCKED_LAST_OWNER`, leaves membership active, omits the redirect target, and supplies the transfer-ownership or archive guidance. Other failures also leave membership active and return no redirect target.
 
 ### Example Request Payload
 
 ```json
 {
-  "conversationUid": "f47ac10b58cc4372a5670e02b2c3d479"
+  "confirmed": true
 }
 ```
 
 ### Example Response Payload
 
-Last-owner `BLOCKED` response:
-
-```json
-{
-  "outcome": "BLOCKED",
-  "reason": "LAST_OWNER",
-  "message": "Transfer ownership or archive this conversation before leaving.",
-  "allowedActions": [
-    {
-      "action": "MANAGE_OWNERS"
-    },
-    {
-      "action": "ARCHIVE_CONVERSATION"
-    }
-  ]
-}
-```
-
-Successful `LEFT` response:
-
 ```json
 {
   "outcome": "LEFT",
+  "membershipState": "FORMER",
+  "redirectTarget": "../hub/index.html",
   "confirmationMessage": "You left the conversation."
 }
 ```

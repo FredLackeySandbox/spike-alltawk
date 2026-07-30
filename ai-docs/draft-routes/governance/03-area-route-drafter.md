@@ -3,14 +3,15 @@
 ## Target
 
 - Platform: desktop
-- Folder: `docs/mockup/desktop/governance/`
+- Assigned area: `docs/mockup/desktop/governance/`
 - Work-unit slug: `governance`
+- Route namespace: `governance`
 - Route file: `docs/mockup/routes/governance-routes.md`
 - `solutionArtifactRoot`: `/Users/flackey/Source/Personal/FredLackeySandbox/spike-alltawk`
 
-All markdown path references in this handoff are repository-relative to `solutionArtifactRoot`. All filesystem reads and writes used absolute paths beneath that root.
+All markdown path references in this handoff are repository-relative to `solutionArtifactRoot`.
 
-## Inputs Reviewed
+## Files Reviewed
 
 - `docs/concepts/REQUIREMENTS.md`
 - `docs/concepts/APP_PAGES.md`
@@ -19,91 +20,99 @@ All markdown path references in this handoff are repository-relative to `solutio
 - `ai-docs/draft-routes/governance/01-backend-data-action-analyst.md`
 - `ai-docs/draft-routes/governance/02-data-consistency-reviewer.md`
 
-## Complete Approved Action Inventory
+## Approved Action Inventory
 
 ### `docs/mockup/desktop/governance/members.md`
 
-1. `Retrieve Conversation Roster`
-2. `Promote Participant to Owner`
-3. `Promote Participant to Administrator`
-4. `Remove Participant`
-5. `Ban Identity`
-6. `Restore Banned Participant`
-7. `Create Posting Suspension`
-8. `Update Posting Suspension`
-9. `End Posting Suspension`
+- `Retrieve Conversation Roster`
+- `Promote Participant to Owner`
+- `Promote Participant to Administrator`
+- `Remove Participant`
+- `Ban Identity`
+- `Restore Banned Participant`
+- `Create Posting Suspension`
+- `Update Posting Suspension`
+- `End Posting Suspension`
 
 ### `docs/mockup/desktop/governance/settings.md`
 
-1. `Retrieve Conversation Governance Settings`
-2. `Update Conversation Tags`
-3. `Archive Conversation`
+- `Retrieve Conversation Governance Settings`
+- `Update Conversation Tags`
+- `Archive Conversation`
 
-All twelve approved actions remain mapped under `### Source Actions`; no companion action was renamed, omitted, or supplemented with an unknown action.
+All 12 approved companion actions are represented under `### Source Actions` in the route file.
 
 ## Action-to-Route Coverage Matrix
 
-| Companion action | Draft route |
-|---|---|
-| `docs/mockup/desktop/governance/members.md` — `Retrieve Conversation Roster` | `GET /api/v0/governance/retrieve-conversation-governance` |
-| `docs/mockup/desktop/governance/settings.md` — `Retrieve Conversation Governance Settings` | `GET /api/v0/governance/retrieve-conversation-governance` |
-| `docs/mockup/desktop/governance/members.md` — `Promote Participant to Owner` | `POST /api/v0/governance/promote-participant-role` |
-| `docs/mockup/desktop/governance/members.md` — `Promote Participant to Administrator` | `POST /api/v0/governance/promote-participant-role` |
-| `docs/mockup/desktop/governance/members.md` — `Remove Participant` | `DELETE /api/v0/governance/remove-participant` |
-| `docs/mockup/desktop/governance/members.md` — `Ban Identity` | `POST /api/v0/governance/ban-identity` |
-| `docs/mockup/desktop/governance/members.md` — `Restore Banned Participant` | `POST /api/v0/governance/restore-banned-participant` |
-| `docs/mockup/desktop/governance/members.md` — `Create Posting Suspension` | `POST /api/v0/governance/create-posting-suspension` |
-| `docs/mockup/desktop/governance/members.md` — `Update Posting Suspension` | `PATCH /api/v0/governance/update-posting-suspension` |
-| `docs/mockup/desktop/governance/members.md` — `End Posting Suspension` | `DELETE /api/v0/governance/end-posting-suspension` |
-| `docs/mockup/desktop/governance/settings.md` — `Update Conversation Tags` | `PATCH /api/v0/governance/update-conversation-tags` |
-| `docs/mockup/desktop/governance/settings.md` — `Archive Conversation` | `POST /api/v0/governance/archive-conversation` |
+| Companion action | Route operation | Coverage decision |
+|---|---|---|
+| `docs/mockup/desktop/governance/members.md` — `Retrieve Conversation Roster` | `GET /api/v0/governance/retrieve-conversation-roster` | Page-specific load remains separate because it returns membership, restriction, role-authority, and ownership-continuity state. |
+| `docs/mockup/desktop/governance/members.md` — `Promote Participant to Owner` | `PATCH /api/v0/governance/update-participant-role` | Consolidated with administrator promotion as an existing membership-role update; the target role and distinct authority outcome remain explicit visible action intent. |
+| `docs/mockup/desktop/governance/members.md` — `Promote Participant to Administrator` | `PATCH /api/v0/governance/update-participant-role` | Consolidated with owner promotion as the same identified membership-role lifecycle update without losing its owner-only eligibility rules. |
+| `docs/mockup/desktop/governance/members.md` — `Remove Participant` | `DELETE /api/v0/governance/remove-participant` | Kept separate because it ends active membership but preserves retained history and later rejoin eligibility. |
+| `docs/mockup/desktop/governance/members.md` — `Ban Identity` | `POST /api/v0/governance/ban-identity` | Kept separate as a privileged action that may affect an active or former identity and prevents rejoin. |
+| `docs/mockup/desktop/governance/members.md` — `Restore Banned Participant` | `POST /api/v0/governance/restore-banned-participant` | Kept separate because it ends a ban and restores active membership rather than merely updating a displayed role. |
+| `docs/mockup/desktop/governance/members.md` — `Create Posting Suspension` | `POST /api/v0/governance/create-posting-suspension` | Separate create lifecycle; it does not require a pre-existing suspension UID. |
+| `docs/mockup/desktop/governance/members.md` — `Update Posting Suspension` | `PATCH /api/v0/governance/update-posting-suspension` | Separate update lifecycle; it requires the existing public suspension reference returned by roster retrieval. |
+| `docs/mockup/desktop/governance/members.md` — `End Posting Suspension` | `DELETE /api/v0/governance/end-posting-suspension` | Separate end lifecycle; it identifies the existing suspension and restores posting access while retaining history. |
+| `docs/mockup/desktop/governance/settings.md` — `Retrieve Conversation Governance Settings` | `GET /api/v0/governance/retrieve-conversation-governance-settings` | Page-specific load remains separate because it returns editable tags, fixed access/matching summaries, lifecycle state, and allowed governance actions. |
+| `docs/mockup/desktop/governance/settings.md` — `Update Conversation Tags` | `PATCH /api/v0/governance/update-conversation-tags` | Existing conversation update with the complete visible tag set. |
+| `docs/mockup/desktop/governance/settings.md` — `Archive Conversation` | `POST /api/v0/governance/archive-conversation` | Separate owner-only, non-idempotent lifecycle invocation that ends active use without hard deletion. |
 
-## Routes Drafted and Consolidation Decisions
+## Consolidation and Lifecycle Decisions
 
-- Drafted ten governance routes in `docs/mockup/routes/governance-routes.md`.
-- Consolidated the roster and settings initialization actions into one page-selectable governance retrieval route. Its purpose explicitly requires step-complete, page-specific data rather than a lowest-common-denominator summary.
-- Consolidated owner and administrator promotion into one non-idempotent role-promotion route because both operate on an existing roster participant at the same visible trigger boundary. The selected target role remains a browser-visible choice, and the distinct companion actions remain individually mapped.
-- Preserved participant removal, banning, restoration, conversation archival, and tag editing as separate product actions because their lifecycle effects and visible branches differ.
-- Preserved posting-suspension creation, update, and ending as three routes. Creation requires no pre-existing suspension reference and returns one; update and ending require the existing public suspension reference returned by roster retrieval.
-- Used `PATCH` only for updates to already identified conversation tags and posting suspension data, `DELETE` for ending an existing membership or suspension, `GET` for UI initialization, and `POST` for consequential role, ban, restoration, suspension-creation, and archival operations.
+- The two promotion actions share `PATCH /api/v0/governance/update-participant-role` because both update the role of an existing, roster-selected membership. The later request contract must preserve the visible target-role intent and the different eligibility and outcome rules for owner versus administrator promotion.
+- Roster loading and governance-settings loading remain separate. Combining them would return unrelated page data and weaken page-state-specific authorization and failure handling.
+- Remove, ban, and restore remain distinct because removal permits later rejoin, banning prevents rejoin, and restoration ends a ban while reactivating an appropriate retained role.
+- Posting suspension create, update, and end remain distinct. Creation cannot require a suspension UID; update and end must identify the existing public suspension reference returned by the roster load.
+- Updating conversation tags is an update of an already identified conversation, not creation. Archival is an explicit owner-only invocation, not hard deletion.
 
 ## Invocation-Feasibility Findings
 
-| Route | Browser-held values at invocation | Feasibility and required continuation |
-|---|---|---|
-| Retrieve Conversation Governance | Current conversation public identifier from the page route; selected members/settings view from the current page | Feasible for first entry without hidden workflow state. The response must supply page-specific current state, allowed actions, editable values, public participant identifiers, and public suspension references required by later visible actions. |
-| Promote Participant Role | Conversation public identifier from the page route; participant public identifier from the roster row; visible target role; explicit confirmation | Feasible for owner and administrator target states. Current viewer authority and owner-continuity decisions remain server-derived. |
-| Remove Participant | Conversation public identifier from the page route; participant public identifier from the roster row; explicit confirmation | Feasible for active participants and a requirements-backed eligible non-final owner. The server determines whether the target is protected and returns retained former state and updated counts. |
-| Ban Identity | Conversation public identifier from the page route; participant public identifier from an active or former roster row; explicit confirmation | Feasible for active, removed, and eligible non-final-owner states. Current authority, active-state ending, and rejoin prevention are server-owned decisions. |
-| Restore Banned Participant | Conversation public identifier from the page route; banned participant public identifier and displayed retained role from the roster; explicit confirmation | Feasible without inventing a role picker. The requirements-backed restoration behavior takes priority over the mockup's eligibility-only outcome; the response must return the active restored entry. |
-| Create Posting Suspension | Conversation and participant public identifiers from page route and roster; visible end date/time and displayed time-zone context | Feasible before any suspension exists. It must not require a suspension UID or version and must return a public suspension reference for later update/end actions. |
-| Update Posting Suspension | Conversation and participant public identifiers plus existing suspension public reference and editable current end from roster retrieval; visible revised date/time and time-zone context | Feasible only when the load response carries the public suspension reference and current editable end. A missing or stale suspension receives a concrete non-success branch. |
-| End Posting Suspension | Conversation and participant public identifiers plus existing suspension public reference from roster retrieval; explicit confirmation | Feasible for a current suspension without hidden lookup context. A missing or stale suspension receives a concrete non-success branch. |
-| Update Conversation Tags | Conversation public identifier from the page route; complete visible edited tag set | Feasible for an existing conversation only. The browser does not supply permission, lifecycle, normalization policy, or other backend decisions; the response returns committed display tags or actionable validation/stale/failure state. |
-| Archive Conversation | Conversation public identifier from the page route; explicit owner confirmation | Feasible with no hidden object identifier. The dirty-draft block is visible client state, while current owner authority and conversation lifecycle are rechecked by the UX API. |
+| Route operation | Browser-available values at invocation |
+|---|---|
+| `GET /api/v0/governance/retrieve-conversation-roster` | The current conversation public UID comes from the page route. The active/former filter is already-loaded presentation state unless a refresh request deliberately sends that visible selection. Session and viewer authority are browser/server request context, not JSON business inputs. |
+| `PATCH /api/v0/governance/update-participant-role` | The conversation public UID comes from the page route, the participant public UID comes from the selected roster row, the target role comes from the visible promotion action, and explicit confirmation supplies action intent. |
+| `DELETE /api/v0/governance/remove-participant` | The conversation public UID comes from the page route, the participant public UID comes from the selected roster row, and the open confirmation supplies removal intent. Owner continuity and viewer authority are rechecked server-side. |
+| `POST /api/v0/governance/ban-identity` | The conversation public UID comes from the page route, the identity or participant public UID comes from the selected active or former roster row, and explicit confirmation supplies ban intent. |
+| `POST /api/v0/governance/restore-banned-participant` | The conversation public UID and selected participant public UID are available from the route and banned roster row. The retained displayed role is available from the roster load; requirements do not establish a separate role picker. |
+| `POST /api/v0/governance/create-posting-suspension` | The conversation and participant public UIDs come from the route and selected roster row. The visible form supplies end date, end time, and displayed time-zone context. No suspension UID exists or may be required. |
+| `PATCH /api/v0/governance/update-posting-suspension` | The roster load must return a public suspension UID plus editable current end values. The selected row carries that UID forward, and the visible form supplies the revised end date, time, and time-zone context. |
+| `DELETE /api/v0/governance/end-posting-suspension` | The selected suspended row carries the public suspension UID returned by roster retrieval, and explicit confirmation supplies immediate-end intent. |
+| `GET /api/v0/governance/retrieve-conversation-governance-settings` | The current conversation public UID comes from the page route. Viewer role, membership, authorization, lifecycle, and allowed actions are derived and decided server-side. |
+| `PATCH /api/v0/governance/update-conversation-tags` | The conversation public UID comes from the page route and the editor supplies the complete visible revised tag set. Any later concurrency field must first be returned by the settings load rather than invented by the frontend. |
+| `POST /api/v0/governance/archive-conversation` | The conversation public UID comes from the page route and explicit confirmation supplies archive intent. The server rechecks owner authority, active lifecycle, and unchanged actionable state; no hidden frontend authorization inputs are required. |
 
-Every required browser-supplied value is available from user input, the current page route, the selected roster row, or the prior governance retrieval response. No route assumes a pre-existing UID for a new suspension, a hidden frontend authorization decision, an internal session identifier in JSON, or lower-layer application data.
+Every required browser-supplied identifier is therefore available from the current page route, a selected public roster record, or a prior visible UX API response. Authentication/session context and authorization decisions remain behind the UI-facing API boundary.
 
-## Page-State and Rule Coverage
+## Routes Drafted
 
-- The shared retrieval route covers owner, administrator, ordinary-member denied, active/former, empty, failed/retry, suspended, expired-suspension, listed/unlisted, archived, and unavailable page-entry states with page-specific UI-ready data.
-- Editable existing values are explicitly required from the retrieval response: current tags for settings and current suspension end plus a public suspension reference for roster edits.
-- Consequential mutation routes preserve pending, success, validation, protected-owner, stale-permission, missing-record, lifecycle-locked, and retryable-failure branches named by the companion actions.
-- Browser-returned continuation values are limited to public-safe identifiers needed for later visible actions. Raw credentials, database identifiers, private workflow state, permission internals, and lower-layer contracts are excluded.
-- The route list does not create settings for post-creation visibility or matching changes, because both the requirements and page catalog keep those values read-only.
+- `GET /api/v0/governance/retrieve-conversation-roster`
+- `PATCH /api/v0/governance/update-participant-role`
+- `DELETE /api/v0/governance/remove-participant`
+- `POST /api/v0/governance/ban-identity`
+- `POST /api/v0/governance/restore-banned-participant`
+- `POST /api/v0/governance/create-posting-suspension`
+- `PATCH /api/v0/governance/update-posting-suspension`
+- `DELETE /api/v0/governance/end-posting-suspension`
+- `GET /api/v0/governance/retrieve-conversation-governance-settings`
+- `PATCH /api/v0/governance/update-conversation-tags`
+- `POST /api/v0/governance/archive-conversation`
 
-## Ambiguities
+All operations use the discovery-provided `governance` namespace, unique lowercase-kebab operation segments, and unique method-plus-route templates.
 
-- Requirements do not decide whether restoring a banned participant always restores the retained prior role or permits choosing another appropriate role. The current route uses the retained role already displayed by the roster and does not invent a new selector.
-- Tag display casing, exact multi-hyphen grammar, archived-conversation visibility, and post-tag-change effects on in-progress unlisted joins remain unresolved. The route purposes preserve actionable validation and display-ready results without settling those product questions.
-- The members mockup omits simulated mutation failure branches and a second-owner fixture. Requirements-backed protected/non-final-owner and stale/failure outcomes remain part of the route purposes.
+## Unresolved Ambiguities
 
-No ambiguity blocks Phase 3 route drafting.
+- Requirements do not settle whether restoring a banned participant always restores the retained prior role or permits an owner to choose another appropriate active role. The current page exposes no role picker, so later payload work should carry the retained displayed role from the roster result without inventing a new choice.
+- The mockup's local Unban outcome makes the identity merely eligible to rejoin, while requirements explicitly restore an appropriate active role. The route follows the requirements-backed restoration action and should preserve this inconsistency for later review.
+- Tag display casing, exact multi-hyphen grammar, effects of tag changes on in-progress unlisted joins, and archived-conversation visibility remain unresolved. They do not change this route inventory.
+- The mockups do not simulate stale or retryable outcomes for every member mutation. Later payloads should support the companions' required safe outcomes without adding new operations.
+
+No ambiguity blocks invocation of the drafted operations.
 
 ## Scope Confirmation
 
-- This agent was assigned only the desktop `governance` area.
-- Written route file: `docs/mockup/routes/governance-routes.md`
-- Written handoff: `ai-docs/draft-routes/governance/03-area-route-drafter.md`
-- Only those two assigned markdown files were created.
-- No companion, HTML, CSS, JavaScript, concept, schema, mock-data, package, OpenAPI, application source, backend implementation, frontend business logic, application API contract, secure API contract, or neighboring route/review file was changed.
+- This agent was assigned only the desktop `governance` work unit.
+- This agent wrote only `docs/mockup/routes/governance-routes.md` and `ai-docs/draft-routes/governance/03-area-route-drafter.md`.
+- The only route file written was `docs/mockup/routes/governance-routes.md`.
+- No companion, HTML, CSS, JavaScript, concept, schema, mock-data, package, OpenAPI, application source, backend implementation, application API contract, secure API contract, or frontend-business-rule file was changed.

@@ -2,70 +2,84 @@
 
 ## Assignment
 
-- Work unit: `desktop-root`
-- Route file: `docs/mockup/routes/desktop-root-routes.md`
-- Covered mockup: `docs/mockup/desktop/index.html`
-- Companion: `docs/mockup/desktop/index.md`
 - `solutionArtifactRoot`: `/Users/flackey/Source/Personal/FredLackeySandbox/spike-alltawk`
-- All markdown path references in this handoff are repository-relative to `solutionArtifactRoot`.
+- Work unit: `desktop-root`
+- Platform and folder: desktop root
+- Route namespace: `desktop-root`
+- Route file: `docs/mockup/routes/desktop-root-routes.md`
+- Viewport widths: `1080`
+
+All displayed markdown paths are repository-relative to `solutionArtifactRoot`; all filesystem operations used absolute paths under that root.
 
 ## Files Reviewed
 
 - `docs/concepts/REQUIREMENTS.md`
 - `docs/concepts/APP_PAGES.md`
 - `docs/mockup/routes/desktop-root-routes.md`
-- `docs/mockup/desktop/index.html`
-- `docs/mockup/desktop/index.md`
 - `ai-docs/draft-routes/desktop-root/03-area-route-drafter.md`
 - `ai-docs/draft-routes/desktop-root/04-route-payload-drafter.md`
 - `ai-docs/draft-routes/desktop-root/05-route-rules-tightener.md`
 
-## No-Route Payload Review
+## Route Review Result
 
-- Reviewed zero routes because the route file contains no route sections.
-- Preserved the exact declaration `No backend action routes are defined for this area.` and its covered-page explanation unchanged.
-- The approved companion contains no backend actions. No source-action mapping, route shape, request context, request payload, or response payload is applicable.
-- Made zero payload corrections and checked zero request-context sources; none are required for static product guidance or ordinary navigation to `docs/mockup/desktop/hub/index.html`.
+The route file contains zero `## {Title} : (...)` backend route sections and preserves the exact required statement:
+
+`No backend action routes are defined for this area.`
+
+The accompanying explanation covers the public home page at `docs/mockup/desktop/index.html` and its reviewed companion at `docs/mockup/desktop/index.md`. The page provides static product guidance and ordinary navigation to the conversation hub; it does not establish authoritative retrieval, durable persistence, or a server-controlled action for this work unit.
+
+Routes reviewed: zero. No route, source-action mapping, payload pair, route shape, request-context section, operation identity, or response branch was added or removed. The route file required no edits.
 
 ## Mockup Inspection
 
-- Rendered `docs/mockup/desktop/index.html` at the assigned 1080-pixel viewport with Playwright and visually inspected the full page.
-- Confirmed that the page renders static listed/unlisted conversation guidance, identified-participation context, and one ordinary continuation link to `hub/index.html`.
-- Confirmed that the page has no form or approved backend-facing action requiring authoritative retrieval, durable persistence, a server-controlled operation, a carry-forward identifier, or a UI-facing API payload.
+The route file has no route sections and therefore has no route-scoped `### Source Actions` or `### Mockup Files` lists. There were no route-referenced HTML pages or safely renderable source-action entry states assigned to Phase 6. Playwright-rendered inspection was therefore not applicable to this zero-route work unit.
 
 ## Playwright Runner Contract
 
-- `id`: `npm-exec-no-cli`
-- `label`: `npm exec --no --package playwright -- playwright`
-- `usage`: `npm exec --no --package playwright -- playwright`
-- `command`: `npm`
-- `baseArgs`: `["exec", "--no", "--package", "playwright", "--", "playwright"]`
-- `version`: `1.61.1`
-- `testRunnerModule`: `/Users/flackey/.npm/_npx/e41f203b7505f1fb/node_modules/playwright/test.js`
-- The CommonJS specification imported `test` and `expect` from the exact absolute `testRunnerModule` and invoked the supplied command and base arguments with the `test` subcommand.
-- Result: the final rendered-inspection test passed.
+- `id`: `local-node-modules-cli`
+- `label`: `./node_modules/.bin/playwright`
+- `usage`: `./node_modules/.bin/playwright`
+- `command`: `/Users/flackey/Source/Personal/FredLackeySandbox/spike-alltawk/node_modules/.bin/playwright`
+- `baseArgs`: `[]`
+- `version`: `1.62.0`
+- `testRunnerModule`: `/Users/flackey/Source/Personal/FredLackeySandbox/spike-alltawk/node_modules/playwright/test.js`
 
-## Temporary Inspection Cleanup
-
-- Private directory used: `/Users/flackey/Source/Personal/FredLackeySandbox/spike-alltawk/.solpoc-tmp/draft-routes/desktop-root/06-route-payload-reviewer/`
-- The directory contained only this phase's Playwright specification, configuration, screenshot, report, and test output.
-- The private directory was removed after visual inspection and before this handoff was written; cleanup was explicitly confirmed.
-- No root-level Playwright specification, `test-results/`, `playwright-report/`, screenshot, trace, or temporary configuration was created.
+The preflight-verified runner contract was retained unchanged and was not invoked because there were no route-referenced pages or states to inspect.
 
 ## Route Authoring Rules Applied
 
-- Preserved complete source-action coverage: there are no approved companion actions to map.
-- Preserved the no-route disposition rather than inventing transport or payload contracts for static content and ordinary navigation.
-- Invocation feasibility, create/update separation, editable-value loading, continuation identifiers, branch payloads, UID formatting, selectable enums, and public-safe opaque values are not applicable because the area has no route sections.
-- Kept the UI-facing API boundary empty for this area and added no backend implementation, lower-layer API contract, authorization logic, validation rule, or frontend business rule.
+- Preserved the complete empty source-action inventory and the exact no-route statement.
+- Preserved the page-specific explanation showing why static guidance and navigation-only behavior do not require a UX API route.
+- Kept the transport-neutral `desktop-root` namespace reserved without inventing an operation.
+- Confirmed that create/update separation, invocation feasibility, request-value provenance, editable values, carry-forward identifiers, public-safe handles, branch completeness, and UI-facing payload minimization are not applicable when no route or browser request exists.
+- Did not broaden the route list or introduce backend implementation details, application or secure API contracts, database schemas, OpenAPI schemas, validation algorithms, authorization logic, or frontend business rules.
 
-## Ambiguities
+## Payload and Request-Context Review
 
-- No Phase 6 ambiguity remains for this area.
-- The unresolved human authentication mechanism is intentionally absent from the public home page and does not justify inventing a route or payload.
+- Payload pairs reviewed: zero.
+- Payload corrections made: none.
+- Unnecessary fields removed: none.
+- UID and lookup-enum examples checked: none exist.
+- Request-context sources checked: none; no browser request is defined.
+- Route shapes checked: none; no backend operation is defined.
+- Response branches and next-action fields checked: none; no backend response contract is defined.
+
+## Temporary Directory
+
+The assigned private path was:
+
+`/Users/flackey/Source/Personal/FredLackeySandbox/spike-alltawk/.solpoc-tmp/draft-routes/desktop-root/06-route-payload-reviewer/`
+
+No Playwright specification, configuration, screenshot, trace, report, or test output was created. The assigned phase directory was absent before review and does not remain.
+
+## Unresolved Ambiguities
+
+The human authentication mechanism remains unresolved in the requirements, while the desktop page catalog explicitly treats authentication as already completed for the public-home continuation. This does not support inventing a sign-in route for `desktop-root` and does not block Phase 6.
 
 ## Change Scope Confirmation
 
-- `docs/mockup/routes/desktop-root-routes.md` was reviewed and left unchanged.
-- The only persistent artifact written was `ai-docs/draft-routes/desktop-root/06-route-payload-reviewer.md`.
-- No HTML, CSS, JavaScript, companion, concept, schema, mock data, application source, OpenAPI file, backend implementation, lower-layer API contract, or frontend business logic was changed.
+- The route file remained unchanged.
+- Replaced only `ai-docs/draft-routes/desktop-root/06-route-payload-reviewer.md`.
+- This agent was assigned only the `desktop-root` Phase 6 work unit.
+- Did not change HTML, CSS, JavaScript, concept documents, companion files, prior handoffs, schemas, OpenAPI files, application code, lower-layer contracts, frontend business logic, or neighboring route artifacts.
+- No files were read or written under `projects/**`.

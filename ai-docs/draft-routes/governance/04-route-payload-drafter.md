@@ -2,14 +2,17 @@
 
 ## Target
 
+- `solutionArtifactRoot`: `/Users/flackey/Source/Personal/FredLackeySandbox/spike-alltawk`
+- Scenario: `root-artifact-monorepo`
 - Platform: desktop
 - Work-unit slug: `governance`
+- Route namespace: `governance`
 - Route file: `docs/mockup/routes/governance-routes.md`
-- `solutionArtifactRoot`: `/Users/flackey/Source/Personal/FredLackeySandbox/spike-alltawk`
+- Viewport widths: `1080`
 
-All markdown path references in this handoff are repository-relative to `solutionArtifactRoot`. Every filesystem read and write used an absolute path beneath that root.
+All markdown path references in this handoff are repository-relative to `solutionArtifactRoot`.
 
-## Inputs Reviewed
+## Files Reviewed
 
 - `docs/concepts/REQUIREMENTS.md`
 - `docs/concepts/APP_PAGES.md`
@@ -20,87 +23,110 @@ All markdown path references in this handoff are repository-relative to `solutio
 - `docs/mockup/desktop/governance/settings.md`
 - `ai-docs/draft-routes/governance/03-area-route-drafter.md`
 
-Every source action's page states, evidence, visible inputs, and required outcomes were reviewed before drafting its route payloads.
+No project files outside the assigned read set were inspected.
 
-## Playwright Inspection
+## Playwright Runner Contract
 
-The preflight-selected runner contract was used without substitution:
+- `id`: `local-node-modules-cli`
+- `label`: `./node_modules/.bin/playwright`
+- `usage`: `./node_modules/.bin/playwright`
+- `command`: `/Users/flackey/Source/Personal/FredLackeySandbox/spike-alltawk/node_modules/.bin/playwright`
+- `baseArgs`: `[]`
+- `version`: `1.62.0`
+- `testRunnerModule`: `/Users/flackey/Source/Personal/FredLackeySandbox/spike-alltawk/node_modules/playwright/test.js`
 
-- ID: `npm-exec-no-cli`
-- Label: `npm exec --no --package playwright -- playwright`
-- Usage: `npm exec --no --package playwright -- playwright`
-- Command: `npm`
-- Base arguments: `["exec", "--no", "--package", "playwright", "--", "playwright"]`
-- Version: `1.61.1`
-- Test runner module: `/Users/flackey/.npm/_npx/e41f203b7505f1fb/node_modules/playwright/test.js`
+The CommonJS inspection specification imported `test` and `expect` from the exact absolute `testRunnerModule`. The exact selected command was invoked with the `test` subcommand; no package-name import, `npx`, dependency discovery, substitution, or installation was used.
 
-CommonJS specifications imported `test` and `expect` from the exact absolute test runner module. The required command and base arguments invoked the `test` subcommand. No package-name import, alternate runner, dependency installation, or smoke-test command was used.
+## Rendered Inspection
 
-The following mockup states were rendered at the assigned 1080-pixel viewport:
+Playwright rendered every referenced page at 1080 pixels:
 
-- `docs/mockup/desktop/governance/members.html`: default owner roster; administrator; ordinary-member denied; retryable load failure; empty active roster; empty former roster; expired suspension; former-filter empty state.
-- `docs/mockup/desktop/governance/members.html`: create-suspension form and success state; update-suspension prefilled state; administrator-promotion confirmation.
-- `docs/mockup/desktop/governance/settings.html`: owner listed-exclusive; administrator listed-inclusive; owner unlisted-all-tags; archived; ordinary-member denied; unavailable.
-- `docs/mockup/desktop/governance/settings.html`: retryable tag-save failure; stale tag-save permission; archive confirmation; retryable archive failure.
+- `docs/mockup/desktop/governance/members.html`
+- `docs/mockup/desktop/governance/settings.html`
 
-All interactions were local mockup behavior. No real API, authentication provider, live backend, or third-party system was contacted.
+Representative Members and Roles states rendered:
 
-The private inspection directory was `/Users/flackey/Source/Personal/FredLackeySandbox/spike-alltawk/.solpoc-tmp/draft-routes/governance/04-route-payload-drafter/`. It was removed after the final rendered check and before this handoff was written. No root-level Playwright specification, result, report, screenshot, trace, or configuration path was created.
+- Default owner roster, active and former counts, last-owner protection, and suspended participant row.
+- Administrator, permission-denied member, retryable load failure, empty-active, empty-former, and expired-suspension fixtures.
+- Owner and administrator promotion confirmations.
+- Remove, ban, unban, create-suspension, update-suspension, and end-suspension dialogs.
+
+Representative Tags and Lifecycle states rendered:
+
+- Active owner listed/exclusive, active administrator listed/inclusive, active owner unlisted/all-tags, archived, ordinary-member denied, and unavailable fixtures.
+- Tag-save retryable failure and stale-permission outcomes.
+- Archive confirmation, retryable failure, and successful archived outcome.
+
+The first broad interaction probe found two private harness selector mistakes. Those temporary selectors were corrected, and the complete alternate-state interaction run then passed with the selected runner. No mockup source was changed.
 
 ## Routes Updated
 
-Exactly one `### Example Request Payload` and one `### Example Response Payload` were added to all ten existing routes:
+Exactly one `### Example Request Payload` and one `### Example Response Payload` were added to each of the 11 existing route sections:
 
-1. Retrieve Conversation Governance
-2. Promote Participant Role
-3. Remove Participant
-4. Ban Identity
-5. Restore Banned Participant
-6. Create Posting Suspension
-7. Update Posting Suspension
-8. End Posting Suspension
-9. Update Conversation Tags
-10. Archive Conversation
+- `GET /api/v0/governance/retrieve-conversation-roster`
+- `PATCH /api/v0/governance/update-participant-role`
+- `DELETE /api/v0/governance/remove-participant`
+- `POST /api/v0/governance/ban-identity`
+- `POST /api/v0/governance/restore-banned-participant`
+- `POST /api/v0/governance/create-posting-suspension`
+- `PATCH /api/v0/governance/update-posting-suspension`
+- `DELETE /api/v0/governance/end-posting-suspension`
+- `GET /api/v0/governance/retrieve-conversation-governance-settings`
+- `PATCH /api/v0/governance/update-conversation-tags`
+- `POST /api/v0/governance/archive-conversation`
 
-The retrieval route uses the exact no-body statement and documents `conversationUid` and selected governance `view` as query-derived request context. Each mutation example contains only visible action intent, page-route values, or public identifiers carried from the retrieval response. The route headings, descriptions, `### Source Actions`, and `### Mockup Files` mappings were preserved.
+All 12 approved source actions remain mapped under their original 11 route identities. Existing route headings, descriptions, `### Source Actions`, and `### Mockup Files` lists were preserved.
+
+## Request Context and Value Provenance
+
+Each route now has a `### Request Context` subsection because every governance operation depends on an authenticated browser session and a conversation selected by the current page route.
+
+- Session cookies remain browser-managed and do not appear in JSON examples.
+- Conversation UIDs come from the current page route.
+- Participant UIDs, suspension UIDs, retained roles, and roster versions come from the prior Retrieve Conversation Roster response.
+- Governance versions and editable tags come from the Retrieve Conversation Governance Settings response and visible editor state.
+- Target roles come from the visible promotion action.
+- Suspension end date, time, and time zone come from the visible suspension form.
+
+No raw cookie, token, session identifier, secret, database identifier, authorization internals, audit records, application API contract, secure API contract, or lower-layer payload was included.
 
 ## Route Authoring Rules Applied
 
-- Preserved all twelve approved source-action mappings and all ten Phase 3 routes.
-- Kept create and update posting-suspension contracts distinct. Creation does not require an existing suspension UID and returns one; update and end requests carry the public suspension UID supplied by roster retrieval.
-- Made roster actions invocable with public participant UIDs returned by governance retrieval.
-- Returned editable suspension values, participant states, counts, allowed actions, and owner-continuity display data needed by the members page.
-- Returned committed tag values and lifecycle/next-page data needed after tag updates.
-- Returned archive lifecycle state and retained-record confirmation without exposing retention implementation.
-- Used only 32-character, hyphen-free version-4 UUID examples for public UID fields.
-- Used all-caps enum strings for roles, lifecycle states, access states, views, identity types, results, and allowed actions.
-- Kept authenticated identity, current authority, final-owner protection, validation, role history, workflow decisions, and data joins behind the UX API boundary.
-- Kept raw session values, credentials, tokens, database identifiers, private workflow state, and lower-layer application or secure API contracts out of JSON.
+- Preserved every approved source-action mapping and existing operation identity.
+- Kept create, update, and end posting-suspension contracts distinct.
+- Made create-suspension feasible without a pre-existing suspension UID.
+- Returned public suspension UIDs and editable end values from roster data for later update and end operations.
+- Returned roster and governance versions as safe carry-forward values for stale-state reconciliation.
+- Returned UI-ready roles, access states, counts, allowed actions, editable tags, lifecycle state, matching meaning, and continuation values.
+- Used only user-entered values, selected public UIDs, current route values, prior UX API response values, and action intent in requests.
+- Used 32-character hyphenless v4 UUID examples for public UID values.
+- Used all-caps values for selectable roles, states, actions, discovery modes, and matching modes.
+- Used the exact no-body sentence for both GET routes.
+- Kept JSON examples concrete, pretty-printed, comment-free, and parseable.
 
-## Request Context Sources
+Structural verification found 11 route sections, 11 request payload subsections, 11 response payload subsections, 11 request-context subsections, 20 parseable JSON blocks, and no malformed UID examples.
 
-- The current `conversationUid` is sourced from the page route.
-- The selected governance view is sourced from the page being opened.
-- Public `participantUid` values and suspension UIDs are sourced from the Retrieve Conversation Governance response.
-- The retained role used by the restore flow is sourced from the selected banned roster entry.
-- The user's authentication is browser-managed, while the exact human authentication mechanism remains unresolved by the requirements; no ungrounded cookie or header name was invented.
-- Unsaved tag state remains browser-local and blocks archive invocation before the request is sent.
+## Ambiguities and Review Notes
 
-## Ambiguities
-
-- The shared retrieval example shows the `MEMBERS` response shape. A `SETTINGS` request must return the analogous view-specific editable tags, read-only discovery/matching summary, lifecycle state, viewer role, and allowed actions described by the source action; the examples remain illustrative rather than schemas.
-- Requirements do not resolve the human browser authentication mechanism, so request context names browser-managed authentication without choosing a cookie, bearer token, or storage source.
-- Requirements do not decide whether restored participants always receive the retained role. The payload carries the visible retained role from the roster, matching the Phase 3 route decision, while the server remains authoritative.
-- Tag display casing and some tag grammar details remain unresolved. The payload uses the lowercase values rendered by the mockup without declaring a broader storage or display rule.
+- The Members mockup's Unban success makes a former identity merely eligible to rejoin, while `REQUIREMENTS.md` and the corrected companion require restoration to an appropriate active role. The restore response follows the higher-priority requirements and returns an active member. This known mockup inconsistency remains for Phase 5 and Phase 6 review.
+- Tag display casing and some tag grammar edge cases remain unresolved in the requirements. Examples use the lowercase display convention rendered by the current mockup without claiming a permanent casing policy.
+- The response examples show representative successful branches. Existing companion outcomes still require server-side field, stale, permission, protected-owner, retryable, and unavailable handling; no extra route identities were introduced for those branches.
 
 No ambiguity blocked Phase 4 payload drafting.
 
-## Validation and Scope Confirmation
+## Temporary Directory Cleanup
 
-- The action-to-route coverage validator passed with twelve companion actions mapped across ten routes.
-- All ten route sections contain exactly one source-actions subsection, mockup-files subsection, example request subsection, and example response subsection.
-- Every fenced JSON example parses successfully.
-- Written route file: `docs/mockup/routes/governance-routes.md`
-- Written handoff: `ai-docs/draft-routes/governance/04-route-payload-drafter.md`
-- Only these two assigned markdown files were changed by this phase.
-- No HTML, CSS, JavaScript, concept, schema, mock-data, package, OpenAPI, application source, backend implementation, frontend business logic, application API contract, secure API contract, or neighboring route/review file was changed.
+The only Playwright temporary directory used was:
+
+`/Users/flackey/Source/Personal/FredLackeySandbox/spike-alltawk/.solpoc-tmp/draft-routes/governance/04-route-payload-drafter/`
+
+It contained the private CommonJS specification, private configuration, screenshots, and Playwright test output. The owned directory was removed before this handoff was written, and its absence was explicitly confirmed.
+
+## Scope Confirmation
+
+- Files written:
+  - `docs/mockup/routes/governance-routes.md`
+  - `ai-docs/draft-routes/governance/04-route-payload-drafter.md`
+- No HTML, CSS, JavaScript, concept, companion, schema, mock-data, package, OpenAPI, application-source, backend-code, application API, secure API, or frontend-business-logic file was changed.
+- No file under `projects/**` was read or written.
+- No shared scratch file or output outside `solutionArtifactRoot` was created.

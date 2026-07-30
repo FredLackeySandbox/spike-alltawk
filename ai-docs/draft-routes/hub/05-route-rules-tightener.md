@@ -1,16 +1,16 @@
 # Phase 5 Route Rules Tightener Handoff
 
-## Assignment
+## Target
 
 - `solutionArtifactRoot`: `/Users/flackey/Source/Personal/FredLackeySandbox/spike-alltawk`
-- `repoRelativeBase`: `/Users/flackey/Source/Personal/FredLackeySandbox/spike-alltawk`
+- Scenario: `root-artifact-monorepo`
 - Platform and work unit: `desktop/hub`
-- Route file tightened: `docs/mockup/routes/hub-routes.md`
-- Page catalog: `docs/concepts/APP_PAGES.md`
+- Route namespace: `hub`
+- Route file: `docs/mockup/routes/hub-routes.md`
 
-All markdown path references in this handoff and the route file are repository-relative to `solutionArtifactRoot`. All filesystem operations used the corresponding absolute paths under that root. `projects/**` was not read or changed.
+All markdown path references are repository-relative to `solutionArtifactRoot`. All filesystem reads and writes used absolute paths under that root.
 
-## Inputs Reviewed
+## Files Reviewed
 
 - `docs/concepts/REQUIREMENTS.md`
 - `docs/concepts/APP_PAGES.md`
@@ -21,39 +21,39 @@ All markdown path references in this handoff and the route file are repository-r
 - `docs/mockup/desktop/hub/find.md`
 - `docs/mockup/desktop/hub/index.html`
 - `docs/mockup/desktop/hub/index.md`
+- `docs/mockup/desktop/assets/app.js`
 - `ai-docs/draft-routes/hub/03-area-route-drafter.md`
 - `ai-docs/draft-routes/hub/04-route-payload-drafter.md`
 
-All eight existing route sections and all eight exact `### Source Actions` mappings were preserved. No route was added, removed, renamed, merged, or split.
-
 ## Playwright Runner Contract
 
-- `id`: `npm-exec-no-cli`
-- `label`: `npm exec --no --package playwright -- playwright`
-- `usage`: `npm exec --no --package playwright -- playwright`
-- `command`: `npm`
-- `baseArgs`: `["exec", "--no", "--package", "playwright", "--", "playwright"]`
-- `version`: `1.61.1`
-- `testRunnerModule`: `/Users/flackey/.npm/_npx/e41f203b7505f1fb/node_modules/playwright/test.js`
-- CommonJS import: `const { test, expect } = require("/Users/flackey/.npm/_npx/e41f203b7505f1fb/node_modules/playwright/test.js");`
-- Test invocation: the supplied `command` and `baseArgs`, followed by the `test` subcommand
+- `id`: `local-node-modules-cli`
+- `label`: `./node_modules/.bin/playwright`
+- `usage`: `./node_modules/.bin/playwright`
+- `command`: `/Users/flackey/Source/Personal/FredLackeySandbox/spike-alltawk/node_modules/.bin/playwright`
+- `baseArgs`: `[]`
+- `version`: `1.62.0`
+- `testRunnerModule`: `/Users/flackey/Source/Personal/FredLackeySandbox/spike-alltawk/node_modules/playwright/test.js`
+- Specification format: CommonJS importing `test` and `expect` from the exact absolute `testRunnerModule`
+- Viewport: `1080 × 900`
+- Final inspection result: three tests passed using the locked command/module pair
 
-The exact preflight-selected command/module pair ran successfully. Four tests passed in Chromium, and no alternative Playwright route, package-name import, dependency installation, live API, authentication service, or third-party system was used.
+The private inspection directory was `/Users/flackey/Source/Personal/FredLackeySandbox/spike-alltawk/.solpoc-tmp/draft-routes/hub/05-route-rules-tightener/`. Specifications, screenshots, and test output were written only there. The directory was removed before this handoff was written.
 
-## Rendered Inspection
+## Rendered Pages And States
 
-Every referenced HTML page and safely reachable source-action state was rendered at the assigned 1080-pixel viewport.
+- `docs/mockup/desktop/hub/create.html`
+  - Default listed form, inline invalid-tag feedback, unlisted access with exclusive matching hidden, pending creation, and recoverable creation failure with the draft preserved.
+- `docs/mockup/desktop/hub/find.html`
+  - Populated listed results, listed tag suggestions from partial input, known-unlisted mode, complete unique hidden match, and pending hidden join.
+- `docs/mockup/desktop/hub/index.html`
+  - Populated joined list, unavailable identified session, flaky load with successful retry, stale removed membership with card/count update, and temporarily unresolvable Resume with the list preserved.
 
-- `create.html`: default listed setup, unlisted setup, invalid-tag feedback, pending create lock, draft-preserving service failure, draft-preserving timeout, and successful creation/workspace continuation.
-- `find.html`, listed mode: populated results, empty results, eligible and empty suggestions, pending evaluation, stale evaluation suppression after chip changes, recoverable search failure and retry, pending Join, banned/not-eligible Join, retryable Join failure, and successful continuation.
-- `find.html`, known-unlisted mode: empty start, partial hidden match, complete unique eligible match, pending Join, complete ineligible match, recoverable evaluation failure and retry, retryable hidden Join failure, and successful continuation.
-- `index.html`: restrained loading, populated newest-first list, empty list, persistent load failure, retry-success load, unavailable identified session, stale removed membership, and temporarily unresolvable Resume selection.
-
-The rendered behavior confirmed the need for reusable browser-held create drafts, normalized search echoes for stale-response suppression, privacy-safe hidden-match branches, a public continuation identifier between the two unlisted steps, session-required private-list behavior, and distinct stale-versus-retryable Resume outcomes.
+The rendered hidden-match state also demonstrated the unresolved extra-tag behavior: a complete hidden combination can coexist with extra visible tags in the mockup. The route contract therefore carries the complete visible tag set but does not invent exact-versus-superset semantics.
 
 ## Routes Tightened
 
-Exactly one fenced `### Route` subsection and exactly one `### Request Context` subsection now exist in each route:
+Exactly one `### Route` fenced `http` block and exactly one concrete `### Request Context` subsection now exist for each preserved route:
 
 - `POST /api/v0/hub/create-conversation`
 - `GET /api/v0/hub/retrieve-listed-tag-suggestions`
@@ -64,60 +64,58 @@ Exactly one fenced `### Route` subsection and exactly one `### Request Context` 
 - `GET /api/v0/hub/retrieve-joined-conversations`
 - `GET /api/v0/hub/resolve-joined-conversation-access`
 
-The route shapes show concrete methods, paths, repeated query parameters, the browser-managed `tawk_session` cookie, `X-CSRF-Token` for state-changing requests, and `Content-Type: application/json` where a JSON body is sent. UID and session/CSRF values use placeholders in `http` blocks; no raw session, credential, private identifier, or hard-coded UID-looking value appears in a route shape.
-
-## Request Context And Value Provenance
-
-- The private hub's identified actor comes from the browser-managed HttpOnly `tawk_session` cookie. The identity provider remains intentionally unspecified.
-- State-changing POST requests also use `X-CSRF-Token`, sourced from the private page bootstrap and held in browser memory rather than JSON or browser storage.
-- `partialTag`, repeated `selectedTag` query values, and request-body `tags` come only from visible validated tag input or chips.
-- Listed `conversationUid` comes from the selected visible result returned by listed search.
-- Joined-list `conversationUid` comes from the selected visible Resume control returned by joined-conversation retrieval.
-- `unlistedJoinChallengeUid` comes from the prior complete eligible unlisted-evaluation response. It is documented as a public-safe, session-bound continuation UID rather than the hidden conversation identifier or a credential.
-- The UX API derives identity, membership, roles, eligibility, matching decisions, and authorization server-side. None is accepted as a frontend decision.
+Each heading operation appears once in its route block. All operation identities retain the discovery-provided `hub` namespace and unique lowercase-kebab operation segment. The eight route headings, descriptions, source-action mappings, mockup file mappings, and payload pairs remain present; no route was added, removed, merged, or renamed.
 
 ## Route Authoring Rules Applied
 
-- Preserved all source-action and mockup-file coverage.
-- Kept Create free of a pre-existing conversation UID or version and retained a server-issued public UID plus browser-safe workspace continuation on success.
-- Made every GET bodyless while identifying each query parameter and repeated-value source.
-- Kept listed search step-complete by returning normalized `selectedTags`, display-ready results, and public conversation UIDs for Join.
-- Kept unlisted evaluation privacy-safe: incomplete, ambiguous, failed, and ineligible branches omit the challenge UID and all hidden identity/tag details.
-- Renamed the ambiguous `hiddenMatchUid` payload field to `unlistedJoinChallengeUid` so the browser-visible value is clearly a public continuation challenge, not a hidden conversation identifier.
-- Made unlisted Join continuable from that prior response alone; the server recovers the private tag evaluation and match without requiring hidden context or resubmitted tags.
-- Distinguished invalid/ineligible, expired-or-superseded challenge, and retryable service branches so the page knows whether to disable Join, re-evaluate visible tags, or retry.
-- Clarified populated, empty, retryable, and session-required joined-list branches without returning private list data for an unavailable session.
-- Clarified active, no-longer-available, and temporarily unavailable access-resolution branches, including whether the selected card is removed or retained.
-- Preserved parseable UI-facing request and response examples, 32-character hyphenless v4 UUID examples for UID fields, all-caps status/role/lookup values, and browser-safe relative workspace/recovery URLs.
-- Omitted raw credentials, JWTs, private redirect targets, database identifiers, audit rows, backend joins, lower-layer API contracts, and frontend authorization or matching logic.
+- Preserved all eight approved source actions and their one-to-one route mappings.
+- Documented a concrete browser-managed `tawk_session={opaqueSessionRef}` cookie for identified-session context without exposing raw values in JSON.
+- Documented `X-CSRF-Token: {opaqueCsrfRef}` and `Content-Type: application/json` for each state-changing or private-evaluation POST.
+- Traced every query and body value to visible form input, selected chips, a selected public result UID, a prior UX API response, or the established browser session.
+- Kept the creator, identified actor, eligibility, matching decisions, authorization, membership state, and hidden-conversation resolution behind the UX API boundary.
+- Kept conversation creation independent of a pre-existing conversation UID or version and described atomic creation of the conversation and first-owner membership.
+- Preserved the listed-search public `conversationUid` continuation and the known-unlisted public-safe `continuationUid` without exposing hidden conversation identity.
+- Made repeated query-value transport explicit for selected tags and documented browser handling of superseded listed-search responses.
+- Kept joined-list retrieval identity-free in query/body data and tied Resume resolution to the selected public UID from the prior list response.
+- Documented missing/expired-session behavior for every operation and concrete stale, ineligible, unavailable, expired-continuation, retry, and list-preservation behavior where relevant.
+- Preserved UI-facing payloads and omitted raw credentials, session identifiers, database IDs, authorization internals, lower-layer API contracts, and frontend business-rule inputs.
 
-## Payload Corrections And Branch Clarifications
+## Request Context And Branch Clarifications
 
-- Replaced `hiddenMatchUid` with `unlistedJoinChallengeUid` in both the unlisted-evaluation response and unlisted-join request examples.
-- Added a privacy-safe recoverable evaluation-failure branch.
-- Split expired or superseded unlisted continuation from identity ineligibility and documented the page's next action for each.
-- Added `conversationCount: 0` to the empty joined-list branch, `canRetry: true` to retryable list failures, and a private-data-free `SESSION_REQUIRED` branch.
-- Clarified that stale access resolution removes only the selected visible card and recomputes the displayed count, while transient resolution failure retains the list and selection for retry.
+- Create uses a stable visible form snapshot and retains the browser draft after session, validation, failure, or timeout outcomes.
+- Suggestion retrieval sends partial input plus repeated selected-tag query values and returns no private-only tags.
+- Listed search sends repeated selected-tag query values; the browser can reject a stale response by comparing it with the current visible selection.
+- Listed join carries only the public UID selected from the prior visible result and revalidates visibility and eligibility server-side.
+- Known-unlisted evaluation sends the complete visible tags and can return a public-safe continuation only for a complete unique eligible match.
+- Unlisted join carries that continuation and the unchanged visible tag set; an expired, superseded, or mismatched continuation requires reevaluation without disclosure.
+- Joined-list retrieval derives the identified person from the session cookie and returns public UIDs needed for Resume.
+- Joined-access resolution carries the selected public conversation UID and distinguishes active access, stale membership removal, and transient retry without opening the wrong workspace.
 
-## Validation
+## Structural Verification
 
-- `validate-route-coverage.mjs` passed with 8 companion actions, 8 mapped actions, and 8 routes.
-- Structural inspection found 8 route sections, 8 `### Route` subsections, 8 fenced `http` blocks, 8 `### Request Context` subsections, 8 request-payload subsections, and 8 response-payload subsections.
-- All 12 fenced JSON examples parsed successfully.
-- No source-action mapping or mockup-file path was orphaned or changed.
+- Route headings: 8
+- `### Source Actions`: 8
+- `### Mockup Files`: 8
+- `### Route`: 8
+- `### Request Context`: 8
+- `### Example Request Payload`: 8
+- `### Example Response Payload`: 8
+- HTTP operation lines: 8, all unique and all under `/api/v0/hub/`
+- Private Playwright phase directory remaining: no
 
-## Ambiguities Carried Forward
+## Unresolved Ambiguities
 
-- Human authentication and the identity provider remain unresolved. The route draft defines only the browser transport required by the private hub and does not select a provider or credential flow.
-- Listed extra-tag semantics, exact-versus-superset hidden matching, multiple complete hidden matches, tag display casing, and exact tag grammar remain unresolved in `docs/concepts/REQUIREMENTS.md`; the route contracts preserve those boundaries without choosing new business rules.
-- Conversation rejoining persistence-period semantics remain server-owned and unresolved; the Join contracts expose only the UI-visible outcome.
-- Exact HTTP status codes and the detailed validation-feedback object remain intentionally unspecified because this phase documents the UI-facing example contract rather than schemas or OpenAPI.
+- The human authentication provider remains unspecified. Phase 5 defines the browser-to-UX-API session-cookie and CSRF transport without choosing the upstream provider.
+- Extra-tag semantics for listed search and exact-versus-superset semantics for unlisted matching remain unresolved.
+- Multiple complete hidden-match behavior remains unresolved; Join remains unavailable unless the backend returns one complete unique eligible continuation.
+- Rejoin-period semantics for former voluntary members remain unresolved.
+- Detailed HTTP status-code mapping is deferred; the route file documents the UI-facing branch states and field presence.
 
-## Temporary Files And Scope Confirmation
+## Scope Confirmation
 
-- Private temporary directory used: `/Users/flackey/Source/Personal/FredLackeySandbox/spike-alltawk/.solpoc-tmp/draft-routes/hub/05-route-rules-tightener/`
-- All specifications, screenshots, contact sheets, results, and reports were contained in that directory.
-- The private temporary directory was removed before this handoff was written, and its absence was confirmed.
-- No root-level Playwright specification, `test-results/`, `playwright-report/`, screenshot, trace, or temporary configuration was created.
-- This phase changed only `docs/mockup/routes/hub-routes.md` and `ai-docs/draft-routes/hub/05-route-rules-tightener.md`.
-- No HTML, CSS, JavaScript, concept document, companion, schema, mock data, application source, package file, OpenAPI file, backend code, application API contract, secure API contract, database design, authorization algorithm, validation algorithm, or frontend business logic was changed.
+This unique Phase 5 agent was assigned only the `desktop/hub` work unit. It changed only:
+
+- `docs/mockup/routes/hub-routes.md`
+- `ai-docs/draft-routes/hub/05-route-rules-tightener.md`
+
+No HTML, CSS, JavaScript, concept document, page companion, schema, mock data, OpenAPI file, backend code, frontend logic, application API contract, secure API contract, package file, neighboring route artifact, or `projects/**` path was changed.

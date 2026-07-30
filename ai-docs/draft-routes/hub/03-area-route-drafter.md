@@ -1,15 +1,16 @@
 # Phase 3 Area Route Drafter Handoff
 
-## Assignment
+## Target
 
 - `solutionArtifactRoot`: `/Users/flackey/Source/Personal/FredLackeySandbox/spike-alltawk`
+- Scenario: `root-artifact-monorepo`
 - Platform and work unit: `desktop/hub`
+- Route namespace: `hub`
 - Route file: `docs/mockup/routes/hub-routes.md`
-- Page catalog: `docs/concepts/APP_PAGES.md`
 
-All markdown paths in this handoff and in the route file are repository-relative to `solutionArtifactRoot`. Filesystem operations used the corresponding absolute paths under that root.
+All markdown path references in this handoff are repository-relative to `solutionArtifactRoot`.
 
-## Inputs Reviewed
+## Files Reviewed
 
 - `docs/concepts/REQUIREMENTS.md`
 - `docs/concepts/APP_PAGES.md`
@@ -21,20 +22,23 @@ All markdown paths in this handoff and in the route file are repository-relative
 
 ## Complete Approved Action Inventory
 
-- `docs/mockup/desktop/hub/create.md` — `Create Conversation`
-- `docs/mockup/desktop/hub/find.md` — `Retrieve Listed Tag Suggestions`
-- `docs/mockup/desktop/hub/find.md` — `Search Listed Conversations`
-- `docs/mockup/desktop/hub/find.md` — `Join Listed Conversation`
-- `docs/mockup/desktop/hub/find.md` — `Evaluate Known Unlisted Conversation Tags`
-- `docs/mockup/desktop/hub/find.md` — `Join Unlisted Conversation`
-- `docs/mockup/desktop/hub/index.md` — `Retrieve Joined Conversations`
-- `docs/mockup/desktop/hub/index.md` — `Resolve Joined Conversation Access`
+- `docs/mockup/desktop/hub/create.md`
+  - `Create Conversation`
+- `docs/mockup/desktop/hub/find.md`
+  - `Retrieve Listed Tag Suggestions`
+  - `Search Listed Conversations`
+  - `Join Listed Conversation`
+  - `Evaluate Known Unlisted Conversation Tags`
+  - `Join Unlisted Conversation`
+- `docs/mockup/desktop/hub/index.md`
+  - `Retrieve Joined Conversations`
+  - `Resolve Joined Conversation Access`
 
-All eight approved actions remain represented exactly under `### Source Actions`; no unknown action was introduced.
+All eight approved actions remain in scope and are mapped under exactly one route. No unknown, renamed, or orphaned source action was introduced.
 
 ## Action-to-Route Coverage Matrix
 
-| Approved companion action | Route |
+| Companion action | Route |
 | --- | --- |
 | `docs/mockup/desktop/hub/create.md` — `Create Conversation` | `POST /api/v0/hub/create-conversation` |
 | `docs/mockup/desktop/hub/find.md` — `Retrieve Listed Tag Suggestions` | `GET /api/v0/hub/retrieve-listed-tag-suggestions` |
@@ -45,50 +49,58 @@ All eight approved actions remain represented exactly under `### Source Actions`
 | `docs/mockup/desktop/hub/index.md` — `Retrieve Joined Conversations` | `GET /api/v0/hub/retrieve-joined-conversations` |
 | `docs/mockup/desktop/hub/index.md` — `Resolve Joined Conversation Access` | `GET /api/v0/hub/resolve-joined-conversation-access` |
 
-## Consolidation And Lifecycle Decisions
+Every operation uses the discovery-provided `hub` namespace, every operation segment is lowercase kebab case, and every namespace-operation identity and method-template pair is unique.
 
-- No approved actions were merged because each has a materially different trigger, privacy boundary, lifecycle effect, or carry-forward requirement. The result remains a coherent eight-route area contract without page-wording duplicates.
-- `Create Conversation` remains a true create route. It accepts no pre-existing conversation UID or version and returns the server-issued public identifier needed for workspace continuation.
-- Listed tag suggestions and listed conversation search remain separate read routes because they return different UI-ready projections and are triggered by different visible inputs.
-- Listed and unlisted joining remain separate. Listed joining begins with a public conversation UID from an identifiable result; unlisted joining begins with a browser-safe opaque continuation from a privacy-preserving evaluation and must not expose hidden identity before membership succeeds.
-- Unlisted evaluation uses `POST` because it submits a sensitive tag combination to a privacy-controlled operation and may issue a new opaque continuation for one complete eligible match. The operation does not turn the hidden conversation itself into browser-visible data.
-- Joined-list retrieval and selected-conversation access resolution remain separate reads. The first supplies the visible choices; the second rechecks current membership at the Resume trigger before private workspace continuation.
-- No update route applies. The assigned create page has no existing-record entry state, and none of the approved hub actions edits an identified existing conversation record.
+## Consolidation And Page-Specific Actions
+
+No approved actions were merged because each has distinct invocation timing, privacy, mutation, or workflow-continuation semantics:
+
+- Listed tag suggestions and listed conversation search are separate retrieval operations because they consume different visible inputs and produce different UI states.
+- Listed search and listed join remain separate because search retrieves selectable public results while join performs an eligibility decision and durable membership change.
+- Known-unlisted evaluation and unlisted join remain separate to preserve the pre-membership privacy boundary. Evaluation returns only a public-safe opaque continuation for a complete unique eligible match; join performs the eligibility decision and durable membership change.
+- Joined-list retrieval and access resolution remain separate because the first supplies a visible selection list and the second rechecks membership at the moment Resume is invoked.
+- Conversation creation remains a page-specific create operation and is not collapsed into any join or update route.
+
+Identified-session derivation and authorization are shared server responsibilities across hub operations, not separate approved page actions, so no unsupported common route was added.
 
 ## Invocation-Feasibility Findings
 
-| Route | Browser-available request values at invocation | Continuation and branch feasibility |
-| --- | --- | --- |
-| `POST /api/v0/hub/create-conversation` | Ordered user-entered tags, listed/unlisted choice, listed-only inclusive/exclusive choice, and browser-managed identified-session context | No conversation UID or version exists or is required before creation. Success can return a server-issued public conversation UID and workspace continuation; validation, failure, and timeout can preserve the visible draft. |
-| `GET /api/v0/hub/retrieve-listed-tag-suggestions` | Current partial tag text and already selected visible tags | The response can contain only discovery-eligible selectable tag values or an empty list. Known-unlisted mode does not invoke it. |
-| `GET /api/v0/hub/search-listed-conversations` | Current validated selected-tag set | Each identifiable result can return a public conversation UID that the visible Join control carries into the next route. Empty and failure branches require no hidden browser context. |
-| `POST /api/v0/hub/join-listed-conversation` | Selected public conversation UID from the prior visible search response and browser-managed identified-session context | The route can revalidate eligibility, establish or resume membership, and return workspace continuation. Retry reuses the still-visible selected result; denial need not reveal membership internals. |
-| `POST /api/v0/hub/evaluate-known-unlisted-conversation-tags` | Complete current user-entered tag set and browser-managed identified-session context | Partial, ambiguous, and ineligible branches can remain privacy-safe. Only a complete unique eligible result returns an opaque public-safe continuation value for Join. |
-| `POST /api/v0/hub/join-unlisted-conversation` | Opaque continuation value from the prior evaluation, the still-visible entered tag set if the tightened contract needs it, and browser-managed identified-session context | The opaque value lets the server continue without a hidden conversation identifier supplied by the frontend. Success may reveal a public conversation UID only after membership is established; denial and retry preserve the privacy boundary. |
-| `GET /api/v0/hub/retrieve-joined-conversations` | Browser-managed identified-session context; no JSON body or page-supplied record identifier is needed | Each active item returns a public conversation UID for its visible Resume control. Empty, failure, pending, and unavailable-session branches are feasible without frontend-supplied identity or membership data. |
-| `GET /api/v0/hub/resolve-joined-conversation-access` | Selected public conversation UID carried by the visible Resume control from the joined-list response and browser-managed identified-session context | Active access can return workspace continuation; stale membership can identify the selected visible card for removal; transient failure can preserve that selection for retry. |
+- `Create Conversation` is invokable from the visible form's ordered tags, access choice, and listed-only matching choice. It requires no pre-existing conversation UID or version. Success must issue the public conversation UID needed to continue to the workspace.
+- `Retrieve Listed Tag Suggestions` is invokable from the visible partial tag text and selected-tag chips. It is not invoked in known-unlisted mode and must exclude tags eligible only for private discovery.
+- `Search Listed Conversations` is invokable from the visible selected tags. Its results must provide public conversation UIDs for subsequent Join choices; fixture-internal keys are not an acceptable browser contract.
+- `Join Listed Conversation` is invokable with the public conversation UID returned in the visible listed-search result. The identified actor, membership history, and eligibility are derived and decided server-side.
+- `Evaluate Known Unlisted Conversation Tags` is invokable from the complete current set of user-entered tags. A complete unique eligible outcome must provide a public-safe opaque continuation value while omitting the hidden conversation's identity and private tag data.
+- `Join Unlisted Conversation` is invokable with the opaque continuation returned by the immediately preceding evaluation and the complete tag set still visible on the page. It must not require the frontend to supply an undisclosed hidden conversation UID or internal workflow state.
+- `Retrieve Joined Conversations` is a page-lifecycle retrieval with no visible form input. It relies on browser-managed identified-session context and returns public conversation UIDs for every visible Resume choice.
+- `Resolve Joined Conversation Access` is invokable with the public conversation UID returned by the joined-list operation and selected by the visible Resume control. Current membership and authorization are resolved server-side so stale access cannot open a private workspace.
 
-Every required value comes from a user-entered field, selected public identifier, current visible response, or browser-managed session context. No route assumes a database identifier, raw credential, private hidden-conversation key, undisclosed workflow state, or frontend-derived permission decision.
+The route descriptions preserve these value sources for later transport and payload phases without drafting payload examples or lower-layer contracts.
 
-## Page-Specific Behavior Preserved
+## Routes Drafted
 
-- `create.html`: new-record creation, first-owner assignment, pending lock, successful continuation, validation rejection, service failure, timeout, and retryable draft preservation.
-- `find.html`: privacy-filtered listed suggestions; listed inclusive/exclusive result evaluation; public result identifiers; listed eligibility and join branches; hidden counts without identity disclosure; complete unique unlisted continuation; and separate unlisted eligibility/join branches.
-- `index.html`: active joined standard and private moderation conversations; empty, retryable, pending, and unavailable-session states; and authoritative active/stale/unresolvable checks at Resume time.
+- `POST /api/v0/hub/create-conversation`
+- `GET /api/v0/hub/retrieve-listed-tag-suggestions`
+- `GET /api/v0/hub/search-listed-conversations`
+- `POST /api/v0/hub/join-listed-conversation`
+- `POST /api/v0/hub/evaluate-known-unlisted-conversation-tags`
+- `POST /api/v0/hub/join-unlisted-conversation`
+- `GET /api/v0/hub/retrieve-joined-conversations`
+- `GET /api/v0/hub/resolve-joined-conversation-access`
 
-## Ambiguities Carried Forward
+## Unresolved Ambiguities
 
-- Exact listed extra-tag semantics, hidden exact-versus-superset matching, and multiple complete hidden-match behavior remain unresolved in `docs/concepts/REQUIREMENTS.md`. The routes preserve the documented branch boundaries without selecting new rules.
-- Human authentication and the concrete session transport remain unresolved. Later transport work must document the chosen browser-sent context source without inventing an identity provider or placing identity, permission, or raw session artifacts in JSON examples.
-- The minimum `Join Unlisted Conversation` body can be decided during payload drafting: the opaque prior-response continuation is mandatory, while the visible tag set should be resent only if the UX API cannot safely continue from that value alone.
-- Exact tag casing and remaining grammar edge cases remain unresolved and were not settled in the route list.
-- Conversation rejoining may establish or resume membership, but the persistence-period behavior remains unspecified and is intentionally not exposed as a frontend decision.
+- Extra-tag semantics for listed search and exact-versus-superset semantics for unlisted matching remain unresolved in `docs/concepts/REQUIREMENTS.md`; the route list does not settle either rule.
+- Multiple complete hidden matches remain unresolved. The evaluation route preserves the established requirement that Join is unavailable until one complete unique match exists.
+- Exact membership-period behavior when a former voluntary member rejoins remains unresolved. Both Join routes therefore describe establishing or resuming active membership without inventing a storage model.
+- Human authentication and browser session transport remain unspecified. The routes rely on identified browser context without selecting a provider, cookie name, bearer format, or credential mechanism.
+- Tag casing and detailed grammar edge cases remain unresolved.
+- The public-safe opaque continuation format and expiration policy for known-unlisted evaluation are intentionally deferred to later route transport documentation; no raw hidden identity is exposed.
 
 ## Scope Confirmation
 
-This unique Phase 3 agent was assigned only the `desktop/hub` area. It wrote only:
+This unique Phase 3 agent was assigned only the `desktop/hub` work unit. It wrote only:
 
 - `docs/mockup/routes/hub-routes.md`
 - `ai-docs/draft-routes/hub/03-area-route-drafter.md`
 
-No companion, HTML, CSS, JavaScript, concept document, schema, mock data, application source, package file, OpenAPI file, application API contract, secure API contract, backend implementation, authorization algorithm, database design, or frontend business rule was changed.
+No page companion, HTML, CSS, JavaScript, concept document, schema, mock data, payload example, request-context section, OpenAPI file, backend code, frontend logic, application API contract, secure API contract, package file, neighboring route artifact, or other area route file was changed.
