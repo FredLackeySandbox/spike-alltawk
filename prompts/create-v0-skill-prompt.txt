@@ -3,10 +3,12 @@ pixel-perfect, fully functional mockup under `docs/mockup/desktop-v0/`. The purp
 of this version is to make the UI's functional logic explicit before a real backend
 is implemented.
 
-The approved HTML/CSS and the approved data contracts are immutable sources of
-truth. Preserve the initial appearance and intended behavior of every page exactly.
-Do not alter any source mockup file or any approved schema, data dictionary, or
-concept document.
+The approved HTML, CSS, local JavaScript behavior, and data contracts are immutable
+sources of truth. The existing mockup already renders and functions correctly.
+Preserve every rendered pixel, interaction, state transition, validation result,
+keyboard behavior, timing characteristic, navigation outcome, and accessibility
+behavior exactly. Do not alter any source mockup file or any approved schema, data
+dictionary, or concept document.
 
 ## Execution model
 
@@ -44,8 +46,11 @@ concept document.
      Agent 1's three output files, and Agent 1's handoff.
    - Review the implementation as the senior engineer responsible for the page's
      final quality.
-   - Directly correct defects and improve the HTML, API, fixture, documentation,
-     pseudocode, behavior, contract fidelity, and test coverage where needed.
+   - Directly correct defects in Agent 1's work and improve its internal code
+     quality, API boundaries, fixture quality, documentation, pseudocode, contract
+     fidelity, and test coverage.
+   - Do not improve, redesign, reinterpret, extend, or simplify the approved page's
+     cosmetics or user-observable functionality.
    - Run the complete acceptance test suite after making corrections.
    - Continue reviewing, correcting, improving, and re-testing its page until every
      acceptance criterion passes.
@@ -64,10 +69,10 @@ concept document.
 
 6. Do not optimize for reuse, consistency of implementation internals, shared
    abstractions, or efficiency across pages. Each page must be independently
-   understandable and functional. Duplicate data-access logic, controller logic,
-   presentation helpers, styles, or local dependencies when useful to keep a page
-   self-contained. Do not create or modify shared implementation files as part of
-   a page pair's work.
+   understandable and functional. Duplicate every data-access helper, controller
+   helper, presentation helper, style dependency, and local dependency required to
+   keep the page self-contained. Do not create or modify shared implementation
+   files as part of a page pair's work.
 
 ## Required output for every page
 
@@ -86,15 +91,22 @@ nested areas.
 The output HTML must:
 
 - begin as a one-for-one copy of the approved source page;
-- preserve the initial DOM content, styles, layout, typography, spacing, colors,
-  assets, accessibility semantics, and visible state;
-- keep the approved CSS unchanged unless a nonvisual hook is strictly required;
-- make only the smallest DOM changes needed to add stable selectors, load the page
-  API, render API-backed values, and bind behavior;
+- preserve all DOM content, styles, layout, typography, spacing, colors, assets,
+  accessibility semantics, visible states, hidden states, and state transitions;
+- copy every CSS selector, declaration, property, value, and ordering exactly;
+- never edit, add, delete, reorder, override, or replace CSS;
+- limit HTML changes to adding non-rendering `data-*` selectors to existing
+  elements, replacing existing inline page logic with the sibling page API script,
+  and invoking the page API after the DOM is ready;
+- never add, remove, reorder, or replace a visible element;
+- never change visible copy, element dimensions, attributes that affect rendering,
+  CSS classes, inline styles, interaction semantics, or the accessibility
+  attributes present in an equivalent source-page state;
 - reproduce all initially visible approved values after initialization, even when
   those values now come from the page data fixture;
-- preserve existing useful interaction logic, moving data access and business
-  decisions into the page API rather than discarding or duplicating that logic;
+- preserve all existing local interaction logic exactly, relocating data access and
+  documenting business decisions without changing inputs, outputs, branching,
+  timing, side effects, or DOM results;
 - keep navigation within the functional mockup output tree when a corresponding
   destination page exists;
 - load the sibling page API and initialize it after the DOM is ready; and
@@ -102,6 +114,10 @@ The output HTML must:
 
 Do not introduce a framework, build step, remote dependency, or real network
 service. Use browser-compatible JavaScript consistent with the existing mockup.
+The page API and fixture must adapt to the approved page. Never adapt the approved
+page to simplify the API, fixture, implementation, testing, or documentation. A
+visual or behavioral difference is an implementation defect, never an improvement
+or acceptable tradeoff.
 
 ### Page API
 
@@ -112,8 +128,8 @@ stubs. It must:
 - expose a page-specific namespace containing action-oriented functions with names
   such as `init...`, `fetch...`, `create...`, `update...`, `set...`, `remove...`,
   `validate...`, or `do...`;
-- include an exposed function for every meaningful initial load, user action, data
-  request, data mutation, validation decision, and resulting UI state on the page;
+- include an exposed function for every source-defined initial load, user action,
+  data request, data mutation, validation decision, and resulting UI state;
 - use asynchronous return values for operations that represent backend calls;
 - maintain mock mutations in page-local memory so the fixture remains static and a
   reload resets the scenario;
@@ -121,15 +137,18 @@ stubs. It must:
 - produce deterministic results for the same fixture and inputs;
 - prevent duplicate initialization, duplicate event bindings, duplicate records,
   and duplicate submissions;
-- make every externally callable operation idempotent where the operation permits
-  it; prefer desired-state operations such as `set...` over ambiguous toggles;
-- represent loading, success, empty, validation-error, request-error, and disabled
-  states wherever those states are relevant to the approved page;
-- update the DOM so every control and interaction produces a visible, reviewable
-  result; and
-- avoid unexplained timers, randomness, current-time identifiers, and hidden
-  persistence. If time or identifiers are needed, source deterministic values from
-  the fixture or function arguments.
+- make every externally callable operation idempotent; use stable request
+  identifiers to preserve approved repeated-action behavior;
+- represent exactly the loading, success, empty, validation-error, request-error,
+  and disabled states already implemented by the approved source page;
+- never add a state, remove a state, change a transition, or expose a new
+  user-visible outcome;
+- update the DOM so every source-defined action produces exactly the same result as
+  the approved local logic;
+- preserve decorative controls without adding event handlers or API operations;
+- use fixture values or function arguments for every time and identifier; and
+- never use randomness, current-time identifiers, undocumented timers, or hidden
+  persistence.
 
 Every function, including internal helpers and named event handlers, must have:
 
@@ -137,7 +156,6 @@ Every function, including internal helpers and named event handlers, must have:
 - `@param` entries for every argument;
 - an `@returns` entry, including for functions that return nothing or return a
   Promise;
-- an `@throws` entry when applicable; and
 - plain JavaScript function parameters with no TypeScript syntax.
 
 Inside every function, add concise pseudocode comments that explain the intended
@@ -148,8 +166,9 @@ must supplement executable code, not replace it.
 
 ### Static page data
 
-The page data fixture must be valid JSON and contain all deterministic mock response
-data needed by that page, including applicable:
+The page data fixture must be valid JSON and contain all and only the deterministic
+mock response data required to reproduce the approved page's existing behavior.
+Represent every category exercised by the source page:
 
 - initial-load records;
 - selectable options and autocomplete choices;
@@ -213,10 +232,11 @@ For every discovered event, both page agents must trace:
 `user or lifecycle event -> exposed API function -> request shape -> approved data
 read or mutation -> response shape -> DOM/state update`
 
-No meaningful control may remain decorative if the approved page implies an action.
-Links that intentionally leave the current functional mockup, purely explanatory
-content, and browser-native behavior may remain non-API actions, but the agent must
-state that determination in its handoff.
+Preserve the exact behavior of every approved control. A working control must remain
+working in precisely the same way. A decorative control must remain decorative. An
+explanatory element must remain explanatory. Browser-native behavior must remain
+browser-native. Do not infer, add, remove, or reinterpret functionality from the
+appearance, label, placement, or semantics of an element.
 
 ## Validation and acceptance criteria
 
@@ -234,14 +254,16 @@ problem it finds, and produce the final passing evidence:
 
 3. **Visual parity:** capture source and output screenshots with the same browser,
    viewport, font availability, URL state, and settled animation state at no fewer
-   than two representative desktop viewport sizes. The initialized output must have
-   zero unintended pixel differences from the approved source. Any intentional
-   difference must be nonvisual and explained.
+   than two representative desktop viewport sizes. Capture and compare the initial
+   page plus every source-defined visible, hidden, loading, success, validation,
+   failure, modal, menu, and disabled state. Every comparison must have zero pixel
+   differences. Every pixel difference is a test failure.
 
-4. **Behavior parity and completeness:** exercise every meaningful control and
+4. **Behavior parity and completeness:** exercise every interactive control and
    verify initial load, successful actions, validation failures, request failures,
-   empty states, repeated activation, and recovery where applicable. Confirm that
-   the behavior is visible and deterministic.
+   empty states, repeated activation, and recovery already implemented by the
+   source page. Compare the complete source and output event sequences and DOM
+   results. Every behavioral difference is a test failure.
 
 5. **Contract fidelity:** parse every fixture, validate each domain record against
    the relevant approved schema, and check relationships and cross-record
