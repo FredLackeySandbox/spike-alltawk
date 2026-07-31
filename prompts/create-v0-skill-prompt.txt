@@ -8,7 +8,7 @@ sources of truth. The existing mockup already renders and functions correctly.
 Preserve every rendered pixel, interaction, state transition, validation result,
 keyboard behavior, timing characteristic, navigation outcome, and accessibility
 behavior exactly. Do not alter any source mockup file or any approved schema, data
-dictionary, or concept document.
+dictionary, or invariant document.
 
 ## Execution model
 
@@ -26,8 +26,13 @@ dictionary, or concept document.
 
    **Agent 1 — Page Implementation Engineer**
 
-   - Read the entire source page and all relevant approved material beneath
-     `docs/concepts/` and `docs/schemas/`.
+   - Read the entire source page.
+   - Identify the exact domain object types used by the page's existing request
+     payloads, response payloads, and local behavior.
+   - Read only the schema definitions and invariant documentation beneath
+     `docs/schemas/` that define those exact object types and their directly
+     referenced relationships.
+   - Do not read unrelated schemas or product concept documents.
    - Analyze the page's data, events, states, and local dependencies.
    - Create the page's output HTML, page API, and page data fixture.
    - Perform the complete initial visual, interaction, contract, runtime, and
@@ -42,8 +47,14 @@ dictionary, or concept document.
 
    **Agent 2 — Senior Page Engineer**
 
-   - Independently read the approved source page, the relevant approved contracts,
-     Agent 1's three output files, and Agent 1's handoff.
+   - Independently read the approved source page and identify the exact domain
+     object types used by its existing request payloads, response payloads, and
+     local behavior.
+   - Independently read only the schema definitions and invariant documentation
+     beneath `docs/schemas/` for those exact object types and their directly
+     referenced relationships.
+   - Do not read unrelated schemas or product concept documents.
+   - Read Agent 1's three output files and Agent 1's handoff.
    - Review the implementation as the senior engineer responsible for the page's
      final quality.
    - Directly correct defects in Agent 1's work and improve its internal code
@@ -244,8 +255,7 @@ Each Page Implementation Engineer must run these checks before its handoff. Afte
 the gate, each Senior Page Engineer must independently repeat them, correct any
 problem it finds, and produce the final passing evidence:
 
-1. **Source safety:** no file beneath the source mockup, schema, or concept folders
-   changed.
+1. **Source safety:** no file beneath the source mockup or schema folders changed.
 
 2. **Completeness:** the assigned source page has exactly one corresponding output
    HTML file, page API file, and page data fixture at the mirrored relative path.
