@@ -1,12 +1,13 @@
-Convert one approved desktop mockup page into a faithful, fully functional v0
+Convert every approved desktop mockup page into a faithful, fully functional v0
 page.
 
 ## Scope
 
-`SOURCE_PAGE` must identify one HTML file beneath `docs/mockup/desktop/`. If it
-does not, request one exact path.
+Recursively find every `.html` page beneath `docs/mockup/desktop/`. Shared assets
+and non-HTML files are not pages.
 
-Mirror its relative path beneath `docs/mockup/desktop-v0/` and create exactly:
+For each source page, mirror its relative path beneath
+`docs/mockup/desktop-v0/` and create exactly:
 
 - `{page}.html`
 - `{page}-api.js`
@@ -17,32 +18,40 @@ create other implementation files.
 
 ## Agents
 
-The primary agent is an orchestrator only. It must not inspect project files,
-analyze the page, implement or edit files, run commands or tests, or validate the
-result. It may only launch the two agents below, pass them this prompt and
-`SOURCE_PAGE`, enforce their sequence, relay essential context, and report the
+The primary agent is an orchestrator only. It must first inventory the complete set
+of source HTML paths, without reading or analyzing page contents. It must not
+implement or edit files, run page tests, or validate results. It may only manage
+page assignments, enforce the workflow, relay essential context, and report the
 final outcome.
 
-1. **Implementation Agent**
+After the inventory is complete, create one isolated two-agent workstream for every
+discovered page. Each pair owns only its page's three output files and must not
+inspect or change another page's outputs. Use these agents in order within each
+pair:
 
-   Analyze the source, create all three output files, run every required test, fix
-   failures, retest, and hand off the files and test results.
+1. **Page Implementation Agent**
 
-2. **Verification Agent**
+   Analyze the assigned source page, create its three output files, run every
+   required test, fix failures, retest, and hand off the files and test results.
 
-   Start only after the Implementation Agent finishes. Independently analyze the
-   source and contracts, inspect the outputs, and rerun every test. Directly correct
-   all defects, omissions, and missing functionality in the three output files,
-   then retest. Return `APPROVED` only when everything passes; otherwise return
-   `BLOCKED` with specific evidence.
+2. **Page Verification Agent**
 
-The Verification Agent owns final quality and must not send corrections back to the
-Implementation Agent. Do not use any other agent.
+   Start only after that page's Implementation Agent finishes. Independently
+   analyze the source and contracts, inspect the outputs, and rerun every test.
+   Directly correct all defects, omissions, and missing functionality in the three
+   output files, then retest. Return `APPROVED` only when everything passes;
+   otherwise return `BLOCKED` with specific evidence.
+
+The Verification Agent owns final quality for its page and must not send
+corrections back to the Implementation Agent. Different page pairs may run in
+parallel as capacity allows, but the Implementation → Verification order is
+mandatory within every pair. Assign exactly one pair per page and use no other
+agents.
 
 ## Analyze and implement
 
-Each agent must independently read the entire source page, its local CSS and
-JavaScript dependencies, and only the relevant schemas. Identify:
+Both agents in a page pair must independently read the entire assigned source page,
+its local CSS and JavaScript dependencies, and only the relevant schemas. Identify:
 
 - all initial data and rendered values;
 - every implemented action, event, keyboard behavior, and navigation;
@@ -99,7 +108,7 @@ Keep presentation copy and scenario metadata outside domain records.
 ## Test
 
 Serve the source and output through a local HTTP server and use browser automation.
-Both agents must independently:
+Both agents in every page pair must independently:
 
 1. Compare source and output at two representative desktop viewport sizes.
 2. Confirm visual parity for the initial view and every source-defined visible
@@ -111,14 +120,19 @@ Both agents must independently:
    duplicate effects.
 6. Confirm there are no missing resources, JavaScript errors, unhandled rejections,
    unexpected console errors, or external requests.
-7. Confirm only the three required output files changed.
+7. Confirm they changed only their assigned page's three output files.
 
 Any difference, omission, error, or failed check must be corrected and retested.
 
 ## Report
 
-After approval, the orchestrator reports the source and output paths, API namespace
-and functions, behaviors tested, verification results, and any contract limitation.
+After every page is approved, the orchestrator reports:
 
-The task is complete only when the Verification Agent approves a fully functional,
-faithful representation of `SOURCE_PAGE` with every test passing.
+- the number of pages discovered and approved;
+- each source page and its three output paths;
+- each page's API namespace and functions;
+- the behaviors and checks completed for each page; and
+- any contract limitation.
+
+The task is complete only when every source page has exactly one approved output
+set, all required files exist, and every test passes.
