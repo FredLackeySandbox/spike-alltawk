@@ -38,12 +38,14 @@ dictionary, or invariant document.
    - Perform the complete initial visual, interaction, contract, runtime, and
      navigation test pass.
    - Correct its implementation until its own tests pass.
-   - Return a structured handoff containing changed paths, exposed functions,
-     contract mappings, test evidence, and any unresolved concerns.
+   - Return the Agent 1 gate handoff defined below.
 
    **GATE:** Agent 2 must not inspect, review, test, or edit the page until Agent 1
-   has completed its implementation and testing and has returned its handoff. The
-   orchestrator must explicitly release Agent 2 only after this gate is satisfied.
+   has completed its three required page files, finished its test pass, and returned
+   an Agent 1 gate handoff with the status `READY FOR SENIOR REVIEW`. The
+   orchestrator must explicitly release Agent 2 after verifying that the handoff
+   contains every required section. A status of `BLOCKED` keeps the gate closed and
+   requires Agent 1 to continue the page.
 
    **Agent 2 — Senior Page Engineer**
 
@@ -65,10 +67,80 @@ dictionary, or invariant document.
    - Run the complete acceptance test suite after making corrections.
    - Continue reviewing, correcting, improving, and re-testing its page until every
      acceptance criterion passes.
-   - Return the final page handoff and validation evidence to the orchestrator.
+   - Return the Agent 2 final handoff defined below.
 
    Agent 2 is the final owner and approver of that page. Do not send corrections
    back to Agent 1 and do not assign a third page agent.
+
+   **Agent 1 gate handoff**
+
+   The handoff is Agent 1's final response to the orchestrator. It is not a fourth
+   page file. Use the following sections and provide every requested value:
+
+   - **Page:** the assigned source page path.
+   - **Gate status:** exactly `READY FOR SENIOR REVIEW` or `BLOCKED`.
+   - **Delivered files:** the three exact output paths for the functional HTML,
+     page API, and page data fixture. Confirm that no other implementation file was
+     created or changed.
+   - **Source behavior catalog:** one row per source-defined lifecycle event or
+     user action, with columns for trigger, source behavior, API function, fixture
+     section, and resulting DOM state or navigation.
+   - **API catalog:** the page-specific namespace followed by every exposed
+     function's exact name, argument names, purpose, request shape, response shape,
+     and source behavior it preserves.
+   - **Contract catalog:** every approved object type used by the page, the exact
+     schema path consulted for that type, the API functions that request or return
+     it, and the directly enforced relationships or invariants.
+   - **Visual test evidence:** each tested viewport and source-defined state, the
+     source screenshot result, the output screenshot result, and the pixel
+     difference count. Every difference count must be zero.
+   - **Behavior test evidence:** every exercised source event and state transition,
+     its expected result, its output result, and `PASS` or `FAIL`.
+   - **Fixture and contract test evidence:** JSON parsing result, schema validation
+     result for every domain record, relationship checks, invariant checks, and
+     `PASS` or `FAIL`.
+   - **Runtime and navigation test evidence:** local server result, resource-load
+     result, console result, Promise-rejection result, external-request result, and
+     each tested local navigation target.
+   - **Open issues:** exactly `None` or a numbered list containing the evidence,
+     impact, and immutable contract limitation for each issue.
+
+   `READY FOR SENIOR REVIEW` requires all three files to exist, every required
+   acceptance check to have been executed, and every check to report `PASS`. A page
+   with a failed or omitted check must use `BLOCKED`.
+
+   **Agent 2 final handoff**
+
+   The handoff is Agent 2's final response to the orchestrator. It is not an
+   additional page file. Use the following sections and provide every requested
+   value:
+
+   - **Page:** the reviewed source page path.
+   - **Final status:** exactly `APPROVED` or `BLOCKED`.
+   - **Final delivered files:** the three exact output paths and confirmation that
+     they are the only implementation files created or changed for the page.
+   - **Senior corrections and improvements:** a file-by-file description of every
+     correction and internal improvement made to Agent 1's work, followed by
+     confirmation that none changed approved cosmetics or user-observable behavior.
+   - **Final source behavior catalog:** the complete trigger, source behavior, API
+     function, fixture section, and resulting DOM state or navigation mapping.
+   - **Final API catalog:** the namespace and every exposed function's exact name,
+     argument names, purpose, request shape, response shape, and preserved source
+     behavior.
+   - **Final contract catalog:** every approved object type used, exact schema path,
+     consuming or returning API functions, relationships, and invariants.
+   - **Independent visual test evidence:** every tested viewport and state with a
+     zero pixel-difference result.
+   - **Independent behavior test evidence:** every tested event and transition with
+     its expected result, actual result, and `PASS` or `FAIL`.
+   - **Independent fixture, contract, runtime, and navigation evidence:** the
+     results of every acceptance check and `PASS` or `FAIL`.
+   - **Open issues:** exactly `None` or a numbered list containing the evidence,
+     impact, and immutable contract limitation for each issue.
+
+   `APPROVED` requires `Open issues: None`, zero pixel differences, zero behavioral
+   differences, and a `PASS` result for every acceptance check. Every other outcome
+   must use `BLOCKED`.
 
 4. Treat each two-agent page pair as a fully isolated workstream. The pair owns only
    its page's output HTML, page API, and page data fixture. Neither agent may edit,
