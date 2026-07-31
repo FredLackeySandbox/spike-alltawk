@@ -34,9 +34,10 @@ other files. Do not spawn agents.
 
 Follow the required copy-before-analysis sequence. Use the skill's Playwright
 locator and runner. Interact with the source through Playwright before designing
-API calls. Create the complete interaction-state matrix, capture each actual
-request object and returned fixture value, retrofit the copied page, and compare
-source/output at both required viewports. Fix and retest until all checks pass.
+API calls. Create the complete interaction-state matrix, capture each function's
+concrete arguments and returned fixture value, retrofit the copied page, and
+compare source/output at both required viewports. Fix and retest until all checks
+pass.
 
 Return the required raw handoff. Do not claim approval; independent verification
 follows.
@@ -60,8 +61,13 @@ Independently read the complete assigned source, directly referenced local asset
 and matching catalog entry. Independently rediscover the state matrix with
 Playwright; do not treat the implementer's matrix as ground truth. Exercise the
 source and output at both required viewports and visually inspect paired
-screenshots for every state. Inspect separation, request objects, fixture returns,
-console/network behavior, line limits, source hash, and output scope.
+screenshots for every state. Inspect separation, concrete function arguments,
+fixture returns, console/network behavior, line limits, source hash, and output
+scope.
+
+When runtime evidence proves an unambiguous source defect, preserve the source and
+verify or add the smallest correction in the assigned output HTML under the
+skill's output-only compatibility rules. Do not demand defect-for-defect parity.
 
 Directly correct defects in the three owned output files, then rerun the complete
 verification. Delete or simplify excess API/fixture code. Never send corrections
@@ -94,6 +100,10 @@ Page contract
 - Required behaviors:
 - Source-contract limitations:
 
+Output-only compatibility corrections
+| Defective state/transition | Catalog and source-intent evidence | Source runtime evidence | Output HTML correction | Both viewports verified |
+| --- | --- | --- | --- | --- |
+
 API contract
 | Operation | Function | Trigger | Concrete arguments and payload | Response fixture key | Concrete returned value | Paths tested |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -119,6 +129,7 @@ Coverage
 
 Checks
 - Visual parity:
+- Approved-design fidelity for corrected source defects:
 - Visible/semantic parity:
 - Keyboard and focus parity:
 - Validation/recovery/repeated-action parity:

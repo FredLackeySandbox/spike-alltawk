@@ -32,6 +32,14 @@ If a control label suggests behavior for which the source contains no markup,
 script, target, URL variant, or visible result, record a source-contract limitation.
 Do not invent behavior.
 
+Distinguish missing or ambiguous behavior from a runtime defect. A runtime defect
+is output-correctable when the catalog and source markup or JavaScript establish
+the same postcondition, but browser evidence proves that a specific implementation
+detail prevents it. Preserve the source and apply the smallest correction only to
+the assigned output HTML. For example, `hidden === true` plus Playwright-visible
+geometry caused by an author `display` declaration justifies an output-only
+`[hidden] { display: none !important; }` compatibility rule.
+
 ## Interaction-state coverage
 
 A state is any visually or semantically distinct condition supported by markup,
@@ -127,6 +135,13 @@ Test at 1280x800 and 1440x1000. For each state:
 7. Record console errors, page errors, unhandled rejections, failed requests, and
    every network request.
 
+For a proven output-correctable source defect, compare the pages through the last
+functioning precondition. Capture and inspect the defective source state as
+evidence. Then verify the output postcondition against the catalog, the source's
+expressed DOM/JavaScript intent, and the unaffected approved presentation. Record
+the exception and correction in the handoff; do not require the output to
+reproduce the source defect.
+
 Allow only the local page, shared local assets, sibling API script, and sibling
 fixture requests. Fail on an external or unexplained request, missing resource,
 JavaScript error, or rejected promise.
@@ -141,7 +156,10 @@ Return `APPROVED` only if:
 
 - source hash matches inventory;
 - only the assigned output triple changed;
-- copied HTML remains recognizably source-derived and visually identical;
+- copied HTML remains recognizably source-derived;
+- every functioning source state remains visually identical, and every corrected
+  source-defect state preserves the approved design while meeting its explicit
+  postcondition;
 - every documented state and transition passes at both viewports;
 - request and response payloads are captured for every backend operation/path;
 - accessibility-observable behavior, focus, navigation, console, and network pass;
@@ -151,6 +169,7 @@ Return `APPROVED` only if:
 - every public API function is at most 12 physical lines; and
 - state and transition coverage both equal 100%.
 
-Correct owned output defects directly and rerun everything. Return `BLOCKED` with
-specific state IDs, transitions, logs, diffs, or contract evidence only when the
-page cannot be faithfully completed within the contract.
+Correct owned output defects and unambiguous output-correctable source runtime
+defects directly, then rerun everything. Return `BLOCKED` with specific state IDs,
+transitions, logs, diffs, or contract evidence only when the page cannot be
+faithfully completed within the contract.

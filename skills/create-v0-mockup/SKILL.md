@@ -1,6 +1,6 @@
 ---
 name: create-v0-mockup
-description: Convert approved static desktop HTML mockups into path-mirrored, visually identical v0 pages backed by tiny deterministic mock API JavaScript files and JSON response fixtures. Use when Codex must process every HTML page under a desktop mockup tree, preserve the source pages unchanged, derive backend-shaped calls from documented page behavior and browser interaction, and independently verify complete visual and behavioral parity with Playwright.
+description: Convert approved static desktop HTML mockups into path-mirrored, visually faithful v0 pages backed by tiny deterministic mock API JavaScript files and JSON response fixtures. Use when Codex must process every HTML page under a desktop mockup tree, preserve the source pages unchanged, derive backend-shaped calls from documented page behavior and browser interaction, repair unambiguous source runtime defects only in owned output HTML, and independently verify the result with Playwright.
 ---
 
 # Create v0 Mockup
@@ -145,26 +145,64 @@ The implementation agent must follow this order:
 4. Serve the project over HTTP and use Playwright on the source page to discover
    every visible and semantic interaction state before retrofitting anything.
 5. Build the required state matrix in the handoff, not in a project file.
-6. Decide which interactions would contact a real backend. Keep all other
+6. Identify any unambiguous source runtime defect that prevents the source markup
+   or page catalog's explicit postcondition from rendering. Record its browser
+   evidence and the smallest output-only compatibility correction.
+7. Decide which interactions would contact a real backend. Keep all other
    interactions entirely in HTML.
-7. Create sibling API and data files from
+8. Create sibling API and data files from
    [page-api.template.js](assets/page-api.template.js) and
    [page-data.template.json](assets/page-data.template.json). Replace every
    placeholder. Treat the data template as a pattern catalog: keep, rename, and
    reshape only the keyed-load, create, update, delete, or fixed-action sections
    the discovered page needs; delete every unused section, outcome, record, and
    field. Add a matching API function only for each retained backend operation.
-8. Retrofit one backend-shaped operation at a time. Keep browser behavior in HTML,
+9. Retrofit one backend-shaped operation at a time. Keep browser behavior in HTML,
    place only prepared response values in JSON, and add one minimal API function.
-9. Record the concrete request object passed by the HTML and the exact returned
+10. Record the concrete arguments passed by the HTML and the exact returned
    fixture value for success, failure, empty, denied, and recovery paths that the
    source supports.
-10. Retest the affected states and transitions before continuing.
-11. Run the full source/output comparison and static validator.
+11. Retest the affected states and transitions before continuing.
+12. Run the full source/output comparison and static validator.
 
 Adjust only local relative links required by the mirrored location. Link to the
 matching v0 page when it exists; otherwise preserve the source target. Do not
 redesign, reorganize, or replace the copied page.
+
+## Correct source runtime defects in the output
+
+Keep every approved source file immutable. Do not stop merely because Playwright
+proves that a source implementation detail prevents an otherwise unambiguous
+documented or native HTML behavior. Correct that defect only in the assigned
+output HTML when all of these are true:
+
+- the page catalog and source markup or JavaScript agree on the intended result;
+- Playwright provides computed-style, DOM-state, console, or equivalent runtime
+  evidence for the exact source failure;
+- the correction fits entirely in the assigned output HTML; and
+- the correction preserves the page's approved design and unrelated behavior.
+
+Use the smallest semantics-preserving compatibility correction. For example, if
+an element has `hidden === true` but an author `display` rule makes it visible,
+add this output-only block to the copied HTML:
+
+```html
+<style data-v0-compatibility>
+  [hidden] { display: none !important; }
+</style>
+```
+
+Never add a compatibility correction to the source, a shared asset, the API file,
+or the fixture. Do not use this exception to invent missing behavior or redesign a
+state. Return `BLOCKED` only when the intended result is ambiguous, the correction
+requires a protected file, or it would alter approved presentation beyond the
+defective state.
+
+For corrected states, compare source and output through the last functioning
+precondition. Then verify the output postcondition against the catalog, the
+source's expressed DOM/JavaScript intent, and the rest of the approved visual
+design. Record the source failure and compatibility correction in the handoff.
+Do not require the output to reproduce the proven source defect.
 
 ## Preserve strict ownership
 
@@ -243,15 +281,17 @@ must be at most 12 physical lines including its backend comment. Do not minify t
 meet limits.
 
 Static checks do not replace Playwright. Both page agents must independently use
-Playwright to exercise every source-defined state, transition, repeated action,
-query/hash/fixture variant, keyboard path, validation path, recovery path, and
-navigation at 1280x800 and 1440x1000. Capture source and output screenshots for
-each distinct state and visually inspect paired images. Also compare visible text,
-visibility, values, URL, focus, roles/names, checked/selected/pressed/disabled
-state, and live-region output.
+Playwright to exercise every source-defined state, catalog-required transition,
+repeated action, query/hash/fixture variant, keyboard path, validation path,
+recovery path, and navigation at 1280x800 and 1440x1000. Capture source and output
+screenshots for each distinct state and visually inspect paired images. Also
+compare visible text, visibility, values, URL, focus, roles/names,
+checked/selected/pressed/disabled state, and live-region output.
 
 Approval requires 100% state and transition coverage, not sampling or an
-initial-view comparison.
+initial-view comparison. For a proven source runtime defect, approval requires a
+verified output-only correction and explicit exception evidence rather than
+defect-for-defect parity.
 
 ## Finish
 
@@ -267,6 +307,6 @@ complete output triples and that every protected-file hash still matches. Report
 - visual, behavior, accessibility, console, network, and static checks completed;
 - confirmation that UI logic remains in HTML and every API reads only its sibling
   JSON; and
-- source-contract limitations.
+- source-contract limitations and output-only compatibility corrections.
 
 Complete only when every page is `APPROVED` and all sources remain unchanged.
