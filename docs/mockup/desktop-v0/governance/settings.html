@@ -1,0 +1,733 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Manage tags and lifecycle for a Tawk conversation.">
+  <title>Tags and Lifecycle — Tawk</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="../../desktop/assets/styles.css">
+  <style>
+    .app-shell { max-width: 1080px; margin: 0 auto; }
+    .governance-title { display: flex; align-items: center; gap: 10px; }
+    .governance-grid { display: grid; grid-template-columns: minmax(0, 1fr) 310px; gap: 22px; align-items: start; }
+    .tag-editor { margin-top: 20px; }
+    .tag-editor .tag-chip { cursor: default; }
+    .tag-editor .tag-chip button { padding: 0; border: 0; color: inherit; background: transparent; cursor: pointer; font-size: 16px; line-height: 1; }
+    .tag-editor .tag-chip button:hover { color: var(--destructive); }
+    .settings-actions { display: flex; justify-content: flex-end; align-items: center; gap: 10px; margin-top: 22px; }
+    .settings-actions .save-status { margin-right: auto; }
+    .summary-list { margin: 0; }
+    .summary-row { display: grid; gap: 3px; padding: 14px 0; border-bottom: 1px solid var(--line); }
+    .summary-row:first-child { padding-top: 0; }
+    .summary-row:last-child { padding-bottom: 0; border-bottom: 0; }
+    .summary-row dt { color: var(--muted); font-size: 12px; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; }
+    .summary-row dd { margin: 0; font-weight: 700; }
+    .danger-zone { margin-top: 22px; border-color: #e6c1bd; box-shadow: none; }
+    .danger-zone .panel-header { border-bottom-color: #efd2cf; }
+    .danger-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 28px; align-items: center; }
+    .permission-example { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-top: 18px; padding: 13px 14px; border: 1px dashed var(--line-strong); border-radius: 12px; background: #f6f5ef; }
+    .permission-example p { margin: 0; }
+    /* Page-local demo controls (fixture/scenario selection for the mockup only) */
+    .demo-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 14px 20px; margin-bottom: 18px; padding: 12px 16px; border: 1px dashed var(--line-strong); border-radius: 12px; background: var(--surface-tint); }
+    .demo-bar .demo-label { font-size: 12px; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; color: var(--muted); }
+    .demo-bar .demo-field { display: flex; align-items: center; gap: 8px; }
+    .demo-bar select.select { height: 40px; }
+    .demo-bar label.demo-check { display: inline-flex; align-items: center; gap: 7px; font-size: 13px; font-weight: 600; color: var(--ink); cursor: pointer; }
+    .demo-bar .demo-reset { margin-left: auto; }
+    .save-status[data-tone="error"] { color: var(--destructive); }
+    .save-status[data-tone="ok"] { color: var(--success); }
+    .tag-editor.is-locked { opacity: .7; }
+    .tag-editor.is-locked .tag-input-wrap { background: #f2f1eb; }
+    .spin { display: inline-block; width: 14px; height: 14px; margin-right: 6px; border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; vertical-align: -2px; animation: spin .7s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .archive-result { display: none; }
+    .archive-result.show { display: block; }
+    .state-block { display: none; }
+    .state-block.show { display: block; }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <header class="site-header">
+      <div class="header-main">
+        <a class="brand" href="../hub/index.html" aria-label="Tawk conversations">
+          <span class="brand-mark" aria-hidden="true">T</span>
+          <span>Tawk</span>
+        </a>
+        <nav class="nav-links" aria-label="Private product navigation">
+          <a class="nav-link" href="../hub/index.html">Conversations</a>
+          <a class="nav-link" href="../hub/find.html">Find</a>
+          <a class="nav-link" href="../hub/create.html">Create</a>
+          <a class="nav-link active" href="settings.html" aria-current="page">Governance</a>
+        </nav>
+      </div>
+      <div class="header-actions">
+        <span class="profile-pill"><span class="avatar">RE</span> Rowan Ellis</span>
+      </div>
+    </header>
+
+    <main>
+      <div class="context-bar">
+        <div class="breadcrumb">
+          <a id="breadcrumbLink" href="../conversation/thread.html">#design-systems + #accessibility + #frontend</a>
+          <span aria-hidden="true">/</span>
+          <span>Governance</span>
+        </div>
+        <div class="subnav" aria-label="Governance sections">
+          <a class="active" href="settings.html" aria-current="page">Tags &amp; lifecycle</a>
+          <a href="members.html">Members &amp; roles</a>
+        </div>
+      </div>
+
+      <!-- Page-local demo controls: choose a deterministic local fixture. Not part of the product UI. -->
+      <div class="demo-bar" role="group" aria-label="Mockup fixture controls">
+        <span class="demo-label" aria-hidden="true">Demo fixture</span>
+        <div class="demo-field">
+          <label class="demo-label" for="scenarioSelect">Scenario</label>
+          <select id="scenarioSelect" class="select">
+            <option value="owner">Owner · listed / exclusive (active)</option>
+            <option value="administrator">Administrator · listed / inclusive (active)</option>
+            <option value="unlisted">Owner · unlisted / all-tags (active)</option>
+            <option value="archived">Owner · archived conversation</option>
+            <option value="member">Ordinary member (no governance)</option>
+            <option value="invalid">Invalid / unavailable fixture</option>
+          </select>
+        </div>
+        <label class="demo-check"><input type="checkbox" id="failToggle"> Simulate operation failure</label>
+        <label class="demo-check"><input type="checkbox" id="staleToggle"> Simulate stale permission mid-action</label>
+        <button class="btn btn-secondary btn-sm demo-reset" type="button" id="resetDemo">Reset demo state</button>
+      </div>
+
+      <section class="page-heading">
+        <div>
+          <p class="eyebrow">Conversation governance</p>
+          <div class="governance-title">
+            <h1>Tags and lifecycle</h1>
+            <span class="badge owner" id="roleBadge">Owner</span>
+          </div>
+          <p class="lede">Keep this conversation findable by the right combination of tags. Access and matching behavior are shown for context.</p>
+        </div>
+      </section>
+
+      <!-- Unavailable / non-governance states -->
+      <section class="panel state-block" id="unavailableState" aria-labelledby="unavailable-title">
+        <div class="panel-body">
+          <div class="notice warning" role="status">
+            <strong id="unavailable-title">Conversation data unavailable.</strong>
+            <p class="mb-0">This conversation's tag and lifecycle data could not be loaded, so tag editing and archival are turned off to avoid changing the wrong records. Reset the demo state to load a valid fixture.</p>
+          </div>
+          <div class="settings-actions">
+            <button class="btn btn-secondary" type="button" id="unavailableReset">Reset and reload fixture</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel state-block" id="memberState" aria-labelledby="member-title">
+        <div class="panel-body">
+          <div class="notice" role="status">
+            <strong id="member-title">Governance is limited to owners and administrators.</strong>
+            <p class="mb-0">You are a member of this conversation. Tag maintenance and archival are available only to its owner or an administrator.</p>
+          </div>
+          <div class="settings-actions">
+            <a class="btn btn-secondary" href="../conversation/thread.html">Back to conversation</a>
+          </div>
+        </div>
+      </section>
+
+      <div class="governance-grid" id="governanceGrid">
+        <section class="panel" aria-labelledby="tags-title">
+          <div class="panel-header">
+            <div>
+              <h2 id="tags-title">Conversation tags</h2>
+              <p class="muted small">Add or remove tags, then save your changes.</p>
+            </div>
+            <span class="badge"><span id="tagCount">4</span> of 10</span>
+          </div>
+          <div class="panel-body">
+            <form id="tagForm" class="tag-editor" novalidate>
+              <div class="form-field">
+                <div class="field-heading">
+                  <label for="tagInput">Tags</label>
+                  <span class="help">1–10 required</span>
+                </div>
+                <div class="tag-input-wrap" id="tagEditor">
+                  <div class="chip-row" id="tagList" aria-label="Current tags"></div>
+                  <input id="tagInput" type="text" autocomplete="off" placeholder="Add a tag and press Enter" aria-describedby="tagHelp tagError">
+                </div>
+                <div id="tagHelp" class="help">Use lowercase letters, numbers, and hyphens, with an optional single <strong>key:value</strong>. For example: <strong>design-ops</strong> or <strong>team:frontend</strong>.</div>
+                <div id="tagError" class="error-text" role="alert" aria-live="polite"></div>
+              </div>
+
+              <div class="settings-actions">
+                <span class="save-status small" id="saveStatus" role="status" aria-live="polite"></span>
+                <button class="btn btn-secondary" type="button" id="cancelBtn">Cancel</button>
+                <button class="btn btn-primary" type="submit" id="saveBtn" disabled>Save tags</button>
+              </div>
+            </form>
+          </div>
+        </section>
+
+        <aside class="panel" aria-labelledby="access-title">
+          <div class="panel-header">
+            <div>
+              <p class="eyebrow">Read only</p>
+              <h2 id="access-title">Conversation access</h2>
+            </div>
+          </div>
+          <div class="panel-body">
+            <dl class="summary-list">
+              <div class="summary-row">
+                <dt>Discovery</dt>
+                <dd id="discoveryValue"><span class="badge success">Listed</span></dd>
+              </div>
+              <div class="summary-row">
+                <dt>Tag matching</dt>
+                <dd id="matchingValue">Exclusive</dd>
+              </div>
+              <div class="summary-row">
+                <dt>What that means</dt>
+                <dd class="small muted" id="matchingMeaning">People find this conversation only when their search matches the complete tag set.</dd>
+              </div>
+            </dl>
+            <p class="help" style="margin-top:14px;">Access and matching are set when the conversation is created and cannot be changed here.</p>
+          </div>
+        </aside>
+      </div>
+
+      <section class="panel danger-zone" id="dangerZone" aria-labelledby="archive-title">
+        <div class="panel-header">
+          <div>
+            <p class="eyebrow">Owner action</p>
+            <h2 id="archive-title">Archive conversation</h2>
+          </div>
+          <span class="badge danger" id="dangerBadge">Ends active use</span>
+        </div>
+        <div class="panel-body">
+          <!-- Owner: archive available -->
+          <div class="state-block danger-row" id="archiveOwner">
+            <div>
+              <h3>Close this conversation to new activity</h3>
+              <p class="muted mb-0">Messages, memberships, tags, and moderation records remain retained. This is not a hard delete.</p>
+              <div class="error-text" id="archiveBlocked" role="alert" aria-live="polite" style="margin-top:8px;"></div>
+            </div>
+            <button class="btn btn-danger-quiet" type="button" id="archiveBtn" data-modal-open="archiveModal">Archive conversation</button>
+          </div>
+
+          <!-- Administrator: owner-only boundary, no actionable route -->
+          <div class="state-block permission-example" id="archiveAdmin" aria-label="Administrator permission boundary" style="margin-top:0;">
+            <p class="small"><strong>Administrator view:</strong> Administrators can maintain tags, but only an owner can archive this conversation.</p>
+            <button class="btn btn-secondary btn-sm" type="button" disabled>Archive unavailable</button>
+          </div>
+
+          <!-- Archived: inactive result -->
+          <div class="notice success state-block" id="archiveResult" role="status">
+            <strong>Conversation archived.</strong> Existing records remain retained and this conversation is no longer active.
+          </div>
+          <div class="error-text" id="dangerStatus" role="alert" aria-live="polite" style="margin-top:12px;"></div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div class="modal-backdrop" id="archiveModal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="archiveModalTitle">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 id="archiveModalTitle">Archive this conversation?</h2>
+        <button class="icon-btn" type="button" data-modal-close aria-label="Close archive confirmation">×</button>
+      </div>
+      <div class="modal-body">
+        <p>Members will no longer be able to post in <strong id="archiveIdentity">#design-systems + #accessibility + #frontend</strong>.</p>
+        <div class="notice warning"><strong>Records are retained.</strong> Archiving ends active use; it does not permanently delete the conversation or its history.</div>
+        <div class="notice danger state-block" id="archiveModalError" role="alert">
+          <strong>Archiving didn't complete.</strong> Nothing was changed. You can try again or keep the conversation active.
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" type="button" data-modal-close id="keepActiveBtn">Keep active</button>
+        <button class="btn btn-danger" id="confirmArchive" type="button">Archive conversation</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="discardModal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="discardModalTitle">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 id="discardModalTitle">Discard tag changes?</h2>
+        <button class="icon-btn" type="button" data-modal-close aria-label="Close discard confirmation">×</button>
+      </div>
+      <div class="modal-body">
+        <p>You have unsaved tag changes. Leaving now will discard them and return to the conversation.</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" type="button" data-modal-close id="keepEditingBtn">Keep editing</button>
+        <button class="btn btn-danger-quiet" id="discardChanges" type="button">Discard changes</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" data-toast role="status" aria-live="polite">
+    <span aria-hidden="true">✓</span>
+    <span data-toast-copy>Saved</span>
+  </div>
+
+  <script src="../../desktop/assets/app.js"></script>
+  <script src="settings-api.js"></script>
+  <script>
+    (function () {
+      var CONVERSATION_HREF = '../conversation/thread.html';
+      var STORAGE_PREFIX = 'tawk-gov-';
+      var TAG_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*(?::[a-z0-9]+(?:-[a-z0-9]+)*)?$/;
+
+      var el = function (id) { return document.getElementById(id); };
+      var scenario = 'owner';
+      var committed = null; // { tags, visibility, matchingMode, status, viewerRole, membershipStatus, ... }
+      var draft = [];
+      var pending = false;
+
+      // ---- Elements ----
+      var scenarioSelect = el('scenarioSelect');
+      var failToggle = el('failToggle');
+      var staleToggle = el('staleToggle');
+      var list = el('tagList');
+      var input = el('tagInput');
+      var error = el('tagError');
+      var count = el('tagCount');
+      var saveBtn = el('saveBtn');
+      var cancelBtn = el('cancelBtn');
+      var saveStatus = el('saveStatus');
+      var tagForm = el('tagForm');
+      var editor = el('tagEditor');
+      var roleBadge = el('roleBadge');
+      var breadcrumbLink = el('breadcrumbLink');
+      var governanceGrid = el('governanceGrid');
+      var dangerZone = el('dangerZone');
+      var archiveOwner = el('archiveOwner');
+      var archiveAdmin = el('archiveAdmin');
+      var archiveResult = el('archiveResult');
+      var archiveBtn = el('archiveBtn');
+      var archiveBlocked = el('archiveBlocked');
+      var dangerStatus = el('dangerStatus');
+      var archiveIdentity = el('archiveIdentity');
+      var archiveModal = el('archiveModal');
+      var archiveModalError = el('archiveModalError');
+      var confirmArchive = el('confirmArchive');
+      var keepActiveBtn = el('keepActiveBtn');
+      var discardModal = el('discardModal');
+      var unavailableState = el('unavailableState');
+      var memberState = el('memberState');
+
+      // ---- Helpers ----
+      function clone(arr) { return arr.slice(); }
+      function storageKey() { return STORAGE_PREFIX + scenario; }
+
+      function loadOverrides(base) {
+        try {
+          var raw = window.sessionStorage.getItem(storageKey());
+          if (!raw) return base;
+          var saved = JSON.parse(raw);
+          if (saved && Array.isArray(saved.tags)) base.tags = saved.tags;
+          if (saved && saved.status) base.status = saved.status;
+          if (saved && saved.archivedAt) base.archivedAt = saved.archivedAt;
+          if (saved && saved.archivedById) base.archivedById = saved.archivedById;
+        } catch (e) { /* ignore corrupt storage */ }
+        return base;
+      }
+
+      function persist() {
+        try {
+          window.sessionStorage.setItem(storageKey(), JSON.stringify({
+            tags: committed.tags, status: committed.status,
+            archivedAt: committed.archivedAt, archivedById: committed.archivedById
+          }));
+        } catch (e) { /* storage may be unavailable */ }
+      }
+
+      function identityText() {
+        return committed.tags.map(function (t) { return '#' + t; }).join(' + ');
+      }
+
+      function canEdit() {
+        return committed && !committed.invalid && committed.status === 'active' &&
+          committed.membershipStatus === 'active' &&
+          (committed.viewerRole === 'owner' || committed.viewerRole === 'administrator');
+      }
+      function canArchive() {
+        return committed && !committed.invalid && committed.status === 'active' &&
+          committed.membershipStatus === 'active' && committed.viewerRole === 'owner';
+      }
+      function isDirty() {
+        if (draft.length !== committed.tags.length) return true;
+        for (var i = 0; i < draft.length; i++) { if (draft[i] !== committed.tags[i]) return true; }
+        return false;
+      }
+      function draftValid() { return draft.length >= 1 && draft.length <= 10; }
+
+      // ---- Rendering ----
+      function renderChips() {
+        list.innerHTML = '';
+        draft.forEach(function (tag) {
+          var chip = document.createElement('span');
+          chip.className = 'tag-chip';
+          var removable = canEdit() && !pending && draft.length > 1;
+          var btn = removable
+            ? '<button type="button" aria-label="Remove ' + tag + '" data-remove-tag="' + tag + '">×</button>'
+            : '';
+          chip.innerHTML = '<span>#' + tag + '</span>' + btn;
+          list.appendChild(chip);
+        });
+        count.textContent = draft.length;
+      }
+
+      function updateSaveState() {
+        var editable = canEdit() && !pending;
+        input.disabled = !editable;
+        cancelBtn.disabled = pending;
+        saveBtn.disabled = !(editable && isDirty() && draftValid());
+        editor.classList.toggle('is-locked', !editable);
+        tagForm.classList.toggle('is-locked', !editable);
+      }
+
+      function renderAccess() {
+        var disc = el('discoveryValue');
+        var match = el('matchingValue');
+        var mean = el('matchingMeaning');
+        if (committed.visibility === 'listed') {
+          disc.innerHTML = '<span class="badge success">Listed</span>';
+        } else {
+          disc.innerHTML = '<span class="badge warning">Unlisted</span>';
+        }
+        if (committed.matchingMode === 'exclusive') {
+          match.textContent = 'Exclusive';
+          mean.textContent = 'People find this conversation only when their search matches the complete tag set.';
+        } else if (committed.matchingMode === 'inclusive') {
+          match.textContent = 'Inclusive';
+          mean.textContent = 'People find this conversation when their search matches any of these tags.';
+        } else {
+          match.textContent = 'All tags';
+          mean.textContent = 'This conversation is unlisted. It is reachable only when someone matches all of its tags.';
+        }
+      }
+
+      function renderRole() {
+        roleBadge.className = 'badge';
+        if (committed.viewerRole === 'owner') { roleBadge.classList.add('owner'); roleBadge.textContent = 'Owner'; }
+        else if (committed.viewerRole === 'administrator') { roleBadge.textContent = 'Administrator'; }
+        else { roleBadge.textContent = 'Member'; }
+      }
+
+      function renderIdentity() {
+        breadcrumbLink.textContent = identityText();
+        archiveIdentity.textContent = identityText();
+      }
+
+      function show(node, on) { node.classList.toggle('show', !!on); }
+
+      function renderDanger() {
+        var archived = committed.status === 'archived';
+        show(archiveOwner, !archived && committed.viewerRole === 'owner');
+        show(archiveAdmin, !archived && committed.viewerRole === 'administrator');
+        show(archiveResult, archived);
+        el('dangerBadge').textContent = archived ? 'Archived' : 'Ends active use';
+        el('dangerBadge').className = archived ? 'badge' : 'badge danger';
+        archiveBlocked.textContent = '';
+      }
+
+      function renderAll() {
+        var invalid = committed.invalid;
+        var isMember = !invalid && committed.viewerRole !== 'owner' && committed.viewerRole !== 'administrator';
+
+        show(unavailableState, invalid);
+        show(memberState, isMember);
+        var normal = !invalid && !isMember;
+        governanceGrid.style.display = normal ? '' : 'none';
+        dangerZone.style.display = (!invalid && !isMember) ? '' : 'none';
+        // Administrators see the editor + admin boundary; only members/invalid hide governance.
+
+        if (invalid) { return; }
+        renderRole();
+        renderIdentity();
+        renderAccess();
+        renderChips();
+        updateSaveState();
+        renderDanger();
+      }
+
+      async function loadScenario(name) {
+        scenario = name;
+        pending = false;
+        error.textContent = '';
+        saveStatus.textContent = '';
+        dangerStatus.textContent = '';
+        input.value = '';
+        var src = await window.GovernanceSettingsApi.getGovernance({ scenario: name });
+        if (!src) { src = await window.GovernanceSettingsApi.getGovernance({ scenario: 'owner' }); }
+        if (src.invalid) { committed = { invalid: true }; renderAll(); return; }
+        var base = {
+          tags: clone(src.tags), visibility: src.visibility, matchingMode: src.matchingMode,
+          status: src.status, viewerRole: src.viewerRole, membershipStatus: src.membershipStatus,
+          archivedAt: src.archivedAt, archivedById: src.archivedById
+        };
+        committed = loadOverrides(base);
+        draft = clone(committed.tags);
+        renderAll();
+      }
+
+      // ---- Tag editing ----
+      function addTag(rawValue) {
+        error.textContent = '';
+        if (!canEdit() || pending) return;
+        var raw = rawValue.replace(/^\s+|\s+$/g, '');
+        if (!raw) return;
+        var tag = raw.replace(/^#/, '');
+        if (tag !== tag.toLowerCase()) {
+          // Casing policy is unresolved; normalize but do not silently claim a display rule.
+          tag = tag.toLowerCase();
+        }
+        if (/\s/.test(tag)) {
+          error.textContent = 'Tags cannot contain spaces.';
+          return;
+        }
+        if ((tag.match(/:/g) || []).length > 1) {
+          error.textContent = 'A tag may include at most one colon for a single key:value pair.';
+          return;
+        }
+        if (!TAG_RE.test(tag)) {
+          error.textContent = 'Use lowercase letters, numbers, and single hyphens, with an optional single key:value.';
+          return;
+        }
+        if (draft.indexOf(tag) !== -1) {
+          error.textContent = '#' + tag + ' is already included.';
+          return;
+        }
+        if (draft.length >= 10) {
+          error.textContent = 'This conversation already has the maximum of 10 tags.';
+          return;
+        }
+        draft.push(tag);
+        input.value = '';
+        renderChips();
+        updateSaveState();
+      }
+
+      input.addEventListener('keydown', function (event) {
+        if (event.key === 'Enter' || event.key === ',') {
+          event.preventDefault();
+          addTag(input.value);
+        }
+      });
+
+      list.addEventListener('click', function (event) {
+        var button = event.target.closest('[data-remove-tag]');
+        if (!button || !canEdit() || pending) return;
+        if (draft.length === 1) {
+          error.textContent = 'A conversation must keep at least one tag.';
+          return;
+        }
+        draft = draft.filter(function (tag) { return tag !== button.dataset.removeTag; });
+        error.textContent = '';
+        renderChips();
+        updateSaveState();
+      });
+
+      // ---- Save workflow ----
+      function setSavePending(on) {
+        pending = on;
+        saveBtn.innerHTML = on ? '<span class="spin" aria-hidden="true"></span>Saving…' : 'Save tags';
+        renderChips();
+        updateSaveState();
+      }
+
+      tagForm.addEventListener('submit', function (event) {
+        event.preventDefault();
+        if (!canEdit() || pending) return;
+        if (input.value.replace(/^\s+|\s+$/g, '')) {
+          addTag(input.value);
+          if (error.textContent) { input.focus(); return; }
+        }
+        if (!isDirty()) { saveStatus.textContent = ''; return; }
+        if (!draftValid()) { error.textContent = 'A conversation needs between 1 and 10 tags.'; return; }
+
+        saveStatus.removeAttribute('data-tone');
+        saveStatus.textContent = 'Saving your changes…';
+        setSavePending(true);
+
+        window.setTimeout(async function () {
+          var outcome = staleToggle.checked ? 'stale' : (failToggle.checked ? 'failure' : 'success');
+          var result = await window.GovernanceSettingsApi.updateTags({ tags: clone(draft), outcome: outcome });
+          // Stale permission simulation: role revoked before the save lands.
+          if (result.status === 'denied') {
+            committed.viewerRole = result.viewerRole;
+            draft = clone(committed.tags);
+            setSavePending(false);
+            saveStatus.textContent = '';
+            renderAll();
+            return;
+          }
+          // Deterministic local failure: keep the draft, allow retry.
+          if (result.status === 'failed') {
+            setSavePending(false);
+            saveStatus.setAttribute('data-tone', 'error');
+            saveStatus.textContent = 'Save didn’t complete. Your changes are kept — try again.';
+            return;
+          }
+          // Success: commit once, persist locally, return to the conversation.
+          committed.tags = clone(draft);
+          persist();
+          setSavePending(false);
+          saveStatus.setAttribute('data-tone', 'ok');
+          saveStatus.textContent = 'Tags saved.';
+          window.showToast('Tags saved. Returning to the conversation…');
+          window.setTimeout(function () { window.location.href = CONVERSATION_HREF; }, 900);
+        }, 900);
+      });
+
+      // ---- Cancel / discard ----
+      function openModal(id) {
+        var m = el(id);
+        m.classList.add('open');
+        m.setAttribute('aria-hidden', 'false');
+      }
+      function closeModal(id) {
+        var m = el(id);
+        m.classList.remove('open');
+        m.setAttribute('aria-hidden', 'true');
+      }
+
+      cancelBtn.addEventListener('click', function () {
+        if (pending) return;
+        if (isDirty()) { openModal('discardModal'); return; }
+        window.location.href = CONVERSATION_HREF;
+      });
+
+      el('discardChanges').addEventListener('click', function () {
+        draft = clone(committed.tags);
+        closeModal('discardModal');
+        window.location.href = CONVERSATION_HREF;
+      });
+      el('keepEditingBtn').addEventListener('click', function () {
+        window.setTimeout(function () { input.focus(); }, 0);
+      });
+
+      // ---- Archive workflow ----
+      // Guard opening: capture phase runs before app.js's document handler.
+      archiveBtn.addEventListener('click', function (e) {
+        if (!canArchive() || pending) { e.stopImmediatePropagation(); e.preventDefault(); return; }
+        if (isDirty()) {
+          e.stopImmediatePropagation();
+          e.preventDefault();
+          archiveBlocked.textContent = 'Save or discard your tag changes before archiving.';
+          return;
+        }
+        archiveBlocked.textContent = '';
+        // else allow app.js to open the modal.
+      }, true);
+
+      function setArchivePending(on) {
+        pending = on;
+        confirmArchive.disabled = on;
+        keepActiveBtn.disabled = on;
+        confirmArchive.innerHTML = on ? '<span class="spin" aria-hidden="true"></span>Archiving…' : 'Archive conversation';
+        updateSaveState();
+      }
+
+      confirmArchive.addEventListener('click', function () {
+        if (pending || !canArchive()) return;
+        show(archiveModalError, false);
+        setArchivePending(true);
+
+        window.setTimeout(async function () {
+          var outcome = staleToggle.checked ? 'stale' : (failToggle.checked ? 'failure' : 'success');
+          var result = await window.GovernanceSettingsApi.archiveConversation({ outcome: outcome });
+          // Stale permission: owner became administrator; deny without success.
+          if (result.status === 'denied') {
+            committed.viewerRole = result.viewerRole;
+            setArchivePending(false);
+            closeModal('archiveModal');
+            renderAll();
+            dangerStatus.textContent = 'Your role changed to administrator before this finished. The conversation was not archived.';
+            return;
+          }
+          // Deterministic local failure: keep active, offer retry inside the dialog.
+          if (result.status === 'failed') {
+            setArchivePending(false);
+            show(archiveModalError, true);
+            return;
+          }
+          // Success: change local lifecycle once; records retained.
+          committed.status = result.status;
+          committed.archivedAt = result.archivedAt;
+          committed.archivedById = result.archivedById;
+          persist();
+          setArchivePending(false);
+          closeModal('archiveModal');
+          renderAll();
+          window.showToast('Conversation archived.');
+        }, 900);
+      });
+
+      // ---- Modal focus management (open focus, trap, restore) ----
+      function focusable(modal) {
+        return Array.prototype.slice.call(
+          modal.querySelectorAll('button:not([disabled]), [href], input:not([disabled]), select, textarea, [tabindex]:not([tabindex="-1"])')
+        ).filter(function (n) { return n.offsetParent !== null; });
+      }
+      function wireModalFocus(modal) {
+        var wasOpen = modal.classList.contains('open');
+        var lastFocus = null;
+        function onKey(e) {
+          if (e.key !== 'Tab') return;
+          var f = focusable(modal);
+          if (!f.length) return;
+          var first = f[0], last = f[f.length - 1];
+          if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+          else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+        }
+        new MutationObserver(function () {
+          var open = modal.classList.contains('open');
+          if (open && !wasOpen) {
+            wasOpen = true;
+            lastFocus = (modal === archiveModal) ? archiveBtn : input;
+            if (modal === archiveModal) { show(archiveModalError, false); setArchivePending(false); }
+            modal.addEventListener('keydown', onKey);
+            var f = focusable(modal);
+            if (f.length) window.setTimeout(function () { f[0].focus(); }, 0);
+          } else if (!open && wasOpen) {
+            wasOpen = false;
+            modal.removeEventListener('keydown', onKey);
+            if (lastFocus && document.body.contains(lastFocus)) {
+              window.setTimeout(function () { lastFocus.focus(); }, 0);
+            }
+          }
+        }).observe(modal, { attributes: true, attributeFilter: ['class', 'aria-hidden'] });
+      }
+      wireModalFocus(archiveModal);
+      wireModalFocus(discardModal);
+
+      // ---- Demo controls ----
+      scenarioSelect.addEventListener('change', function () { loadScenario(scenarioSelect.value); });
+      function resetDemo() {
+        try {
+          Array.prototype.forEach.call(scenarioSelect.options, function (option) {
+            window.sessionStorage.removeItem(STORAGE_PREFIX + option.value);
+          });
+        } catch (e) { /* ignore */ }
+        failToggle.checked = false;
+        staleToggle.checked = false;
+        scenarioSelect.value = 'owner';
+        loadScenario('owner');
+      }
+      el('resetDemo').addEventListener('click', resetDemo);
+      el('unavailableReset').addEventListener('click', resetDemo);
+
+      // ---- Init ----
+      window.GovernanceSettingsApi.initGovernanceSettingsApi().then(function () {
+        loadScenario('owner');
+      }).catch(function () {
+        committed = { invalid: true };
+        renderAll();
+      });
+    })();
+  </script>
+</body>
+</html>
