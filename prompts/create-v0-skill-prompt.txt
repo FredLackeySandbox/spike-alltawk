@@ -1,387 +1,124 @@
-Convert the approved static desktop mockup under `docs/mockup/desktop/` into a
-pixel-perfect, fully functional mockup under `docs/mockup/desktop-v0/`. The purpose
-of this version is to make the UI's functional logic explicit before a real backend
-is implemented.
+Convert one approved desktop mockup page into a faithful, fully functional v0
+page.
 
-The approved HTML, CSS, local JavaScript behavior, and data contracts are immutable
-sources of truth. The existing mockup already renders and functions correctly.
-Preserve every rendered pixel, interaction, state transition, validation result,
-keyboard behavior, timing characteristic, navigation outcome, and accessibility
-behavior exactly. Do not alter any source mockup file or any approved schema, data
-dictionary, or invariant document.
+## Scope
 
-## Execution model
+`SOURCE_PAGE` must identify one HTML file beneath `docs/mockup/desktop/`. If it
+does not, request one exact path.
 
-1. Use subagents for all discovery, implementation, review, and validation work.
-   The main agent is an orchestrator only. It may create and coordinate agents,
-   relay findings, track page ownership, and report results, but it must not inspect,
-   create, edit, or validate project files itself, including while waiting.
+Mirror its relative path beneath `docs/mockup/desktop-v0/` and create exactly:
 
-2. First assign a Discovery Agent only to recursively inventory every page beneath
-   `docs/mockup/desktop/`, exclude shared assets and other non-page files, and
-   return the page paths to the orchestrator. The Discovery Agent must not analyze,
-   implement, or validate any individual page.
+- `{page}.html`
+- `{page}-api.js`
+- `{page}-data.json`
 
-3. Assign exactly two page-specific agents to every discovered page:
+Do not modify source mockups, shared assets, schemas, or concept documents. Do not
+create other implementation files.
 
-   **Agent 1 — Page Implementation Engineer**
+## Agents
 
-   - Read the entire source page.
-   - Identify the exact domain object types used by the page's existing request
-     payloads, response payloads, and local behavior.
-   - Read only the schema definitions and invariant documentation beneath
-     `docs/schemas/` that define those exact object types and their directly
-     referenced relationships.
-   - Do not read unrelated schemas or product concept documents.
-   - Analyze the page's data, events, states, and local dependencies.
-   - Create the page's output HTML, page API, and page data fixture.
-   - Perform the complete initial visual, interaction, contract, runtime, and
-     navigation test pass.
-   - Correct its implementation until its own tests pass.
-   - Return the Agent 1 gate handoff defined below.
+The primary agent is an orchestrator only. It must not inspect project files,
+analyze the page, implement or edit files, run commands or tests, or validate the
+result. It may only launch the two agents below, pass them this prompt and
+`SOURCE_PAGE`, enforce their sequence, relay essential context, and report the
+final outcome.
 
-   **GATE:** Agent 2 must not inspect, review, test, or edit the page until Agent 1
-   has completed its three required page files, finished its test pass, and returned
-   an Agent 1 gate handoff with the status `READY FOR SENIOR REVIEW`. The
-   orchestrator must explicitly release Agent 2 after verifying that the handoff
-   contains every required section. A status of `BLOCKED` keeps the gate closed and
-   requires Agent 1 to continue the page.
+1. **Implementation Agent**
 
-   **Agent 2 — Senior Page Engineer**
+   Analyze the source, create all three output files, run every required test, fix
+   failures, retest, and hand off the files and test results.
 
-   - Independently read the approved source page and identify the exact domain
-     object types used by its existing request payloads, response payloads, and
-     local behavior.
-   - Independently read only the schema definitions and invariant documentation
-     beneath `docs/schemas/` for those exact object types and their directly
-     referenced relationships.
-   - Do not read unrelated schemas or product concept documents.
-   - Read Agent 1's three output files and Agent 1's handoff.
-   - Review the implementation as the senior engineer responsible for the page's
-     final quality.
-   - Directly correct defects in Agent 1's work and improve its internal code
-     quality, API boundaries, fixture quality, documentation, pseudocode, contract
-     fidelity, and test coverage.
-   - Do not improve, redesign, reinterpret, extend, or simplify the approved page's
-     cosmetics or user-observable functionality.
-   - Run the complete acceptance test suite after making corrections.
-   - Continue reviewing, correcting, improving, and re-testing its page until every
-     acceptance criterion passes.
-   - Return the Agent 2 final handoff defined below.
+2. **Verification Agent**
 
-   Agent 2 is the final owner and approver of that page. Do not send corrections
-   back to Agent 1 and do not assign a third page agent.
+   Start only after the Implementation Agent finishes. Independently analyze the
+   source and contracts, inspect the outputs, and rerun every test. Directly correct
+   all defects, omissions, and missing functionality in the three output files,
+   then retest. Return `APPROVED` only when everything passes; otherwise return
+   `BLOCKED` with specific evidence.
 
-   **Agent 1 gate handoff**
+The Verification Agent owns final quality and must not send corrections back to the
+Implementation Agent. Do not use any other agent.
 
-   The handoff is Agent 1's final response to the orchestrator. It is not a fourth
-   page file. Use the following sections and provide every requested value:
+## Analyze and implement
 
-   - **Page:** the assigned source page path.
-   - **Gate status:** exactly `READY FOR SENIOR REVIEW` or `BLOCKED`.
-   - **Delivered files:** the three exact output paths for the functional HTML,
-     page API, and page data fixture. Confirm that no other implementation file was
-     created or changed.
-   - **Source behavior catalog:** one row per source-defined lifecycle event or
-     user action, with columns for trigger, source behavior, API function, fixture
-     section, and resulting DOM state or navigation.
-   - **API catalog:** the page-specific namespace followed by every exposed
-     function's exact name, argument names, purpose, request shape, response shape,
-     and source behavior it preserves.
-   - **Contract catalog:** every approved object type used by the page, the exact
-     schema path consulted for that type, the API functions that request or return
-     it, and the directly enforced relationships or invariants.
-   - **Visual test evidence:** each tested viewport and source-defined state, the
-     source screenshot result, the output screenshot result, and the pixel
-     difference count. Every difference count must be zero.
-   - **Behavior test evidence:** every exercised source event and state transition,
-     its expected result, its output result, and `PASS` or `FAIL`.
-   - **Fixture and contract test evidence:** JSON parsing result, schema validation
-     result for every domain record, relationship checks, invariant checks, and
-     `PASS` or `FAIL`.
-   - **Runtime and navigation test evidence:** local server result, resource-load
-     result, console result, Promise-rejection result, external-request result, and
-     each tested local navigation target.
-   - **Open issues:** exactly `None` or a numbered list containing the evidence,
-     impact, and immutable contract limitation for each issue.
+Each agent must independently read the entire source page, its local CSS and
+JavaScript dependencies, and only the relevant schemas. Identify:
 
-   `READY FOR SENIOR REVIEW` requires all three files to exist, every required
-   acceptance check to have been executed, and every check to report `PASS`. A page
-   with a failed or omitted check must use `BLOCKED`.
+- all initial data and rendered values;
+- every implemented action, event, keyboard behavior, and navigation;
+- every loading, empty, success, validation, error, disabled, menu, and modal state;
+- inputs, results, mutations, permissions, filters, sorting, selection, and derived
+  values; and
+- controls that are functional, decorative, explanatory, or browser-native.
 
-   **Agent 2 final handoff**
+Map each implemented behavior as:
 
-   The handoff is Agent 2's final response to the orchestrator. It is not an
-   additional page file. Use the following sections and provide every requested
-   value:
+`event -> API function -> data read or mutation -> result -> DOM update or navigation`
 
-   - **Page:** the reviewed source page path.
-   - **Final status:** exactly `APPROVED` or `BLOCKED`.
-   - **Final delivered files:** the three exact output paths and confirmation that
-     they are the only implementation files created or changed for the page.
-   - **Senior corrections and improvements:** a file-by-file description of every
-     correction and internal improvement made to Agent 1's work, followed by
-     confirmation that none changed approved cosmetics or user-observable behavior.
-   - **Final source behavior catalog:** the complete trigger, source behavior, API
-     function, fixture section, and resulting DOM state or navigation mapping.
-   - **Final API catalog:** the namespace and every exposed function's exact name,
-     argument names, purpose, request shape, response shape, and preserved source
-     behavior.
-   - **Final contract catalog:** every approved object type used, exact schema path,
-     consuming or returning API functions, relationships, and invariants.
-   - **Independent visual test evidence:** every tested viewport and state with a
-     zero pixel-difference result.
-   - **Independent behavior test evidence:** every tested event and transition with
-     its expected result, actual result, and `PASS` or `FAIL`.
-   - **Independent fixture, contract, runtime, and navigation evidence:** the
-     results of every acceptance check and `PASS` or `FAIL`.
-   - **Open issues:** exactly `None` or a numbered list containing the evidence,
-     impact, and immutable contract limitation for each issue.
+The source is the visual and behavioral specification. Reproduce only what exists.
+Do not add, remove, redesign, reinterpret, or simplify visible functionality.
 
-   `APPROVED` requires `Open issues: None`, zero pixel differences, zero behavioral
-   differences, and a `PASS` result for every acceptance check. Every other outcome
-   must use `BLOCKED`.
+### HTML
 
-4. Treat each two-agent page pair as a fully isolated workstream. The pair owns only
-   its page's output HTML, page API, and page data fixture. Neither agent may edit,
-   review, refactor, or depend on another page's implementation files.
+Start from a copy of the source page.
 
-5. Different page pairs may run in parallel. The orchestrator should keep as many
-   pairs moving concurrently as available agent slots permit, while preserving the
-   Agent 1 -> gate -> Agent 2 sequence independently for every page.
+- Preserve its content, rendering, accessibility, responsive behavior, initial
+  state, interactions, and state transitions.
+- Move page-specific data and behavior into the sibling API and data files.
+- Load `{page}-api.js` and initialize it after the DOM is ready.
+- Add only non-rendering `data-*` hooks when necessary.
+- Reuse source shared assets read-only, adjusting relative paths only as required.
+- Link to a matching v0 page when one exists; otherwise preserve the source target.
+- Add no framework, build step, remote dependency, or external service.
 
-6. Do not optimize for reuse, consistency of implementation internals, shared
-   abstractions, or efficiency across pages. Each page must be independently
-   understandable and functional. Duplicate every data-access helper, controller
-   helper, presentation helper, style dependency, and local dependency required to
-   keep the page self-contained. Do not create or modify shared implementation
-   files as part of a page pair's work.
+### API
 
-## Required output for every page
+Create working browser-compatible JavaScript, not stubs.
 
-For every source page at a relative path represented by
-`{relative-directory}/{page}.html`, create:
+- Expose a page-specific namespace with functions for initialization and every
+  data-backed source behavior.
+- Load `{page}-data.json`; keep backend-like operations asynchronous and mutations
+  in page-local memory.
+- Preserve validation, branching, timing, side effects, DOM results, and
+  repeated-action behavior.
+- Prevent duplicate initialization, bindings, records, and submissions.
+- Use defensive copies and deterministic fixture values. Do not use randomness,
+  current-time values, hidden persistence, or real network calls.
+- Add concise JSDoc to exposed functions and comments only where logic is not
+  obvious.
 
-- `docs/mockup/desktop-v0/{relative-directory}/{page}.html`
-- `docs/mockup/desktop-v0/{relative-directory}/{page}-api.js`
-- `docs/mockup/desktop-v0/{relative-directory}/{page}-data.json`
+Decorative controls must remain decorative.
 
-Preserve the same relative directory structure for pages at the source root and in
-nested areas.
+### Data
 
-### Functional HTML
+Create deterministic, valid JSON containing only data needed for existing page
+states and behavior. Preserve approved names, types, enums, relationships, and
+invariants. Do not change schemas or add convenience fields to domain objects.
+Keep presentation copy and scenario metadata outside domain records.
 
-The output HTML must:
+## Test
 
-- begin as a one-for-one copy of the approved source page;
-- preserve all DOM content, styles, layout, typography, spacing, colors, assets,
-  accessibility semantics, visible states, hidden states, and state transitions;
-- copy every CSS selector, declaration, property, value, and ordering exactly;
-- never edit, add, delete, reorder, override, or replace CSS;
-- limit HTML changes to adding non-rendering `data-*` selectors to existing
-  elements, replacing existing inline page logic with the sibling page API script,
-  and invoking the page API after the DOM is ready;
-- never add, remove, reorder, or replace a visible element;
-- never change visible copy, element dimensions, attributes that affect rendering,
-  CSS classes, inline styles, interaction semantics, or the accessibility
-  attributes present in an equivalent source-page state;
-- reproduce all initially visible approved values after initialization, even when
-  those values now come from the page data fixture;
-- preserve all existing local interaction logic exactly, relocating data access and
-  documenting business decisions without changing inputs, outputs, branching,
-  timing, side effects, or DOM results;
-- keep navigation within the functional mockup output tree when a corresponding
-  destination page exists;
-- load the sibling page API and initialize it after the DOM is ready; and
-- work when served from a simple local HTTP server without external network access.
+Serve the source and output through a local HTTP server and use browser automation.
+Both agents must independently:
 
-Do not introduce a framework, build step, remote dependency, or real network
-service. Use browser-compatible JavaScript consistent with the existing mockup.
-The page API and fixture must adapt to the approved page. Never adapt the approved
-page to simplify the API, fixture, implementation, testing, or documentation. A
-visual or behavioral difference is an implementation defect, never an improvement
-or acceptable tradeoff.
+1. Compare source and output at two representative desktop viewport sizes.
+2. Confirm visual parity for the initial view and every source-defined visible
+   state.
+3. Exercise every source-defined interaction, keyboard path, validation path,
+   repeated action, recovery path, and navigation; observable results must match.
+4. Parse the fixture and validate relevant records, relationships, and invariants.
+5. Confirm reload resets the scenario and repeated initialization creates no
+   duplicate effects.
+6. Confirm there are no missing resources, JavaScript errors, unhandled rejections,
+   unexpected console errors, or external requests.
+7. Confirm only the three required output files changed.
 
-### Page API
+Any difference, omission, error, or failed check must be corrected and retested.
 
-The page API must be a working mock API and page controller, not a collection of
-stubs. It must:
+## Report
 
-- load all mock response data from the sibling `{page}-data.json` file;
-- expose a page-specific namespace containing action-oriented functions with names
-  such as `init...`, `fetch...`, `create...`, `update...`, `set...`, `remove...`,
-  `validate...`, or `do...`;
-- include an exposed function for every source-defined initial load, user action,
-  data request, data mutation, validation decision, and resulting UI state;
-- use asynchronous return values for operations that represent backend calls;
-- maintain mock mutations in page-local memory so the fixture remains static and a
-  reload resets the scenario;
-- return defensive copies where callers could otherwise mutate fixture data;
-- produce deterministic results for the same fixture and inputs;
-- prevent duplicate initialization, duplicate event bindings, duplicate records,
-  and duplicate submissions;
-- make every externally callable operation idempotent; use stable request
-  identifiers to preserve approved repeated-action behavior;
-- represent exactly the loading, success, empty, validation-error, request-error,
-  and disabled states already implemented by the approved source page;
-- never add a state, remove a state, change a transition, or expose a new
-  user-visible outcome;
-- update the DOM so every source-defined action produces exactly the same result as
-  the approved local logic;
-- preserve decorative controls without adding event handlers or API operations;
-- use fixture values or function arguments for every time and identifier; and
-- never use randomness, current-time identifiers, undocumented timers, or hidden
-  persistence.
+After approval, the orchestrator reports the source and output paths, API namespace
+and functions, behaviors tested, verification results, and any contract limitation.
 
-Every function, including internal helpers and named event handlers, must have:
-
-- a JavaDoc/JSDoc block immediately above it that explains its purpose;
-- `@param` entries for every argument;
-- an `@returns` entry, including for functions that return nothing or return a
-  Promise;
-- plain JavaScript function parameters with no TypeScript syntax.
-
-Inside every function, add concise pseudocode comments that explain the intended
-production logic and every material decision made while validating, selecting,
-filtering, deriving, authorizing, mutating, or rendering data. The comments must
-explain why a branch exists and which approved data or invariant drives it. They
-must supplement executable code, not replace it.
-
-### Static page data
-
-The page data fixture must be valid JSON and contain all and only the deterministic
-mock response data required to reproduce the approved page's existing behavior.
-Represent every category exercised by the source page:
-
-- initial-load records;
-- selectable options and autocomplete choices;
-- success, empty, validation, and failure scenarios;
-- response records for create, update, and delete-style actions;
-- actor, permission, and authorization context;
-- values displayed in lists, labels, controls, badges, counts, and placeholders;
-  and
-- deterministic identifiers and timestamps used by mock operations.
-
-The approved records beneath `docs/schemas/` describe what is ultimately available
-to the UI and must not be changed, extended, or contradicted:
-
-- Every domain record in a request or response must conform to its approved schema.
-- Preserve approved property names, types, enum values, formats, required fields,
-  relationships, and application-level invariants.
-- Do not add UI convenience properties, calculated display fields, aliases, or
-  invented status values to approved records.
-- Do not modify a schema to make fixture data pass.
-- Response envelopes may group exact approved records by operation or scenario, but
-  the records inside an envelope must remain schema-accurate.
-- Request payloads may contain the fields needed by an operation, but those fields
-  must use approved names and meanings.
-- Presentation-only copy or scenario metadata may live outside domain records when
-  it is not pretending to be backend domain data.
-- Derive display strings, counts, permission results, active states, and other view
-  values in JavaScript from approved fields.
-- Maintain valid foreign-key relationships and cross-record invariants throughout
-  each fixture and each in-memory mutation.
-
-If a page appears to require domain information that the approved objects cannot
-supply, do not invent a field and do not alter the contract. The page pair must
-first try to derive the value from approved fields or treat it as clearly
-presentation-only copy. If neither is truthful, Agent 1 must flag the contract gap
-in its handoff and Agent 2 must independently confirm it before reporting it to the
-orchestrator. Both agents must leave the approved objects unchanged.
-
-## Required page analysis
-
-Before implementing the page, each Page Implementation Engineer must inspect the
-entire source page and identify the following. After the gate, the Senior Page
-Engineer must repeat this analysis independently before correcting or approving the
-page:
-
-- data loaded and displayed during first initialization;
-- values currently hard-coded into visible content or attributes;
-- request payloads produced by forms and controls;
-- response payloads consumed after each action;
-- labels, placeholders, helper text, tooltips, counts, badges, and cosmetic sample
-  content;
-- list, menu, radio, checkbox, tab, segmented-control, and autocomplete options;
-- buttons, links, forms, keyboard actions, modals, menus, toasts, and navigation;
-- filtering, sorting, searching, pagination, selection, and derived display logic;
-- validation, permissions, disabled states, confirmation, retry, cancellation, and
-  error recovery;
-- empty, loading, success, failure, and edge states; and
-- any existing inline or shared JavaScript behavior that must be preserved.
-
-For every discovered event, both page agents must trace:
-
-`user or lifecycle event -> exposed API function -> request shape -> approved data
-read or mutation -> response shape -> DOM/state update`
-
-Preserve the exact behavior of every approved control. A working control must remain
-working in precisely the same way. A decorative control must remain decorative. An
-explanatory element must remain explanatory. Browser-native behavior must remain
-browser-native. Do not infer, add, remove, or reinterpret functionality from the
-appearance, label, placement, or semantics of an element.
-
-## Validation and acceptance criteria
-
-Each Page Implementation Engineer must run these checks before its handoff. After
-the gate, each Senior Page Engineer must independently repeat them, correct any
-problem it finds, and produce the final passing evidence:
-
-1. **Source safety:** no file beneath the source mockup or schema folders changed.
-
-2. **Completeness:** the assigned source page has exactly one corresponding output
-   HTML file, page API file, and page data fixture at the mirrored relative path.
-   The orchestrator determines project-wide completeness from the final handoff
-   returned by each page pair.
-
-3. **Visual parity:** capture source and output screenshots with the same browser,
-   viewport, font availability, URL state, and settled animation state at no fewer
-   than two representative desktop viewport sizes. Capture and compare the initial
-   page plus every source-defined visible, hidden, loading, success, validation,
-   failure, modal, menu, and disabled state. Every comparison must have zero pixel
-   differences. Every pixel difference is a test failure.
-
-4. **Behavior parity and completeness:** exercise every interactive control and
-   verify initial load, successful actions, validation failures, request failures,
-   empty states, repeated activation, and recovery already implemented by the
-   source page. Compare the complete source and output event sequences and DOM
-   results. Every behavioral difference is a test failure.
-
-5. **Contract fidelity:** parse every fixture, validate each domain record against
-   the relevant approved schema, and check relationships and cross-record
-   invariants. Confirm that neither production code nor fixture records invent
-   properties on approved objects.
-
-6. **API quality:** verify every API/controller function has complete JavaDoc/JSDoc
-   and useful in-function pseudocode comments, exposed functions use clear action
-   names, represented backend operations are asynchronous, and repeated
-   initialization or repeated equivalent calls do not duplicate effects.
-
-7. **Runtime quality:** serve the output through a local HTTP server and verify
-   there are no missing local resources, unhandled Promise rejections, JavaScript
-   errors, unexpected console errors, or external network requests.
-
-8. **Navigation:** follow all local page navigation and confirm targets stay within
-   the functional output tree and resolve successfully when a matching page exists.
-
-Do not accept visual inspection alone as proof. Use browser automation for
-screenshots and interaction checks, plus machine-readable JSON/schema validation.
-
-## Final orchestration report
-
-When every Senior Page Engineer has passed and approved its assigned page, the
-orchestrator must report:
-
-- the number of source pages discovered and the number completed;
-- the output paths grouped by page;
-- the exposed action functions for each page;
-- the visual, interaction, schema, runtime, and navigation checks performed;
-- any approved-contract gaps that could not be resolved without changing the data
-  model; and
-- confirmation that the approved source mockup and approved data contracts were not
-  modified.
-
-The task is complete only when every page is pixel-perfect at initialization,
-functionally reviewable through its meaningful states, backed exclusively by its
-static page fixture, faithful to the approved data contracts, and independently
-validated.
+The task is complete only when the Verification Agent approves a fully functional,
+faithful representation of `SOURCE_PAGE` with every test passing.
