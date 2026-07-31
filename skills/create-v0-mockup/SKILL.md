@@ -1,14 +1,15 @@
 ---
 name: create-v0-mockup
-description: Convert approved static desktop HTML mockups into path-mirrored, visually faithful v0 pages backed by tiny deterministic mock API JavaScript files and JSON response fixtures. Use when Codex must process every HTML page under a desktop mockup tree, preserve the source pages unchanged, derive backend-shaped calls from documented page behavior and browser interaction, repair unambiguous source runtime defects only in owned output HTML, and independently verify the result with Playwright.
+description: Recursively clone an approved static desktop mockup tree into a self-contained desktop-v0 tree, then convert every copied HTML page into a visually faithful fixture-backed v0 page without modifying or retaining runtime dependencies on the source tree. Use when Codex must preserve the original mockup, retrofit copied pages with tiny deterministic mock API JavaScript files and JSON response fixtures, and independently verify the isolated output with Playwright.
 ---
 
 # Create v0 Mockup
 
-Convert each approved desktop page into one copied HTML page, one thin mock API
-client, and one compact response fixture. Keep the source tree immutable. Process
-pages one at a time with an implementation agent followed by an independent
-verification agent.
+Clone the complete approved desktop tree once, then convert each copied HTML page
+into one thin mock API client and one compact response fixture. Keep the source
+tree immutable and make the output tree independently runnable. Process pages one
+at a time with an implementation agent followed by an independent verification
+agent.
 
 ## Resolve the project contract
 
@@ -23,15 +24,38 @@ Treat names beneath those roots as unknown project data. Never assume area names
 page names, selectors, payloads, domain entities, or application copy from a prior
 project.
 
-Mirror each source-relative HTML path directly beneath the output root. For
+Recursively copy every source file and directory to the same relative path beneath
+the output root before reading or changing any page. For
 `{relative/dir}/{page}.html`, create exactly these page-owned files:
 
 - `{output-root}/{relative/dir}/{page}.html`
 - `{output-root}/{relative/dir}/{page}-api.js`
 - `{output-root}/{relative/dir}/{page}-data.json`
 
-Shared assets remain in the source tree and are reused read-only. Do not create
-other implementation files.
+The recursive copy owns its own HTML, CSS, JavaScript, images, fonts, and other
+assets. Never load, link, import, fetch, symlink, or otherwise resolve a runtime
+dependency from the output tree into the source tree. Keep copied shared assets
+read-only during page work. Do not create other implementation files.
+
+## Initialize the isolated output tree
+
+Make initialization the first project-changing action. The output root must not
+already exist; never merge with, replace, empty, rename, or delete an existing
+output root. Never modify, rename, or delete the source root.
+
+Run the deterministic recursive-copy script:
+
+```bash
+node <skill-dir>/scripts/initialize-output.js \
+  --project-root <project-root> \
+  --source-root docs/mockup/desktop \
+  --output-root docs/mockup/desktop-v0
+```
+
+The script rejects symlinks and special files, copies the complete directory tree,
+compares every relative path and file hash, and confirms that the source manifest
+did not change. Stop with `BLOCKED` if initialization fails. After initialization,
+perform all implementation work only inside the output root.
 
 ## Pass the Playwright gate
 
@@ -65,14 +89,18 @@ node <skill-dir>/scripts/run-playwright.js \
   --scenario <temporary-scenario.js>
 ```
 
-Serve both trees from the project root with the bundled dependency-free server:
+Serve the source and output as independent web roots with two instances of the
+bundled dependency-free server:
 
 ```bash
-node <skill-dir>/scripts/serve-project.js --root <project-root> --port 0
+node <skill-dir>/scripts/serve-project.js --root <source-root> --port 0
+node <skill-dir>/scripts/serve-project.js --root <output-root> --port 0
 ```
 
-Read its `READY` URL and use that exact origin in the temporary scenario. Stop the
-server when the page agent finishes.
+Read both `READY` URLs. Open the same source-relative page path at each origin.
+Never serve the project root for source/output comparison because doing so can
+hide an output dependency on the source tree. Stop both servers when the page
+agent finishes.
 
 Never leave browser scripts, screenshots, reports, or runtime data in the project.
 Open every source/output state screenshot with the environment's image-viewing
@@ -84,9 +112,9 @@ works but visual inspection is unavailable, return `BLOCKED`.
 The primary agent is an orchestrator only. It must not read page contents,
 implement files, edit files, run page interactions, or approve work.
 
-Run the inventory script, which inventories filenames and computes hashes for all
-project files except `.git`, `node_modules`, and the separately inventoried output
-tree. Symlinks are hashed with their referenced content:
+After initialization, run the inventory script. It inventories filenames and
+computes hashes for all project files except `.git`, `node_modules`, and the
+separately inventoried output tree:
 
 ```bash
 node <skill-dir>/scripts/inventory-pages.js \
@@ -108,7 +136,8 @@ assigning work. Use their prompt contracts and report schemas.
 
 Never run page workstreams in parallel. For each frozen inventory entry:
 
-1. Freeze the current `outputFiles` manifest for this page assignment.
+1. Freeze the current `outputFiles` manifest for this page assignment. It already
+   contains the complete recursively copied tree.
 2. Start one Page Implementation Agent. Give it only the project root, skill
    directory, assigned inventory entry, page-catalog path, and page-owned output
    paths. Forbid it from reading or changing another page's outputs and from
@@ -129,45 +158,46 @@ Never run page workstreams in parallel. For each frozen inventory entry:
    Do not begin the next page.
 8. Begin the next page only after approval.
 
-The two page agents may change only their assigned output HTML, API JavaScript,
-and data JSON. The source HTML, shared assets, concept documents, schemas, and all
-other page outputs are read-only.
+The two page agents may change only their assigned copied output HTML, API
+JavaScript, and data JSON. The source tree, copied shared assets, concept
+documents, schemas, and all other copied page outputs are read-only.
 
 ## Enforce the implementation order
 
 The implementation agent must follow this order:
 
-1. Create the target parent directory.
-2. Copy the source HTML byte-for-byte with a filesystem copy operation.
-3. Only now read the entire copied/source page, every directly referenced local CSS
-   and JavaScript file, and the assigned page's entry in the page catalog. Stop if
-   the page has no unambiguous catalog entry.
-4. Serve the project over HTTP and use Playwright on the source page to discover
+1. Confirm the assigned copied HTML exists and initially matches the inventoried
+   source hash. Do not copy it again.
+2. Read the entire copied page, every directly referenced copied local CSS and
+   JavaScript file, and the assigned page's entry in the page catalog. Stop if the
+   page has no unambiguous catalog entry or any dependency escapes the output root.
+3. Serve the trees independently over HTTP and use Playwright on the source page to discover
    every visible and semantic interaction state before retrofitting anything.
-5. Build the required state matrix in the handoff, not in a project file.
-6. Identify any unambiguous source runtime defect that prevents the source markup
+4. Build the required state matrix in the handoff, not in a project file.
+5. Identify any unambiguous source runtime defect that prevents the source markup
    or page catalog's explicit postcondition from rendering. Record its browser
    evidence and the smallest output-only compatibility correction.
-7. Decide which interactions would contact a real backend. Keep all other
+6. Decide which interactions would contact a real backend. Keep all other
    interactions entirely in HTML.
-8. Create sibling API and data files from
+7. Create sibling API and data files from
    [page-api.template.js](assets/page-api.template.js) and
    [page-data.template.json](assets/page-data.template.json). Replace every
    placeholder. Treat the data template as a pattern catalog: keep, rename, and
    reshape only the keyed-load, create, update, delete, or fixed-action sections
    the discovered page needs; delete every unused section, outcome, record, and
    field. Add a matching API function only for each retained backend operation.
-9. Retrofit one backend-shaped operation at a time. Keep browser behavior in HTML,
+8. Retrofit one backend-shaped operation at a time. Keep browser behavior in HTML,
    place only prepared response values in JSON, and add one minimal API function.
-10. Record the concrete arguments passed by the HTML and the exact returned
+9. Record the concrete arguments passed by the HTML and the exact returned
    fixture value for success, failure, empty, denied, and recovery paths that the
    source supports.
-11. Retest the affected states and transitions before continuing.
-12. Run the full source/output comparison and static validator.
+10. Retest the affected states and transitions before continuing.
+11. Run the full source/output comparison, page validator, and standalone-tree validator.
 
-Adjust only local relative links required by the mirrored location. Link to the
-matching v0 page when it exists; otherwise preserve the source target. Do not
-redesign, reorganize, or replace the copied page.
+Keep copied local asset and internal-page links unchanged. Because the complete
+tree exists before page processing, those links already target copied files. Never
+rewrite a copied link to the source tree. Do not redesign, reorganize, or replace
+the copied page.
 
 ## Correct source runtime defects in the output
 
@@ -274,11 +304,20 @@ node <skill-dir>/scripts/validate-page.js \
   --html <absolute-output-html> \
   --api <absolute-output-api> \
   --data <absolute-output-data>
+
+node <skill-dir>/scripts/validate-output-tree.js \
+  --project-root <project-root> \
+  --source-root docs/mockup/desktop \
+  --output-root docs/mockup/desktop-v0
 ```
 
 The API and JSON must each be at most 200 physical lines. Each public API function
 must be at most 12 physical lines including its backend comment. Do not minify to
 meet limits.
+
+The tree validator must pass after every page and at final completion. It rejects
+symlinks, external dependencies, missing local targets, and any local reference
+that escapes the output root.
 
 Static checks do not replace Playwright. Both page agents must independently use
 Playwright to exercise every source-defined state, catalog-required transition,
@@ -296,7 +335,9 @@ defect-for-defect parity.
 ## Finish
 
 After every page is approved, verify that the frozen inventory maps one-to-one to
-complete output triples and that every protected-file hash still matches. Report:
+complete output triples, every protected-file hash still matches, copied shared
+assets retain their initialization hashes, and the standalone-tree validator
+passes. Report:
 
 - page count discovered and approved;
 - source and three output paths per page;
@@ -307,6 +348,8 @@ complete output triples and that every protected-file hash still matches. Report
 - visual, behavior, accessibility, console, network, and static checks completed;
 - confirmation that UI logic remains in HTML and every API reads only its sibling
   JSON; and
+- confirmation that the output was served from its own root and has no runtime
+  dependency on the source tree; and
 - source-contract limitations and output-only compatibility corrections.
 
 Complete only when every page is `APPROVED` and all sources remain unchanged.

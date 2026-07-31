@@ -14,16 +14,21 @@
 
 | File | Owns | Must not own |
 | --- | --- | --- |
-| `{page}.html` | DOM work, rendering, handlers, keyboard behavior, validation, loading, dialogs, navigation, timers, UI state, and API orchestration | Prepared API response payloads |
+| `{page}.html` | DOM work, rendering, handlers, keyboard behavior, validation, loading, dialogs, navigation, timers, UI state, and API orchestration | Prepared API response payloads or dependencies on the source tree |
 | `{page}-api.js` | One-time fixture loading and tiny API-shaped functions returning prepared values | DOM work, presentation, validation, permissions, workflows, timers, navigation, or realistic persistence |
 | `{page}-data.json` | Compact deterministic response values | UI state, presentation metadata, requests, scenarios, domain databases, schema mirrors, or unused fields |
 
+The complete output tree must already be a verified recursive copy before page
+work starts. Treat copied shared assets and every nonassigned copied HTML page as
+read-only. Never introduce an output symlink or a local reference that resolves
+outside the output root.
+
 ## Source discovery
 
-After copying the HTML, read it completely. Read directly referenced local CSS and
-JavaScript completely. Read the page-catalog entry selected by source-relative
-path; use the title only as corroboration. Treat the catalog's purpose, required
-behavior, exclusions, and navigation as product constraints.
+Read the assigned copied HTML completely. Read directly referenced copied local
+CSS and JavaScript completely. Read the page-catalog entry selected by
+source-relative path; use the title only as corroboration. Treat the catalog's
+purpose, required behavior, exclusions, and navigation as product constraints.
 
 Use Playwright against the source before editing the copied behavior. Static
 inspection informs where to interact but cannot prove a state works.
@@ -116,9 +121,11 @@ The API may fetch only this sibling fixture. The HTML must not fetch it directly
 
 ## Browser comparison
 
-Serve the project from its root through HTTP. Use the same Playwright package,
-browser engine, viewport, interaction sequence, reduced-motion setting, and
-screenshot settings for each source/output pair.
+Serve the source root and output root through separate HTTP server processes. Open
+the same source-relative page URL at each origin. Never serve the project root for
+comparison. Use the same Playwright package, browser engine, viewport, interaction
+sequence, reduced-motion setting, and screenshot settings for each source/output
+pair.
 
 Test at 1280x800 and 1440x1000. For each state:
 
@@ -133,7 +140,7 @@ Test at 1280x800 and 1440x1000. For each state:
    accessibility roles/names, checked/selected/pressed/disabled/busy state, and
    live-region output.
 7. Record console errors, page errors, unhandled rejections, failed requests, and
-   every network request.
+   every network request. Fail every 4xx/5xx response.
 
 For a proven output-correctable source defect, compare the pages through the last
 functioning precondition. Capture and inspect the defective source state as
@@ -142,9 +149,10 @@ expressed DOM/JavaScript intent, and the unaffected approved presentation. Recor
 the exception and correction in the handoff; do not require the output to
 reproduce the source defect.
 
-Allow only the local page, shared local assets, sibling API script, and sibling
-fixture requests. Fail on an external or unexplained request, missing resource,
-JavaScript error, or rejected promise.
+At the output origin, allow only files served from the output root. Fail on an
+external or unexplained request, missing resource, JavaScript error, rejected
+promise, output symlink, or reference that escapes the output root. Run
+`validate-output-tree.js` after each page and at final completion.
 
 Confirm the corresponding named function is called for every backend-shaped
 operation. Capture requests and responses at the function boundary. Reload and
@@ -155,6 +163,7 @@ repeat actions to prove reset and repeated-action parity.
 Return `APPROVED` only if:
 
 - source hash matches inventory;
+- initialization produced a complete byte-identical recursive copy before page work;
 - only the assigned output triple changed;
 - copied HTML remains recognizably source-derived;
 - every functioning source state remains visually identical, and every corrected
@@ -163,6 +172,8 @@ Return `APPROVED` only if:
 - every documented state and transition passes at both viewports;
 - request and response payloads are captured for every backend operation/path;
 - accessibility-observable behavior, focus, navigation, console, and network pass;
+- the output passes standalone-tree validation and works from its own server root;
+- no output file has a runtime dependency on the source tree;
 - the API reads only its sibling fixture and contains no forbidden responsibility;
 - JSON contains only consumed prepared return values;
 - API and JSON are each at most 200 physical lines;

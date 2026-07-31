@@ -147,6 +147,10 @@ function buildInventory(options) {
 
   if (!fs.existsSync(sourceRoot)) throw new Error(`Source root does not exist: ${sourceRoot}`);
   if (!fs.statSync(sourceRoot).isDirectory()) throw new Error(`Source root is not a directory: ${sourceRoot}`);
+  if (!fs.existsSync(outputRoot)) {
+    throw new Error(`Output root does not exist; run initialize-output.js first: ${outputRoot}`);
+  }
+  if (!fs.statSync(outputRoot).isDirectory()) throw new Error(`Output root is not a directory: ${outputRoot}`);
   if (!fs.existsSync(pageCatalog)) throw new Error(`Page catalog does not exist: ${pageCatalog}`);
   if (path.normalize(lexicalOutputRoot) !== path.normalize(outputRoot)) {
     throw new Error("Output root must not traverse a symbolic link");
@@ -174,6 +178,9 @@ function buildInventory(options) {
     const parsed = path.posix.parse(relativeHtml);
     const relativeStem = path.posix.join(parsed.dir, parsed.name);
     const outputHtml = path.join(outputRoot, ...relativeHtml.split("/"));
+    if (!fs.existsSync(outputHtml) || !fs.statSync(outputHtml).isFile()) {
+      throw new Error(`Copied output HTML is missing: ${outputHtml}`);
+    }
     return {
       relativeHtml,
       sourceHtml,

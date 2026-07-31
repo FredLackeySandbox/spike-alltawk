@@ -9,10 +9,11 @@
 
 ## Orchestrator rules
 
-The orchestrator may inventory paths and hashes, assign one page at a time, relay
-raw handoffs, enforce scope, and summarize final results. It must not inspect page
-contents, edit implementation files, execute page interactions, resolve a page
-agent's design decisions, or approve its own work.
+The orchestrator may initialize the complete output copy, inventory paths and
+hashes, assign one page at a time, relay raw handoffs, enforce scope, and summarize
+final results. It must not inspect page contents, edit implementation files,
+execute page interactions, resolve a page agent's design decisions, or approve its
+own work.
 
 Use exactly two agents for each page. Finish the implementation agent before
 starting the verification agent. Finish and approve both before assigning another
@@ -29,15 +30,19 @@ Read and follow the create-v0-mockup skill at [SKILL_DIR]/SKILL.md, including it
 verification contract. Project root: [PROJECT_ROOT]. Assigned inventory entry:
 [INVENTORY_ENTRY_JSON]. Page catalog: [PAGE_CATALOG]. You own only these output
 files: [OUTPUT_HTML], [OUTPUT_API], [OUTPUT_DATA]. Do not inspect or change another
-page's outputs. Do not modify the source page, shared assets, concepts, schemas, or
-other files. Do not spawn agents.
+page's outputs. The complete output tree has already been recursively copied. Do
+not copy the page again. Do not modify the source tree, copied shared assets,
+concepts, schemas, or other files. Never create a runtime reference from the
+output tree to the source tree. Do not spawn agents.
 
-Follow the required copy-before-analysis sequence. Use the skill's Playwright
-locator and runner. Interact with the source through Playwright before designing
-API calls. Create the complete interaction-state matrix, capture each function's
+Begin with the assigned copied output page and its copied local dependencies. Use
+the skill's Playwright locator and runner. Serve the source and output roots
+independently. Interact with the source through Playwright before designing API
+calls. Create the complete interaction-state matrix, capture each function's
 concrete arguments and returned fixture value, retrofit the copied page, and
-compare source/output at both required viewports. Fix and retest until all checks
-pass.
+compare source/output at both required viewports. Run both validators, prove the
+output page has no dependency outside the output root, and fix and retest until
+all checks pass.
 
 Return the required raw handoff. Do not claim approval; independent verification
 follows.
@@ -57,13 +62,15 @@ verification contract. Project root: [PROJECT_ROOT]. Assigned inventory entry:
 files: [OUTPUT_HTML], [OUTPUT_API], [OUTPUT_DATA]. The source and all other files
 are read-only. Do not inspect or change another page's outputs. Do not spawn agents.
 
-Independently read the complete assigned source, directly referenced local assets,
-and matching catalog entry. Independently rediscover the state matrix with
+Independently read the complete assigned source, assigned copied output, their
+directly referenced local assets, and the matching catalog entry. Serve the source
+and output as independent roots. Independently rediscover the state matrix with
 Playwright; do not treat the implementer's matrix as ground truth. Exercise the
 source and output at both required viewports and visually inspect paired
 screenshots for every state. Inspect separation, concrete function arguments,
-fixture returns, console/network behavior, line limits, source hash, and output
-scope.
+fixture returns, console/network behavior, line limits, source hash, output scope,
+and standalone output-tree validation. Reject any output dependency on the source
+tree.
 
 When runtime evidence proves an unambiguous source defect, preserve the source and
 verify or add the smallest correction in the assigned output HTML under the
@@ -128,6 +135,7 @@ Coverage
 - Transition coverage percentage:
 
 Checks
+- Recursive output initialization:
 - Visual parity:
 - Approved-design fidelity for corrected source defects:
 - Visible/semantic parity:
@@ -140,6 +148,9 @@ Checks
 - Console/unhandled rejection errors:
 - Unexpected/external network requests:
 - Static validator:
+- Standalone-tree validator:
+- Output served from isolated root:
+- Output-to-source runtime references:
 - API/JSON physical line counts:
 - Protected-file manifest unchanged:
 - Nonassigned output manifest unchanged:
