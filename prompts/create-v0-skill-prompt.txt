@@ -88,6 +88,42 @@ interaction, decide whether a real application would contact a backend.
   Create a function only for a backend-shaped operation such as loading, creating,
   updating, deleting, or submitting data.
 
+### Mandatory interaction-state coverage
+
+Before editing any output file, use browser automation against the source page to
+build an interaction-state matrix. Static source inspection alone is insufficient.
+
+A state is any visually or semantically distinct page condition supported by the
+source markup, CSS, JavaScript, URL or query handling, or enabled controls. Include:
+
+- the initial, loading, loaded, empty, failure, denied, and recovery states;
+- every tab, segmented-control, radio-group, and toggle selection;
+- every `<select>` option that produces distinct content, enabled state, validation,
+  request, or navigation;
+- the open and closed states of menus, disclosures, popovers, and dialogs;
+- every distinct menu command, including cancel and confirm outcomes;
+- validation states and dependent-field changes;
+- disabled, busy, success, and failure states for submitted actions;
+- URL, query-string, hash, and source-defined QA or fixture variants;
+- state changes caused by repeated actions and multi-step action sequences; and
+- the keyboard path and focus result for interactive components.
+
+For each state, record this matrix in the agent handoff:
+
+| State ID | Entry action or URL | Source evidence | Expected visible and accessibility result | Exit or recovery action | Tested |
+| --- | --- | --- | --- | --- | --- |
+
+Do not create a separate matrix file. Include it in the agent's handoff and final
+verification report.
+
+Every matrix row and every transition between rows must be reproduced and tested
+in the output. A page may not be approved from an initial-view comparison alone.
+
+Do not invent behavior based only on a control's label. If a visible control implies
+a state but the source provides no corresponding markup, script, target page, or
+other behavioral evidence, report it as a source-contract limitation rather than
+silently implementing or ignoring it.
+
 Use schemas only when needed to confirm the name or shape of a value that the page
 actually receives from an API call. Do not copy schema entities, relationships,
 history records, metadata, or invariants into the fixture.
@@ -150,9 +186,13 @@ The API file must not:
   unnecessary.
 
 Each public function should normally contain one fixture lookup and one return.
-Parameters may be unused by the mock implementation. Immediately above each
-function, use a short comment to describe what a real backend would do. Do not
-implement those comment steps in the mock.
+Parameters may be unused only when they do not affect the source page's observable
+result. When a tab, filter, dropdown, pagination control, or other selection causes
+a backend-shaped request with a distinct response, the fixture must contain one
+small prepared response per distinct request value, and the API must select it by
+a direct parameter-key lookup. This lookup is permitted and is not business logic.
+Immediately above each function, use a short comment to describe what a real backend
+would do. Do not implement those comment steps in the mock.
 
 Use this shape as the model:
 
@@ -180,6 +220,16 @@ Use this shape as the model:
 ```
 
 Do not add logic to `doSomething` merely because its parameters are present.
+
+For a request parameter that selects among distinct prepared responses, use this
+shape instead:
+
+```js
+async function getRoster({ membershipState }) {
+  // A real backend would authorize the request and query the roster.
+  return structuredClone(data.rostersByMembershipState[membershipState]);
+}
+```
 
 ## Fixture requirements
 
@@ -250,6 +300,17 @@ Both agents in every page pair must independently:
    `location`, `localStorage`, `sessionStorage`, or `setTimeout`.
 8. Confirm the API and JSON are within all simplicity guardrails.
 9. Confirm they changed only their assigned page's three output files.
+10. Compare the implementation and verification state matrices. The verifier must
+    independently rediscover the states rather than relying only on the implementer's
+    inventory.
+11. Activate every tab, segmented-control choice, radio choice, and behaviorally
+    distinct select option in both source and output.
+12. After every activation, compare visible content, visibility, selected or pressed
+    attributes, disabled state, focus, live-region output, and URL changes.
+13. Exercise every source-defined query, hash, fixture, or QA variant found in the
+    source JavaScript.
+14. Record the number of discovered states, transitions, and covered states. Approval
+    requires 100% coverage; undocumented sampling is not sufficient.
 
 Visual and behavioral parity alone is not sufficient. Any separation violation,
 unnecessary fixture field, unnecessary helper, or guardrail violation is a failed
@@ -264,7 +325,9 @@ After every page is approved, the orchestrator reports:
 - each page's API namespace and functions;
 - the line counts of each API and JSON file;
 - confirmation that all UI logic remained in the HTML;
-- the behaviors and checks completed for each page; and
+- the behaviors and checks completed for each page;
+- each page's interaction-state matrix and its discovered-state, transition, and
+  covered-state counts; and
 - any contract limitation.
 
 The task is complete only when every source page has exactly one approved output
