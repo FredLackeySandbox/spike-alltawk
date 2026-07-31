@@ -1,5 +1,27 @@
-Convert every approved desktop mockup page into a faithful, fully functional v0
-page.
+Convert every approved desktop mockup page into a faithful interactive v0 page
+with a deliberately tiny, fixture-backed mock API client.
+
+This is a responsibility-separation task, not a rewrite and not a domain
+simulation. Preserve all existing visible functionality, but keep presentation,
+browser behavior, and interaction state in the HTML page.
+
+## Definition of "fully functional"
+
+"Fully functional" means that every interaction already implemented by the source
+page still works and produces the same visible result. It does not mean that the
+mock API must implement a real backend, domain model, database, state machine, or
+application architecture.
+
+The output has this strict ownership boundary:
+
+| File | Owns | Must not own |
+| --- | --- | --- |
+| `{page}.html` | DOM queries and updates, rendering, event handlers, keyboard behavior, validation messages, loading indicators, modal/menu behavior, navigation, timers, UI state, and orchestration of API calls | Mock response payloads that belong in the fixture |
+| `{page}-api.js` | Loading the fixture and exposing small API-shaped functions that return fixture values | DOM access, rendering, event handling, validation, permissions, business rules, workflow/state machines, navigation, timers, or realistic persistence |
+| `{page}-data.json` | Small deterministic values returned by the mock API | UI state, presentation instructions, scenario engines, normalized database tables, schema mirrors, audit history, or fields unused by an API return value |
+
+When ownership is unclear, keep the logic in the HTML. The API file is intentionally
+boring.
 
 ## Scope
 
@@ -19,9 +41,9 @@ create other implementation files.
 ## Agents
 
 The primary agent is an orchestrator only. It must first inventory the complete set
-of source HTML paths, without reading or analyzing page contents. It must not
+of source HTML paths without reading or analyzing page contents. It must not
 implement or edit files, run page tests, or validate results. It may only manage
-page assignments, enforce the workflow, relay essential context, and report the
+page assignments, enforce this workflow, relay essential context, and report the
 final outcome.
 
 After the inventory is complete, create one isolated two-agent workstream for every
@@ -37,73 +59,175 @@ pair:
 2. **Page Verification Agent**
 
    Start only after that page's Implementation Agent finishes. Independently
-   analyze the source and contracts, inspect the outputs, and rerun every test.
-   Directly correct all defects, omissions, and missing functionality in the three
-   output files, then retest. Return `APPROVED` only when everything passes;
-   otherwise return `BLOCKED` with specific evidence.
+   compare the source and outputs, rerun every test, and directly correct defects.
+   The verifier must reject unnecessary abstraction, DOM code in the API, business
+   logic in the API, schema-shaped fixture bloat, and duplicated presentation data.
+   It should simplify or delete excess code, not merely confirm behavior. Return
+   `APPROVED` only when behavior and separation both pass; otherwise return
+   `BLOCKED` with specific evidence.
 
 The Verification Agent owns final quality for its page and must not send
 corrections back to the Implementation Agent. Different page pairs may run in
-parallel as capacity allows, but the Implementation → Verification order is
+parallel as capacity allows, but the Implementation -> Verification order is
 mandatory within every pair. Assign exactly one pair per page and use no other
 agents.
 
-## Analyze and implement
+## Analyze the source
 
-Both agents in a page pair must independently read the entire assigned source page,
-its local CSS and JavaScript dependencies, and only the relevant schemas. Identify:
+Both agents in a page pair must independently read the entire assigned source page
+and its directly referenced local CSS and JavaScript.
 
-- all initial data and rendered values;
-- every implemented action, event, keyboard behavior, and navigation;
-- every loading, empty, success, validation, error, disabled, menu, and modal state;
-- inputs, results, mutations, permissions, filters, sorting, selection, and derived
-  values; and
-- controls that are functional, decorative, explanatory, or browser-native.
+Inventory the source page's existing visible states and interactions. For each
+interaction, decide whether a real application would contact a backend.
 
-Map each implemented behavior as:
+- If no backend call would be made, keep the interaction entirely in the HTML.
+- If a backend call would be made, keep the event handler, validation, loading
+  state, rendering, DOM update, timing, navigation, and error presentation in the
+  HTML. Add one call from that HTML logic to a small function in `{page}-api.js`.
+- Do not create one API function for every click, keypress, modal, or state change.
+  Create a function only for a backend-shaped operation such as loading, creating,
+  updating, deleting, or submitting data.
 
-`event -> API function -> data read or mutation -> result -> DOM update or navigation`
+Use schemas only when needed to confirm the name or shape of a value that the page
+actually receives from an API call. Do not copy schema entities, relationships,
+history records, metadata, or invariants into the fixture.
 
-The source is the visual and behavioral specification. Reproduce only what exists.
-Do not add, remove, redesign, reinterpret, or simplify visible functionality.
+## HTML requirements
 
-### HTML
+Start from a copy of the complete source page.
 
-Start from a copy of the source page.
-
-- Preserve its content, rendering, accessibility, responsive behavior, initial
-  state, interactions, and state transitions.
-- Move page-specific data and behavior into the sibling API and data files.
-- Load `{page}-api.js` and initialize it after the DOM is ready.
-- Add only non-rendering `data-*` hooks when necessary.
+- Preserve its content, markup, rendering, accessibility, responsive behavior,
+  initial state, interactions, and state transitions.
+- Preserve its page-specific JavaScript in the HTML. Do not relocate existing UI
+  functions into the API file.
+- The HTML must continue to own every `addEventListener`, DOM query and update,
+  validation branch, modal/menu transition, focus operation, timer, and navigation.
+- Replace only the small portions that pretend to be backend calls or contain
+  hard-coded backend response values. Call the sibling API function at those
+  points, then let the HTML render the returned value.
+- Presentation strings, labels, CSS classes, selectors, element IDs, button state,
+  and QA/demo controls remain in the HTML and must not be copied into JSON.
+- Load `{page}-api.js` before the page-specific script uses it. The HTML explicitly
+  calls the API's fixture initializer; the API must not initialize the page or bind
+  handlers itself.
 - Reuse source shared assets read-only, adjusting relative paths only as required.
 - Link to a matching v0 page when one exists; otherwise preserve the source target.
 - Add no framework, build step, remote dependency, or external service.
 
-### API
+## Mock API requirements
 
-Create working browser-compatible JavaScript, not stubs.
+Create a browser-compatible mock of the client library that a real page would
+call. It is not a mock backend implementation.
 
-- Expose a page-specific namespace with functions for initialization and every
-  data-backed source behavior.
-- Load `{page}-data.json`; keep backend-like operations asynchronous and mutations
-  in page-local memory.
-- Preserve validation, branching, timing, side effects, DOM results, and
-  repeated-action behavior.
-- Prevent duplicate initialization, bindings, records, and submissions.
-- Use defensive copies and deterministic fixture values. Do not use randomness,
-  current-time values, hidden persistence, or real network calls.
-- Add concise JSDoc to exposed functions and comments only where logic is not
-  obvious.
+The API file may do only these things:
 
-Decorative controls must remain decorative.
+- fetch `{page}-data.json` once in a small `init...` function;
+- retain the parsed fixture in one private variable;
+- expose plainly named functions such as `getSomething`, `createSomething`,
+  `updateSomething`, `deleteSomething`, or `doSomething`;
+- accept an object parameter that shows the intended request contract;
+- select an already prepared fixture value by a direct property or array lookup;
+- return that value, preferably as a defensive copy or resolved Promise; and
+- export one page-specific namespace on `window`.
 
-### Data
+The API file must not:
 
-Create deterministic, valid JSON containing only data needed for existing page
-states and behavior. Preserve approved names, types, enums, relationships, and
-invariants. Do not change schemas or add convenience fields to domain objects.
-Keep presentation copy and scenario metadata outside domain records.
+- access `document`, elements, selectors, classes, attributes, styles, or focus;
+- register or dispatch events;
+- render strings or HTML;
+- display validation, loading, empty, success, failure, menu, or modal states;
+- navigate, reload, inspect URL query parameters, or read browser storage;
+- use timers to simulate latency;
+- contain permission checks, validation rules, sorting, filtering, joining,
+  aggregation, record assembly, workflow branching, or other business logic;
+- create a normalized in-memory domain model or mutate related records;
+- generate IDs, timestamps, audit records, role periods, or history;
+- implement duplicate-submission protection or other UI coordination;
+- expose page initialization, render, bind, modal, toast, or navigation functions;
+  or
+- add abstractions, classes, repositories, services, stores, event buses, or helper
+  layers. Apart from fixture loading and optional defensive copying, helpers are
+  unnecessary.
+
+Each public function should normally contain one fixture lookup and one return.
+Parameters may be unused by the mock implementation. Immediately above each
+function, use a short comment to describe what a real backend would do. Do not
+implement those comment steps in the mock.
+
+Use this shape as the model:
+
+```js
+(function () {
+  "use strict";
+
+  let data;
+
+  async function initWidgetApi() {
+    const response = await fetch("widget-data.json");
+    data = await response.json();
+  }
+
+  async function doSomething({ valueA, valueB }) {
+    // Real backend responsibility:
+    // 1. Look up X.
+    // 2. Find matching Y records.
+    // 3. Assemble the response where A equals B.
+    return structuredClone(data.things.widgetArray);
+  }
+
+  window.WidgetApi = { initWidgetApi, doSomething };
+})();
+```
+
+Do not add logic to `doSomething` merely because its parameters are present.
+
+## Fixture requirements
+
+Create valid, deterministic JSON containing only values directly returned by the
+mock API functions. Prefer compact, denormalized, screen-level response objects.
+
+Use this shape as the model:
+
+```json
+{
+  "things": {
+    "widgetArray": [
+      {
+        "id": "abc123",
+        "name": "Something"
+      }
+    ]
+  }
+}
+```
+
+- Include only fields that the HTML reads from an API result.
+- Use the fewest records needed to preserve the source page's behavior.
+- Store a final mock response directly instead of storing normalized input records
+  and assembling them in JavaScript.
+- Do not reproduce complete schema entities just because a schema defines them.
+- Do not add `scenario`, `presentation`, `simulation`, delay, selector, CSS class,
+  DOM ID, copy, relationship, or audit metadata unless that exact value is part of
+  a response visibly consumed by the page.
+- Do not duplicate static content that remains in the HTML.
+
+## Simplicity guardrails
+
+These are rejection thresholds, not targets:
+
+- `{page}-api.js` must be no more than 200 physical lines, including comments and
+  blank lines.
+- `{page}-data.json` must be no more than 200 physical lines.
+- A public API function must be no more than 12 physical lines, including its
+  backend-responsibility comment.
+- The API may have only the fixture variable plus two generic private helpers:
+  fixture loading and defensive copying.
+- Keep readable formatting; do not minify or compress code to satisfy a limit.
+
+If faithful behavior appears to require exceeding a limit, first move UI logic
+back into the HTML and replace computed domain data with a prepared fixture
+response. If a limit still cannot be met, return `BLOCKED` and explain the exact
+need. Do not silently exceed it.
 
 ## Test
 
@@ -115,14 +239,21 @@ Both agents in every page pair must independently:
    state.
 3. Exercise every source-defined interaction, keyboard path, validation path,
    repeated action, recovery path, and navigation; observable results must match.
-4. Parse the fixture and validate relevant records, relationships, and invariants.
-5. Confirm reload resets the scenario and repeated initialization creates no
-   duplicate effects.
-6. Confirm there are no missing resources, JavaScript errors, unhandled rejections,
-   unexpected console errors, or external requests.
-7. Confirm they changed only their assigned page's three output files.
+4. Confirm that calls which represent backend operations pass through the mock API
+   and return fixture values.
+5. Confirm reload resets the page and repeated UI actions retain the source
+   behavior.
+6. Confirm there are no missing resources, JavaScript errors, unhandled
+   rejections, unexpected console errors, or external requests.
+7. Inspect `{page}-api.js` and fail verification if it contains `document`,
+   `querySelector`, `addEventListener`, `classList`, `innerHTML`, `textContent`,
+   `location`, `localStorage`, `sessionStorage`, or `setTimeout`.
+8. Confirm the API and JSON are within all simplicity guardrails.
+9. Confirm they changed only their assigned page's three output files.
 
-Any difference, omission, error, or failed check must be corrected and retested.
+Visual and behavioral parity alone is not sufficient. Any separation violation,
+unnecessary fixture field, unnecessary helper, or guardrail violation is a failed
+check and must be corrected and retested.
 
 ## Report
 
@@ -131,8 +262,12 @@ After every page is approved, the orchestrator reports:
 - the number of pages discovered and approved;
 - each source page and its three output paths;
 - each page's API namespace and functions;
+- the line counts of each API and JSON file;
+- confirmation that all UI logic remained in the HTML;
 - the behaviors and checks completed for each page; and
 - any contract limitation.
 
 The task is complete only when every source page has exactly one approved output
-set, all required files exist, and every test passes.
+set, all required files exist, behavior matches the source, the API files are thin
+fixture facades, the JSON files are compact response fixtures, and every test
+passes.
