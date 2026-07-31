@@ -61,9 +61,10 @@ For each operation:
 
 1. Keep the handler, validation, loading state, timing, DOM mutation, rendering,
    focus, success/error presentation, and navigation in HTML.
-2. Pass one object whose keys expose the intended request contract.
-3. Capture a concrete request object during the Playwright test by temporarily
-   wrapping the named function without changing the persisted source.
+2. Pass semantic positional arguments, or pass one object whose semantic fields
+   are destructured in the function signature. Never pass an opaque request object.
+3. Capture the concrete arguments and payload during the Playwright test by
+   temporarily wrapping the named function without changing the persisted source.
 4. Return a prepared fixture value using one direct property lookup or one direct
    parameter-key lookup.
 5. Capture the exact returned value during the same test.
@@ -71,7 +72,9 @@ For each operation:
 
 The API may contain one script-scoped fixture variable and the directly callable
 idempotent fixture initializer. Use direct `structuredClone` calls; do not add
-helpers or simulate latency.
+helpers or simulate latency. Require an immediately preceding JSDoc block on every
+function, with `@param` documentation for every argument or destructured property
+and `@returns` documentation.
 
 Reject an API containing DOM or browser-state tokens including `document`,
 `querySelector`, `addEventListener`, `dispatchEvent`, `classList`, `innerHTML`,
@@ -80,8 +83,11 @@ Reject an API containing DOM or browser-state tokens including `document`,
 
 Reject logic that performs permissions, validation, sorting, filtering, joins,
 aggregation, computed records, state machines, mutations, ID/time generation,
-audit history, or persistence. A direct fixture lookup selected by one request key
-is permitted.
+audit history, or persistence. A direct fixture lookup may use one meaningful
+request value such as `contactId` or `addressId`.
+
+Reject generic parameter names such as `request`, `options`, `params`,
+`parameters`, `args`, `payload`, or `input`. Reject `fixtureKey` in any form.
 
 ## Fixture contract
 

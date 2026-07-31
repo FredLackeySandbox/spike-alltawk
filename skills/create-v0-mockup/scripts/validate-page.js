@@ -6,7 +6,8 @@ const fs = require("node:fs");
 const path = require("node:path");
 const vm = require("node:vm");
 
-const FORBIDDEN_API_PATTERNS = [
+const FORBIDDEN_API_TOKENS = [
+  /\bfixtureKey\b/,
   /\bwindow\b/,
   /\bglobalThis\b/,
   /\bself\b/,
@@ -28,6 +29,16 @@ const FORBIDDEN_API_PATTERNS = [
   /\bEventSource\b/,
   /\bsendBeacon\b/
 ];
+
+const GENERIC_PARAMETER_NAMES = new Set([
+  "request",
+  "options",
+  "params",
+  "parameters",
+  "args",
+  "payload",
+  "input"
+]);
 
 /** Parse validator arguments. */
 function parseArguments(argv) {
@@ -136,6 +147,43 @@ function functionCommentStart(source, declarationIndex) {
   }
   if (!included) return declarationIndex;
   return lines.slice(0, firstLine + 1).join("\n").length + (firstLine >= 0 ? 1 : 0);
+}
+
+/** Return an immediately preceding JSDoc block or null. */
+function functionJSDoc(source, declarationIndex) {
+  const prefix = source.slice(0, declarationIndex);
+  const blockStart = prefix.lastIndexOf("/**");
+  const blockEnd = prefix.lastIndexOf("*/");
+  if (blockStart < 0 || blockEnd < blockStart) return null;
+  if (!/^\s*$/.test(prefix.slice(blockEnd + 2))) return null;
+  return source.slice(blockStart, blockEnd + 2);
+}
+
+/** Parse semantic positional parameters or properties from object destructuring. */
+function parseFunctionParameters(parameterSource) {
+  const source = parameterSource.trim();
+  if (!source) return { kind: "none", names: [] };
+  const destructured = source.startsWith("{") && source.endsWith("}");
+  const values = destructured ? source.slice(1, -1).split(",") : source.split(",");
+  const names = values.map((value) => {
+    const withoutDefault = value.split("=")[0].trim().replace(/^\.\.\./, "");
+    return destructured ? withoutDefault.split(":")[0].trim() : withoutDefault;
+  });
+  if (names.some((name) => !/^[A-Za-z_$][\w$]*$/.test(name))) {
+    return { kind: "invalid", names };
+  }
+  return { kind: destructured ? "destructured" : "positional", names };
+}
+
+/** Extract described JSDoc parameter tags. */
+function jsDocParameters(jsDoc) {
+  if (!jsDoc) return [];
+  return [...jsDoc.matchAll(
+    /@param\s+\{[^}\r\n]+\}\s+\[?([A-Za-z_$][\w$]*(?:\.[A-Za-z_$][\w$]*)*)\]?([^\r\n]*)/g
+  )].map((match) => ({
+    name: match[1],
+    described: /\s-\s+\S/.test(match[2])
+  }));
 }
 
 /** Find the physical line count of a named function and its responsibility comment. */
@@ -283,8 +331,8 @@ function validatePage(options) {
     errors.push(`data JSON is invalid: ${error.message}`);
   }
 
-  for (const pattern of FORBIDDEN_API_PATTERNS) {
-    if (pattern.test(executableApi)) errors.push(`API contains forbidden browser/UI token: ${pattern}`);
+  for (const pattern of FORBIDDEN_API_TOKENS) {
+    if (pattern.test(executableApi)) errors.push(`API contains forbidden token: ${pattern}`);
   }
 
   const forbiddenLogic = [
@@ -317,9 +365,15 @@ function validatePage(options) {
   const namedFunctions = topLevelFunctionNames(api);
   if (namedFunctions.length === 0) errors.push("API does not declare directly callable named functions");
   for (const functionName of namedFunctions) {
+    const span = functionSpan(api, functionName);
+    const jsDoc = span ? functionJSDoc(api, span.declarationIndex) : null;
     const lines = functionLineCount(api, functionName);
     if (lines === null) errors.push(`Unable to find named function declaration: ${functionName}`);
     else if (lines > 12) errors.push(`Named API function ${functionName} has ${lines} lines; maximum is 12`);
+    if (!jsDoc) errors.push(`Named API function ${functionName} requires an immediate JSDoc block`);
+    else if (!/@returns?\s+\{[^}\r\n]+\}\s+\S/.test(jsDoc)) {
+      errors.push(`Named API function ${functionName} requires a described @returns tag`);
+    }
   }
 
   const privateVariables = topLevelVariableNames(api);
@@ -345,23 +399,36 @@ function validatePage(options) {
     const signature = new RegExp(`function\\s+${functionName}\\s*\\(([^)]*)\\)`).exec(
       span ? span.source : ""
     );
-    const parameter = signature ? signature[1].trim() : "";
-    const commentStart = span ? functionCommentStart(api, span.declarationIndex) : 0;
-    const contractComment = span ? api.slice(commentStart, span.declarationIndex) : "";
-    const identifierRequest = /^[A-Za-z_$][\w$]*$/.test(parameter);
-    const identifierEvidence = identifierRequest && (
-      new RegExp(`\\b${parameter}\\s*[.[]`).test(span ? span.executable : "") ||
-      /\bRequest\s*:/.test(contractComment)
-    );
-    const isObjectRequest = /^\{[\s\S]*\}$/.test(parameter) || identifierEvidence;
-    if (!isObjectRequest) errors.push(`API operation ${functionName} must accept one object request parameter`);
+    const parameters = parseFunctionParameters(signature ? signature[1] : "");
+    const jsDoc = span ? functionJSDoc(api, span.declarationIndex) : null;
+    const documentedParameters = jsDocParameters(jsDoc);
+    if (parameters.kind === "none" || parameters.kind === "invalid") {
+      errors.push(
+        `API operation ${functionName} must use destructured arguments or specific positional parameters`
+      );
+    }
+    for (const parameterName of parameters.names) {
+      if (GENERIC_PARAMETER_NAMES.has(parameterName)) {
+        errors.push(`API operation ${functionName} uses generic parameter name ${parameterName}`);
+      }
+      const matchingTag = documentedParameters.find((tag) => (
+        parameters.kind === "destructured"
+          ? tag.name === parameterName || tag.name.endsWith(`.${parameterName}`)
+          : tag.name === parameterName
+      ));
+      if (!matchingTag) {
+        errors.push(`API operation ${functionName} must document parameter ${parameterName} with @param`);
+      } else if (!matchingTag.described) {
+        errors.push(`API operation ${functionName} must describe parameter ${parameterName}`);
+      }
+    }
     if (!span || !/\bstructuredClone\s*\(/.test(span.executable)) {
       errors.push(`API operation ${functionName} must return a defensive structuredClone`);
     }
     if (!isDirectFixtureOperation(span, privateVariableName)) {
       errors.push(`API operation ${functionName} must contain only a direct fixture lookup and cloned return`);
     }
-    if (!/real backend/i.test(contractComment)) {
+    if (!/real backend/i.test(jsDoc || "")) {
       errors.push(`API operation ${functionName} must document the real backend responsibility`);
     }
   }

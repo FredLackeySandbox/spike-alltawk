@@ -176,15 +176,37 @@ The API file may only:
 
 - fetch its sibling `{page}-data.json` once in an idempotent named initializer;
 - retain the parsed fixture in one script-scoped variable;
-- accept one object request parameter per backend-shaped operation;
+- expose semantic arguments by destructuring them in the function signature or by
+  declaring each as a specific positional parameter;
 - select an already prepared response by direct property or parameter-key lookup;
 - return a defensive copy; and
 - declare directly callable named functions at script scope.
 
-Each API operation must show its request contract through one object parameter.
-Add one short comment describing what a real backend would do, but never implement
-it. The direct lookup in the return statement identifies the response fixture key.
-Each named API function normally has one lookup and one return.
+Never accept an opaque `request`, `options`, `params`, `parameters`, `args`,
+`payload`, or `input` object and then read properties from it. Never accept or read
+`fixtureKey`. Use `function updateThing({ thingId, values })` or
+`function updateThing(thingId, values)`, never `function updateThing(request)`.
+
+Place a JSDoc block immediately above every named function. Describe what a real
+backend would do, document every positional parameter with `@param`, or document
+every destructured property with a named `@param`, and document the returned value
+with `@returns`. Do not rely on a generic object-level description. The direct
+lookup in the return statement identifies the response fixture key. Each named API
+function normally has one lookup and one return.
+
+For destructuring, document the properties rather than an opaque request:
+
+```js
+/**
+ * A real backend would validate and save the change.
+ * @param {string} thingId - Thing to update.
+ * @param {object} values - Replacement values.
+ * @returns {Promise<object>} Prepared update result.
+ */
+async function updateThing({ thingId, values }) {
+  return structuredClone(data.updateThing[thingId]);
+}
+```
 
 The API must never create or reference a namespace or access `window`,
 `globalThis`, the DOM, events, focus, URL, navigation, storage, timers, remote
