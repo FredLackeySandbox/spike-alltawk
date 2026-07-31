@@ -128,6 +128,32 @@ Use schemas only when needed to confirm the name or shape of a value that the pa
 actually receives from an API call. Do not copy schema entities, relationships,
 history records, metadata, or invariants into the fixture.
 
+## Required file-creation sequence
+
+For each assigned page, follow this sequence:
+
+1. Create the matching parent directory beneath `docs/mockup/desktop-v0/`.
+2. Copy the assigned source HTML file byte-for-byte to its matching v0 HTML path.
+   Use a filesystem copy; do not reconstruct, summarize, or rewrite the page.
+3. Create the sibling `{page}-api.js` and `{page}-data.json` files.
+4. Adjust local asset and page links only where the mirrored location requires it.
+   Do not copy shared CSS, JavaScript, images, or other supporting assets.
+5. Verify that the copied HTML retains the source markup, inline styles, scripts,
+   controls, and interaction behavior before introducing the mock API.
+6. Retrofit one backend-shaped operation at a time:
+   - move only its prepared response values into `{page}-data.json`;
+   - expose the smallest corresponding function in `{page}-api.js`;
+   - replace only the hard-coded response or pretend-backend portion in the HTML;
+   - preserve the existing event handler, rendering, validation, loading, error,
+     focus, navigation, and state-transition logic in the HTML; and
+   - retest the affected interaction before proceeding.
+7. After all operations are retrofitted, run the complete interaction-state matrix
+   against both source and output.
+
+The v0 HTML must remain recognizably derived from the copied source. Do not replace
+the source page with newly generated markup or reorganize it merely for code style,
+abstraction, or perceived architectural improvement.
+
 ## HTML requirements
 
 Start from a copy of the complete source page.
