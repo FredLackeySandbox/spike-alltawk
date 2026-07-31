@@ -62,16 +62,16 @@ For each operation:
 1. Keep the handler, validation, loading state, timing, DOM mutation, rendering,
    focus, success/error presentation, and navigation in HTML.
 2. Pass one object whose keys expose the intended request contract.
-3. Capture a concrete request object during the Playwright test by wrapping or
-   instrumenting the page namespace without changing the persisted source.
+3. Capture a concrete request object during the Playwright test by temporarily
+   wrapping the named function without changing the persisted source.
 4. Return a prepared fixture value using one direct property lookup or one direct
    parameter-key lookup.
 5. Capture the exact returned value during the same test.
 6. Record both values in the API contract table.
 
-The API may contain one private fixture variable and the public idempotent fixture
-initializer. Use direct `structuredClone` calls; do not add private helpers or
-simulate latency.
+The API may contain one script-scoped fixture variable and the directly callable
+idempotent fixture initializer. Use direct `structuredClone` calls; do not add
+helpers or simulate latency.
 
 Reject an API containing DOM or browser-state tokens including `document`,
 `querySelector`, `addEventListener`, `dispatchEvent`, `classList`, `innerHTML`,
@@ -125,9 +125,9 @@ Allow only the local page, shared local assets, sibling API script, and sibling
 fixture requests. Fail on an external or unexplained request, missing resource,
 JavaScript error, or rejected promise.
 
-Confirm the API namespace is called for every backend-shaped operation. Capture
-requests and responses at the namespace boundary. Reload and repeat actions to
-prove reset and repeated-action parity.
+Confirm the corresponding named function is called for every backend-shaped
+operation. Capture requests and responses at the function boundary. Reload and
+repeat actions to prove reset and repeated-action parity.
 
 ## Approval rules
 

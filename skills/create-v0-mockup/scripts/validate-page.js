@@ -7,6 +7,9 @@ const path = require("node:path");
 const vm = require("node:vm");
 
 const FORBIDDEN_API_PATTERNS = [
+  /\bwindow\b/,
+  /\bglobalThis\b/,
+  /\bself\b/,
   /\bdocument\b/,
   /\bquerySelector(?:All)?\b/,
   /\baddEventListener\b/,
@@ -181,18 +184,15 @@ function functionSpan(source, functionName) {
   return null;
 }
 
-/** Find variable declarations at the API IIFE's top scope. */
+/** Find variable declarations at the script's top scope. */
 function topLevelVariableNames(source) {
   const executable = maskNonCode(source);
-  const wrapper = /\(\s*function\s*\(\s*\)\s*\{/.exec(executable);
-  if (!wrapper) return [];
-  const openingBrace = executable.indexOf("{", wrapper.index);
   const names = [];
-  let depth = 1;
-  for (let index = openingBrace + 1; index < executable.length && depth > 0; index += 1) {
+  let depth = 0;
+  for (let index = 0; index < executable.length; index += 1) {
     if (executable[index] === "{") depth += 1;
     else if (executable[index] === "}") depth -= 1;
-    else if (depth === 1) {
+    else if (depth === 0) {
       const declaration = /^(?:let|const|var)\s+([A-Za-z_$][\w$]*)/.exec(executable.slice(index));
       if (declaration) {
         names.push(declaration[1]);
@@ -203,18 +203,15 @@ function topLevelVariableNames(source) {
   return names;
 }
 
-/** Find named function declarations at the API IIFE's top scope. */
+/** Find directly callable named function declarations at the script's top scope. */
 function topLevelFunctionNames(source) {
   const executable = maskNonCode(source);
-  const wrapper = /\(\s*function\s*\(\s*\)\s*\{/.exec(executable);
-  if (!wrapper) return [];
-  const openingBrace = executable.indexOf("{", wrapper.index);
   const names = [];
-  let depth = 1;
-  for (let index = openingBrace + 1; index < executable.length && depth > 0; index += 1) {
+  let depth = 0;
+  for (let index = 0; index < executable.length; index += 1) {
     if (executable[index] === "{") depth += 1;
     else if (executable[index] === "}") depth -= 1;
-    else if (depth === 1) {
+    else if (depth === 0) {
       const declaration = /^(?:async\s+)?function\s+([A-Za-z_$][\w$]*)/.exec(
         executable.slice(index)
       );
@@ -243,16 +240,6 @@ function isDirectFixtureOperation(span, privateVariableName) {
     `(?:\\.[A-Za-z_$][\\w$]*|\\[[A-Za-z_$][\\w$]*(?:\\.[A-Za-z_$][\\w$]*)*\\])+\\);$`
   );
   return directLookup.test(body);
-}
-
-/** Extract shorthand public function names from the page namespace export. */
-function exportedFunctionNames(source) {
-  const namespace = /window\.[A-Za-z_$][\w$]*\s*=\s*\{([\s\S]*?)\};/.exec(maskNonCode(source));
-  if (!namespace) return [];
-  return namespace[1]
-    .split(",")
-    .map((value) => value.trim())
-    .filter((value) => /^[A-Za-z_$][\w$]*$/.test(value));
 }
 
 /** Validate one page triple and its immutable source. */
@@ -327,32 +314,21 @@ function validatePage(options) {
     errors.push("Output contains unresolved template placeholders");
   }
 
-  const namespaceMatches = [...executableApi.matchAll(/window\.[A-Za-z_$][\w$]*\s*=\s*\{/g)];
-  if (namespaceMatches.length !== 1) {
-    errors.push(`API must expose exactly one window namespace; found ${namespaceMatches.length}`);
-  }
-  const publicFunctions = exportedFunctionNames(api);
-  if (publicFunctions.length === 0) errors.push("API does not expose a page-specific window namespace");
-  for (const functionName of publicFunctions) {
+  const namedFunctions = topLevelFunctionNames(api);
+  if (namedFunctions.length === 0) errors.push("API does not declare directly callable named functions");
+  for (const functionName of namedFunctions) {
     const lines = functionLineCount(api, functionName);
-    if (lines === null) errors.push(`Unable to find exported function declaration: ${functionName}`);
-    else if (lines > 12) errors.push(`Public function ${functionName} has ${lines} lines; maximum is 12`);
-  }
-
-  const privateFunctions = topLevelFunctionNames(api).filter(
-    (functionName) => !publicFunctions.includes(functionName)
-  );
-  if (privateFunctions.length > 0) {
-    errors.push(`API contains unexported helper functions: ${privateFunctions.join(", ")}`);
+    if (lines === null) errors.push(`Unable to find named function declaration: ${functionName}`);
+    else if (lines > 12) errors.push(`Named API function ${functionName} has ${lines} lines; maximum is 12`);
   }
 
   const privateVariables = topLevelVariableNames(api);
   if (privateVariables.length !== 1) {
-    errors.push(`API must contain exactly one top-level private fixture variable; found ${privateVariables.length}`);
+    errors.push(`API must contain exactly one script-scoped fixture variable; found ${privateVariables.length}`);
   }
   const privateVariableName = privateVariables[0] || "data";
 
-  const initializerFunctions = publicFunctions.filter((name) => /^init[A-Z_]/.test(name));
+  const initializerFunctions = namedFunctions.filter((name) => /^init[A-Z_]/.test(name));
   if (initializerFunctions.length !== 1) {
     errors.push(`API must expose exactly one initializer; found ${initializerFunctions.length}`);
   }
@@ -363,7 +339,7 @@ function validatePage(options) {
     }
   }
 
-  const operationFunctions = publicFunctions.filter((name) => !/^init[A-Z_]/.test(name));
+  const operationFunctions = namedFunctions.filter((name) => !/^init[A-Z_]/.test(name));
   for (const functionName of operationFunctions) {
     const span = functionSpan(api, functionName);
     const signature = new RegExp(`function\\s+${functionName}\\s*\\(([^)]*)\\)`).exec(
@@ -396,7 +372,7 @@ function validatePage(options) {
     sourceSha256: sourceHash,
     apiLines,
     dataLines,
-    publicFunctions
+    namedFunctions
   };
 }
 

@@ -174,21 +174,22 @@ timers, navigation, UI state, orchestration, and all business decisions.
 
 The API file may only:
 
-- fetch its sibling `{page}-data.json` once in an idempotent public initializer;
-- retain the parsed fixture in one private variable;
+- fetch its sibling `{page}-data.json` once in an idempotent named initializer;
+- retain the parsed fixture in one script-scoped variable;
 - accept one object request parameter per backend-shaped operation;
 - select an already prepared response by direct property or parameter-key lookup;
 - return a defensive copy; and
-- expose one page-specific namespace on `window`.
+- declare directly callable named functions at script scope.
 
 Each API operation must show its request contract through one object parameter.
 Add one short comment describing what a real backend would do, but never implement
 it. The direct lookup in the return statement identifies the response fixture key.
-Each public function normally has one lookup and one return.
+Each named API function normally has one lookup and one return.
 
-The API must never access the DOM, events, focus, URL, navigation, storage, timers,
-remote services, validation, permissions, sorting, filtering, joins, aggregation,
-record construction, workflow state, persistence simulation, generated IDs or
+The API must never create or reference a namespace or access `window`,
+`globalThis`, the DOM, events, focus, URL, navigation, storage, timers, remote
+services, validation, permissions, sorting, filtering, joins, aggregation, record
+construction, workflow state, persistence simulation, generated IDs or
 timestamps, repositories, services, stores, or helper layers. It may fetch only
 its sibling data JSON.
 
@@ -237,8 +238,8 @@ complete output triples and that every protected-file hash still matches. Report
 
 - page count discovered and approved;
 - source and three output paths per page;
-- API namespace, functions, request examples, response fixture keys, and response
-  examples per operation;
+- API functions, request examples, response fixture keys, and response examples
+  per operation;
 - API and JSON line counts;
 - state, transition, and covered-state counts per page;
 - visual, behavior, accessibility, console, network, and static checks completed;

@@ -95,7 +95,7 @@ Page contract
 - Source-contract limitations:
 
 API contract
-| Operation | Namespace.function | Trigger | Concrete request object | Response fixture key | Concrete returned value | Paths tested |
+| Operation | Function | Trigger | Concrete request object | Response fixture key | Concrete returned value | Paths tested |
 | --- | --- | --- | --- | --- | --- | --- |
 
 Interaction-state matrix
