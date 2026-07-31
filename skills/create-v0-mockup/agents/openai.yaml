@@ -1,0 +1,4 @@
+interface:
+  display_name: "Create v0 Mockup"
+  short_description: "Convert desktop mockups to fixture-backed v0 pages"
+  default_prompt: "Use $create-v0-mockup to convert every desktop mockup page into a visually verified fixture-backed v0 page."

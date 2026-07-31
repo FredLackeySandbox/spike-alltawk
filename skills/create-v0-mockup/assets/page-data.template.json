@@ -1,0 +1,10 @@
+{
+  "getPageByFixture": {
+    "default": {
+      "ok": true
+    },
+    "failure": {
+      "ok": false
+    }
+  }
+}
