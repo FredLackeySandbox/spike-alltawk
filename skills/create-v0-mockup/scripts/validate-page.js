@@ -385,8 +385,8 @@ function validatePage(options) {
     if (!isDirectFixtureOperation(span, privateVariableName)) {
       errors.push(`API operation ${functionName} must contain only a direct fixture lookup and cloned return`);
     }
-    if (!/real backend/i.test(contractComment) || !/response fixture\s*:/i.test(contractComment)) {
-      errors.push(`API operation ${functionName} must document backend responsibility and response fixture key`);
+    if (!/real backend/i.test(contractComment)) {
+      errors.push(`API operation ${functionName} must document the real backend responsibility`);
     }
   }
 

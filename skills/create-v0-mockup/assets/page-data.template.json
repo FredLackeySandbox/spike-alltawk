@@ -1,10 +1,67 @@
 {
-  "getPageByFixture": {
+  "loadResponsesByFixture": {
     "default": {
-      "ok": true
+      "status": "loaded",
+      "records": [
+        {
+          "id": "record-1",
+          "label": "Example record",
+          "detail": "Example detail"
+        }
+      ],
+      "viewer": {
+        "id": "viewer-1",
+        "role": "member"
+      }
+    },
+    "empty": {
+      "status": "loaded",
+      "records": []
+    },
+    "denied": {
+      "status": "denied"
     },
     "failure": {
-      "ok": false
+      "status": "failure"
+    }
+  },
+  "createResponsesByOutcome": {
+    "success": {
+      "status": "created",
+      "record": {
+        "id": "record-2",
+        "label": "Created record"
+      }
+    },
+    "failure": {
+      "status": "failed"
+    }
+  },
+  "updateResponsesByOutcome": {
+    "success": {
+      "status": "saved"
+    },
+    "denied": {
+      "status": "denied"
+    },
+    "failure": {
+      "status": "failed"
+    }
+  },
+  "deleteResponsesByOutcome": {
+    "success": {
+      "status": "deleted"
+    },
+    "denied": {
+      "status": "denied"
+    },
+    "failure": {
+      "status": "failed"
+    }
+  },
+  "actionResponses": {
+    "actionName": {
+      "accepted": true
     }
   }
 }

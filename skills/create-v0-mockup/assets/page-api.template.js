@@ -3,25 +3,15 @@
 
   let data;
 
-  /** Load this page's deterministic response fixture once. */
   async function init__PAGE_NAMESPACE__Api() {
-    if (!data) {
-      data = fetch("__PAGE_BASENAME__-data.json").then((response) => {
-        if (!response.ok) throw new Error("Unable to load page fixture");
-        return response.json();
-      });
-    }
-    await data;
+    if (data) return;
+    const response = await fetch("__PAGE_BASENAME__-data.json");
+    data = await response.json();
   }
 
-  /**
-   * A real backend would authorize the request and load the page resource.
-   * Request: { fixture }
-   * Response fixture: getPageByFixture[fixture]
-   */
+  // A real backend would authorize the viewer and load the page data.
   async function getPage({ fixture }) {
-    const fixtureData = await data;
-    return structuredClone(fixtureData.getPageByFixture[fixture]);
+    return structuredClone(data.loadResponsesByFixture[fixture]);
   }
 
   window.__PAGE_NAMESPACE__Api = { init__PAGE_NAMESPACE__Api, getPage };

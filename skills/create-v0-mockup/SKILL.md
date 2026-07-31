@@ -150,8 +150,10 @@ The implementation agent must follow this order:
 7. Create sibling API and data files from
    [page-api.template.js](assets/page-api.template.js) and
    [page-data.template.json](assets/page-data.template.json). Replace every
-   placeholder and remove every example operation/fixture the discovered page does
-   not need.
+   placeholder. Treat the data template as a pattern catalog: keep, rename, and
+   reshape only the keyed-load, create, update, delete, or fixed-action sections
+   the discovered page needs; delete every unused section, outcome, record, and
+   field. Add a matching API function only for each retained backend operation.
 8. Retrofit one backend-shaped operation at a time. Keep browser behavior in HTML,
    place only prepared response values in JSON, and add one minimal API function.
 9. Record the concrete request object passed by the HTML and the exact returned
@@ -173,16 +175,16 @@ timers, navigation, UI state, orchestration, and all business decisions.
 The API file may only:
 
 - fetch its sibling `{page}-data.json` once in an idempotent public initializer;
-- retain one Promise for the parsed fixture in one private variable;
+- retain the parsed fixture in one private variable;
 - accept one object request parameter per backend-shaped operation;
 - select an already prepared response by direct property or parameter-key lookup;
 - return a defensive copy; and
 - expose one page-specific namespace on `window`.
 
-Each API operation must show its request contract through destructuring or concise
-JSDoc and identify its response fixture key. Add a short comment describing what a
-real backend would do, but never implement it. Each public function normally has
-one lookup and one return.
+Each API operation must show its request contract through one object parameter.
+Add one short comment describing what a real backend would do, but never implement
+it. The direct lookup in the return statement identifies the response fixture key.
+Each public function normally has one lookup and one return.
 
 The API must never access the DOM, events, focus, URL, navigation, storage, timers,
 remote services, validation, permissions, sorting, filtering, joins, aggregation,
