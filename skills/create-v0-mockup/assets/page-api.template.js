@@ -9,10 +9,10 @@
     data = await response.json();
   }
 
-  // A real backend would authorize the viewer and load the page data.
-  async function getPage({ fixture }) {
-    return structuredClone(data.loadResponsesByFixture[fixture]);
+  // A real backend would authorize the viewer and load their contacts.
+  async function getContacts({ fixture }) {
+    return structuredClone(data.contactListByFixture[fixture]);
   }
 
-  window.__PAGE_NAMESPACE__Api = { init__PAGE_NAMESPACE__Api, getPage };
+  window.__PAGE_NAMESPACE__Api = { init__PAGE_NAMESPACE__Api, getContacts };
 })();

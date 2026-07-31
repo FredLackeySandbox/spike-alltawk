@@ -1,22 +1,27 @@
 {
-  "loadResponsesByFixture": {
+  "contactListByFixture": {
     "default": {
       "status": "loaded",
-      "records": [
+      "contacts": [
         {
-          "id": "record-1",
-          "label": "Example record",
-          "detail": "Example detail"
+          "id": "contact-1",
+          "name": "Avery Morgan",
+          "email": "avery@example.test",
+          "phone": "555-0101",
+          "favorite": true
+        },
+        {
+          "id": "contact-2",
+          "name": "Jordan Lee",
+          "email": "jordan@example.test",
+          "phone": "555-0102",
+          "favorite": false
         }
-      ],
-      "viewer": {
-        "id": "viewer-1",
-        "role": "member"
-      }
+      ]
     },
     "empty": {
       "status": "loaded",
-      "records": []
+      "contacts": []
     },
     "denied": {
       "status": "denied"
@@ -25,21 +30,31 @@
       "status": "failure"
     }
   },
-  "createResponsesByOutcome": {
+  "createContactByOutcome": {
     "success": {
       "status": "created",
-      "record": {
-        "id": "record-2",
-        "label": "Created record"
+      "contact": {
+        "id": "contact-3",
+        "name": "Riley Chen",
+        "email": "riley@example.test",
+        "phone": "555-0103",
+        "favorite": false
       }
     },
     "failure": {
       "status": "failed"
     }
   },
-  "updateResponsesByOutcome": {
+  "updateContactByOutcome": {
     "success": {
-      "status": "saved"
+      "status": "saved",
+      "contact": {
+        "id": "contact-1",
+        "name": "Avery Morgan",
+        "email": "avery.morgan@example.test",
+        "phone": "555-0101",
+        "favorite": true
+      }
     },
     "denied": {
       "status": "denied"
@@ -48,9 +63,10 @@
       "status": "failed"
     }
   },
-  "deleteResponsesByOutcome": {
+  "deleteContactByOutcome": {
     "success": {
-      "status": "deleted"
+      "status": "deleted",
+      "contactId": "contact-2"
     },
     "denied": {
       "status": "denied"
@@ -59,9 +75,17 @@
       "status": "failed"
     }
   },
-  "actionResponses": {
-    "actionName": {
-      "accepted": true
+  "favoriteContactByOutcome": {
+    "selected": {
+      "accepted": true,
+      "favorite": true
+    },
+    "cleared": {
+      "accepted": true,
+      "favorite": false
+    },
+    "failure": {
+      "accepted": false
     }
   }
 }
