@@ -15,27 +15,59 @@ concept document.
    relay findings, track page ownership, and report results, but it must not inspect,
    create, edit, or validate project files itself, including while waiting.
 
-2. First assign a Discovery Agent to:
-   - recursively inventory every page beneath `docs/mockup/desktop/`;
-   - exclude shared asset files and other non-page files from the page inventory;
-   - inventory referenced local assets and shared behavior;
-   - read the relevant material beneath `docs/concepts/` and `docs/schemas/`;
-   - identify the approved domain objects and invariants used by each page; and
-   - return a page-by-page work ledger to the orchestrator.
+2. First assign a Discovery Agent only to recursively inventory every page beneath
+   `docs/mockup/desktop/`, exclude shared assets and other non-page files, and
+   return the page paths to the orchestrator. The Discovery Agent must not analyze,
+   implement, or validate any individual page.
 
-3. If shared local assets are required, assign a Setup Agent to copy them into the
-   corresponding output asset tree without changing their visual behavior. Never
-   modify the source asset tree.
+3. Assign exactly two page-specific agents to every discovered page:
 
-4. Assign exactly one Development Agent to each discovered source page. Schedule
-   agents in bounded waves when there are more pages than available agent slots.
-   Each Development Agent owns only its page's output HTML, page API, and page data
-   fixture. Agents must not edit another page's owned files.
+   **Agent 1 — Page Implementation Engineer**
 
-5. After a Development Agent finishes, assign a different Review Agent to validate
-   that page. A Development Agent may correct its own page from review findings, but
-   the Review Agent must perform the final re-check. Continue the review-and-fix
-   loop until all acceptance criteria pass.
+   - Read the entire source page and all relevant approved material beneath
+     `docs/concepts/` and `docs/schemas/`.
+   - Analyze the page's data, events, states, and local dependencies.
+   - Create the page's output HTML, page API, and page data fixture.
+   - Perform the complete initial visual, interaction, contract, runtime, and
+     navigation test pass.
+   - Correct its implementation until its own tests pass.
+   - Return a structured handoff containing changed paths, exposed functions,
+     contract mappings, test evidence, and any unresolved concerns.
+
+   **GATE:** Agent 2 must not inspect, review, test, or edit the page until Agent 1
+   has completed its implementation and testing and has returned its handoff. The
+   orchestrator must explicitly release Agent 2 only after this gate is satisfied.
+
+   **Agent 2 — Senior Page Engineer**
+
+   - Independently read the approved source page, the relevant approved contracts,
+     Agent 1's three output files, and Agent 1's handoff.
+   - Review the implementation as the senior engineer responsible for the page's
+     final quality.
+   - Directly correct defects and improve the HTML, API, fixture, documentation,
+     pseudocode, behavior, contract fidelity, and test coverage where needed.
+   - Run the complete acceptance test suite after making corrections.
+   - Continue reviewing, correcting, improving, and re-testing its page until every
+     acceptance criterion passes.
+   - Return the final page handoff and validation evidence to the orchestrator.
+
+   Agent 2 is the final owner and approver of that page. Do not send corrections
+   back to Agent 1 and do not assign a third page agent.
+
+4. Treat each two-agent page pair as a fully isolated workstream. The pair owns only
+   its page's output HTML, page API, and page data fixture. Neither agent may edit,
+   review, refactor, or depend on another page's implementation files.
+
+5. Different page pairs may run in parallel. The orchestrator should keep as many
+   pairs moving concurrently as available agent slots permit, while preserving the
+   Agent 1 -> gate -> Agent 2 sequence independently for every page.
+
+6. Do not optimize for reuse, consistency of implementation internals, shared
+   abstractions, or efficiency across pages. Each page must be independently
+   understandable and functional. Duplicate data-access logic, controller logic,
+   presentation helpers, styles, or local dependencies when useful to keep a page
+   self-contained. Do not create or modify shared implementation files as part of
+   a page pair's work.
 
 ## Required output for every page
 
@@ -149,15 +181,18 @@ to the UI and must not be changed, extended, or contradicted:
   each fixture and each in-memory mutation.
 
 If a page appears to require domain information that the approved objects cannot
-supply, do not invent a field and do not alter the contract. The Development Agent
-must first try to derive the value from approved fields or treat it as clearly
-presentation-only copy. If neither is truthful, it must report the contract gap to
-the orchestrator and leave the approved objects unchanged.
+supply, do not invent a field and do not alter the contract. The page pair must
+first try to derive the value from approved fields or treat it as clearly
+presentation-only copy. If neither is truthful, Agent 1 must flag the contract gap
+in its handoff and Agent 2 must independently confirm it before reporting it to the
+orchestrator. Both agents must leave the approved objects unchanged.
 
 ## Required page analysis
 
-Before editing its output files, each Development Agent must inspect the entire
-source page and identify:
+Before implementing the page, each Page Implementation Engineer must inspect the
+entire source page and identify the following. After the gate, the Senior Page
+Engineer must repeat this analysis independently before correcting or approving the
+page:
 
 - data loaded and displayed during first initialization;
 - values currently hard-coded into visible content or attributes;
@@ -173,7 +208,7 @@ source page and identify:
 - empty, loading, success, failure, and edge states; and
 - any existing inline or shared JavaScript behavior that must be preserved.
 
-For every discovered event, the Development Agent must trace:
+For every discovered event, both page agents must trace:
 
 `user or lifecycle event -> exposed API function -> request shape -> approved data
 read or mutation -> response shape -> DOM/state update`
@@ -185,13 +220,17 @@ state that determination in its handoff.
 
 ## Validation and acceptance criteria
 
-Each Review Agent must independently verify all of the following:
+Each Page Implementation Engineer must run these checks before its handoff. After
+the gate, each Senior Page Engineer must independently repeat them, correct any
+problem it finds, and produce the final passing evidence:
 
 1. **Source safety:** no file beneath the source mockup, schema, or concept folders
    changed.
 
-2. **Completeness:** every inventoried page has exactly one corresponding output
+2. **Completeness:** the assigned source page has exactly one corresponding output
    HTML file, page API file, and page data fixture at the mirrored relative path.
+   The orchestrator determines project-wide completeness from the final handoff
+   returned by each page pair.
 
 3. **Visual parity:** capture source and output screenshots with the same browser,
    viewport, font availability, URL state, and settled animation state at no fewer
@@ -226,7 +265,8 @@ screenshots and interaction checks, plus machine-readable JSON/schema validation
 
 ## Final orchestration report
 
-When every Review Agent has passed its assigned page, the orchestrator must report:
+When every Senior Page Engineer has passed and approved its assigned page, the
+orchestrator must report:
 
 - the number of source pages discovered and the number completed;
 - the output paths grouped by page;
