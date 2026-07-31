@@ -1,91 +1,93 @@
 {
-  "contactListByFixture": {
-    "default": {
+  "fetchContactAddresses": {
+    "contact-1": {
       "status": "loaded",
-      "contacts": [
+      "contact": {
+        "id": "contact-1",
+        "name": "Avery Morgan"
+      },
+      "addresses": [
         {
-          "id": "contact-1",
-          "name": "Avery Morgan",
-          "email": "avery@example.test",
-          "phone": "555-0101",
-          "favorite": true
+          "id": "address-1",
+          "type": "Home",
+          "street": "18 Willow Lane",
+          "city": "Portland",
+          "region": "OR",
+          "postalCode": "97205"
         },
         {
-          "id": "contact-2",
-          "name": "Jordan Lee",
-          "email": "jordan@example.test",
-          "phone": "555-0102",
-          "favorite": false
+          "id": "address-2",
+          "type": "Work",
+          "street": "420 Market Street",
+          "city": "Portland",
+          "region": "OR",
+          "postalCode": "97204"
         }
       ]
     },
-    "empty": {
+    "contact-2": {
       "status": "loaded",
-      "contacts": []
+      "contact": {
+        "id": "contact-2",
+        "name": "Jordan Lee"
+      },
+      "addresses": []
     },
-    "denied": {
+    "contact-3": {
       "status": "denied"
     },
-    "failure": {
+    "contact-4": {
       "status": "failure"
     }
   },
-  "createContactByOutcome": {
-    "success": {
+  "createContactAddress": {
+    "contact-1": {
       "status": "created",
-      "contact": {
-        "id": "contact-3",
-        "name": "Riley Chen",
-        "email": "riley@example.test",
-        "phone": "555-0103",
-        "favorite": false
+      "address": {
+        "id": "address-3",
+        "type": "Other",
+        "street": "77 Pine Avenue",
+        "city": "Portland",
+        "region": "OR",
+        "postalCode": "97209"
       }
     },
-    "failure": {
+    "contact-3": {
+      "status": "denied"
+    },
+    "contact-4": {
       "status": "failed"
     }
   },
-  "updateContactByOutcome": {
-    "success": {
+  "updateContactAddress": {
+    "address-1": {
       "status": "saved",
-      "contact": {
-        "id": "contact-1",
-        "name": "Avery Morgan",
-        "email": "avery.morgan@example.test",
-        "phone": "555-0101",
-        "favorite": true
+      "address": {
+        "id": "address-1",
+        "type": "Home",
+        "street": "22 Willow Lane",
+        "city": "Portland",
+        "region": "OR",
+        "postalCode": "97205"
       }
     },
-    "denied": {
+    "address-2": {
       "status": "denied"
     },
-    "failure": {
+    "address-3": {
       "status": "failed"
     }
   },
-  "deleteContactByOutcome": {
-    "success": {
+  "deleteContactAddress": {
+    "address-1": {
       "status": "deleted",
-      "contactId": "contact-2"
+      "addressId": "address-1"
     },
-    "denied": {
+    "address-2": {
       "status": "denied"
     },
-    "failure": {
+    "address-3": {
       "status": "failed"
-    }
-  },
-  "favoriteContactByOutcome": {
-    "selected": {
-      "accepted": true,
-      "favorite": true
-    },
-    "cleared": {
-      "accepted": true,
-      "favorite": false
-    },
-    "failure": {
-      "accepted": false
     }
   }
 }
