@@ -1,0 +1,243 @@
+Convert the approved static desktop mockup under `docs/mockup/desktop/` into a
+pixel-perfect, fully functional mockup under `docs/mockup/desktop-v0/`. The purpose
+of this version is to make the UI's functional logic explicit before a real backend
+is implemented.
+
+The approved HTML/CSS and the approved data contracts are immutable sources of
+truth. Preserve the initial appearance and intended behavior of every page exactly.
+Do not alter any source mockup file or any approved schema, data dictionary, or
+concept document.
+
+## Execution model
+
+1. Use subagents for all discovery, implementation, review, and validation work.
+   The main agent is an orchestrator only. It may create and coordinate agents,
+   relay findings, track page ownership, and report results, but it must not inspect,
+   create, edit, or validate project files itself, including while waiting.
+
+2. First assign a Discovery Agent to:
+   - recursively inventory every page beneath `docs/mockup/desktop/`;
+   - exclude shared asset files and other non-page files from the page inventory;
+   - inventory referenced local assets and shared behavior;
+   - read the relevant material beneath `docs/concepts/` and `docs/schemas/`;
+   - identify the approved domain objects and invariants used by each page; and
+   - return a page-by-page work ledger to the orchestrator.
+
+3. If shared local assets are required, assign a Setup Agent to copy them into the
+   corresponding output asset tree without changing their visual behavior. Never
+   modify the source asset tree.
+
+4. Assign exactly one Development Agent to each discovered source page. Schedule
+   agents in bounded waves when there are more pages than available agent slots.
+   Each Development Agent owns only its page's output HTML, page API, and page data
+   fixture. Agents must not edit another page's owned files.
+
+5. After a Development Agent finishes, assign a different Review Agent to validate
+   that page. A Development Agent may correct its own page from review findings, but
+   the Review Agent must perform the final re-check. Continue the review-and-fix
+   loop until all acceptance criteria pass.
+
+## Required output for every page
+
+For every source page at a relative path represented by
+`{relative-directory}/{page}.html`, create:
+
+- `docs/mockup/desktop-v0/{relative-directory}/{page}.html`
+- `docs/mockup/desktop-v0/{relative-directory}/{page}-api.js`
+- `docs/mockup/desktop-v0/{relative-directory}/{page}-data.json`
+
+Preserve the same relative directory structure for pages at the source root and in
+nested areas.
+
+### Functional HTML
+
+The output HTML must:
+
+- begin as a one-for-one copy of the approved source page;
+- preserve the initial DOM content, styles, layout, typography, spacing, colors,
+  assets, accessibility semantics, and visible state;
+- keep the approved CSS unchanged unless a nonvisual hook is strictly required;
+- make only the smallest DOM changes needed to add stable selectors, load the page
+  API, render API-backed values, and bind behavior;
+- reproduce all initially visible approved values after initialization, even when
+  those values now come from the page data fixture;
+- preserve existing useful interaction logic, moving data access and business
+  decisions into the page API rather than discarding or duplicating that logic;
+- keep navigation within the functional mockup output tree when a corresponding
+  destination page exists;
+- load the sibling page API and initialize it after the DOM is ready; and
+- work when served from a simple local HTTP server without external network access.
+
+Do not introduce a framework, build step, remote dependency, or real network
+service. Use browser-compatible JavaScript consistent with the existing mockup.
+
+### Page API
+
+The page API must be a working mock API and page controller, not a collection of
+stubs. It must:
+
+- load all mock response data from the sibling `{page}-data.json` file;
+- expose a page-specific namespace containing action-oriented functions with names
+  such as `init...`, `fetch...`, `create...`, `update...`, `set...`, `remove...`,
+  `validate...`, or `do...`;
+- include an exposed function for every meaningful initial load, user action, data
+  request, data mutation, validation decision, and resulting UI state on the page;
+- use asynchronous return values for operations that represent backend calls;
+- maintain mock mutations in page-local memory so the fixture remains static and a
+  reload resets the scenario;
+- return defensive copies where callers could otherwise mutate fixture data;
+- produce deterministic results for the same fixture and inputs;
+- prevent duplicate initialization, duplicate event bindings, duplicate records,
+  and duplicate submissions;
+- make every externally callable operation idempotent where the operation permits
+  it; prefer desired-state operations such as `set...` over ambiguous toggles;
+- represent loading, success, empty, validation-error, request-error, and disabled
+  states wherever those states are relevant to the approved page;
+- update the DOM so every control and interaction produces a visible, reviewable
+  result; and
+- avoid unexplained timers, randomness, current-time identifiers, and hidden
+  persistence. If time or identifiers are needed, source deterministic values from
+  the fixture or function arguments.
+
+Every function, including internal helpers and named event handlers, must have:
+
+- a JavaDoc/JSDoc block immediately above it that explains its purpose;
+- `@param` entries for every argument;
+- an `@returns` entry, including for functions that return nothing or return a
+  Promise;
+- an `@throws` entry when applicable; and
+- plain JavaScript function parameters with no TypeScript syntax.
+
+Inside every function, add concise pseudocode comments that explain the intended
+production logic and every material decision made while validating, selecting,
+filtering, deriving, authorizing, mutating, or rendering data. The comments must
+explain why a branch exists and which approved data or invariant drives it. They
+must supplement executable code, not replace it.
+
+### Static page data
+
+The page data fixture must be valid JSON and contain all deterministic mock response
+data needed by that page, including applicable:
+
+- initial-load records;
+- selectable options and autocomplete choices;
+- success, empty, validation, and failure scenarios;
+- response records for create, update, and delete-style actions;
+- actor, permission, and authorization context;
+- values displayed in lists, labels, controls, badges, counts, and placeholders;
+  and
+- deterministic identifiers and timestamps used by mock operations.
+
+The approved records beneath `docs/schemas/` describe what is ultimately available
+to the UI and must not be changed, extended, or contradicted:
+
+- Every domain record in a request or response must conform to its approved schema.
+- Preserve approved property names, types, enum values, formats, required fields,
+  relationships, and application-level invariants.
+- Do not add UI convenience properties, calculated display fields, aliases, or
+  invented status values to approved records.
+- Do not modify a schema to make fixture data pass.
+- Response envelopes may group exact approved records by operation or scenario, but
+  the records inside an envelope must remain schema-accurate.
+- Request payloads may contain the fields needed by an operation, but those fields
+  must use approved names and meanings.
+- Presentation-only copy or scenario metadata may live outside domain records when
+  it is not pretending to be backend domain data.
+- Derive display strings, counts, permission results, active states, and other view
+  values in JavaScript from approved fields.
+- Maintain valid foreign-key relationships and cross-record invariants throughout
+  each fixture and each in-memory mutation.
+
+If a page appears to require domain information that the approved objects cannot
+supply, do not invent a field and do not alter the contract. The Development Agent
+must first try to derive the value from approved fields or treat it as clearly
+presentation-only copy. If neither is truthful, it must report the contract gap to
+the orchestrator and leave the approved objects unchanged.
+
+## Required page analysis
+
+Before editing its output files, each Development Agent must inspect the entire
+source page and identify:
+
+- data loaded and displayed during first initialization;
+- values currently hard-coded into visible content or attributes;
+- request payloads produced by forms and controls;
+- response payloads consumed after each action;
+- labels, placeholders, helper text, tooltips, counts, badges, and cosmetic sample
+  content;
+- list, menu, radio, checkbox, tab, segmented-control, and autocomplete options;
+- buttons, links, forms, keyboard actions, modals, menus, toasts, and navigation;
+- filtering, sorting, searching, pagination, selection, and derived display logic;
+- validation, permissions, disabled states, confirmation, retry, cancellation, and
+  error recovery;
+- empty, loading, success, failure, and edge states; and
+- any existing inline or shared JavaScript behavior that must be preserved.
+
+For every discovered event, the Development Agent must trace:
+
+`user or lifecycle event -> exposed API function -> request shape -> approved data
+read or mutation -> response shape -> DOM/state update`
+
+No meaningful control may remain decorative if the approved page implies an action.
+Links that intentionally leave the current functional mockup, purely explanatory
+content, and browser-native behavior may remain non-API actions, but the agent must
+state that determination in its handoff.
+
+## Validation and acceptance criteria
+
+Each Review Agent must independently verify all of the following:
+
+1. **Source safety:** no file beneath the source mockup, schema, or concept folders
+   changed.
+
+2. **Completeness:** every inventoried page has exactly one corresponding output
+   HTML file, page API file, and page data fixture at the mirrored relative path.
+
+3. **Visual parity:** capture source and output screenshots with the same browser,
+   viewport, font availability, URL state, and settled animation state at no fewer
+   than two representative desktop viewport sizes. The initialized output must have
+   zero unintended pixel differences from the approved source. Any intentional
+   difference must be nonvisual and explained.
+
+4. **Behavior parity and completeness:** exercise every meaningful control and
+   verify initial load, successful actions, validation failures, request failures,
+   empty states, repeated activation, and recovery where applicable. Confirm that
+   the behavior is visible and deterministic.
+
+5. **Contract fidelity:** parse every fixture, validate each domain record against
+   the relevant approved schema, and check relationships and cross-record
+   invariants. Confirm that neither production code nor fixture records invent
+   properties on approved objects.
+
+6. **API quality:** verify every API/controller function has complete JavaDoc/JSDoc
+   and useful in-function pseudocode comments, exposed functions use clear action
+   names, represented backend operations are asynchronous, and repeated
+   initialization or repeated equivalent calls do not duplicate effects.
+
+7. **Runtime quality:** serve the output through a local HTTP server and verify
+   there are no missing local resources, unhandled Promise rejections, JavaScript
+   errors, unexpected console errors, or external network requests.
+
+8. **Navigation:** follow all local page navigation and confirm targets stay within
+   the functional output tree and resolve successfully when a matching page exists.
+
+Do not accept visual inspection alone as proof. Use browser automation for
+screenshots and interaction checks, plus machine-readable JSON/schema validation.
+
+## Final orchestration report
+
+When every Review Agent has passed its assigned page, the orchestrator must report:
+
+- the number of source pages discovered and the number completed;
+- the output paths grouped by page;
+- the exposed action functions for each page;
+- the visual, interaction, schema, runtime, and navigation checks performed;
+- any approved-contract gaps that could not be resolved without changing the data
+  model; and
+- confirmation that the approved source mockup and approved data contracts were not
+  modified.
+
+The task is complete only when every page is pixel-perfect at initialization,
+functionally reviewable through its meaningful states, backed exclusively by its
+static page fixture, faithful to the approved data contracts, and independently
+validated.
