@@ -1,4 +1,0 @@
-interface:
-  display_name: "Create v0 Mockup"
-  short_description: "Clone mockups into isolated fixture-backed v0 pages"
-  default_prompt: "Use $create-v0-mockup to recursively clone the desktop mockup and convert the isolated copy into visually verified fixture-backed v0 pages."
