@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Tawk</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/styles.css">
+<style>
+  .hero { padding: 68px 0 40px; text-align: left; max-width: 700px; }
+  .hero__tagline { font-size: 40px; font-weight: 680; letter-spacing: -0.035em; line-height: 1.15; margin: 0 0 18px; }
+  .hero__summary { font-size: 17px; color: var(--ink-2); margin: 0 0 30px; line-height: 1.6; }
+  .hero__actions { display: flex; align-items: center; gap: 16px; }
+  .hero__actions .btn { padding: 11px 20px; font-size: 15px; }
+  .models { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .model__eyebrow { font-size: 11.5px; font-weight: 650; letter-spacing: 0.07em; text-transform: uppercase; color: var(--muted); }
+  .model__name { font-size: 19px; font-weight: 650; letter-spacing: -0.02em; margin: 6px 0 2px; }
+  .model__headline { color: var(--primary-dark); font-size: 14px; font-weight: 570; margin-bottom: 12px; }
+  .model__desc { color: var(--ink-2); font-size: 14px; margin: 0 0 18px; }
+  .model__demo { background: var(--surface-2); border: 1px solid var(--line); border-radius: var(--radius-sm); padding: 14px; }
+  .model__demo-label { font-size: 11.5px; color: var(--muted); margin-bottom: 9px; }
+  .model__demo-name { font-size: 14.5px; font-weight: 620; margin-bottom: 2px; }
+  .model__demo-name--hidden { color: var(--muted-2); font-style: italic; font-weight: 500; }
+  .model__demo-topic { font-size: 12.5px; color: var(--muted); margin-bottom: 10px; }
+  .model__match { margin-top: 11px; font-size: 12.5px; color: var(--muted); display: flex; align-items: center; gap: 7px; }
+  .model__foot { font-size: 13px; color: var(--muted); margin: 16px 0 0; }
+  .rules { display: grid; grid-template-columns: 300px 1fr; gap: 32px; align-items: start; }
+  .rule-example { display: flex; align-items: center; gap: 10px; margin-bottom: 9px; }
+  .rule-list { margin: 0; padding-left: 18px; color: var(--ink-2); font-size: 14px; }
+  .rule-list li { margin-bottom: 7px; }
+  .footer { border-top: 1px solid var(--line); padding: 22px 0; color: var(--muted-2); font-size: 13px; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar__inner">
+    <a class="brand" href="index.html"><span class="brand__mark">T</span> Tawk</a>
+    <div class="spacer"></div>
+    <a class="btn btn--sm" href="bots/bots.html">Bot operator</a>
+    <a class="btn btn--sm btn--primary" href="hub/conversations.html">Sign in</a>
+  </div>
+</div>
+
+<main class="app">
+
+  <section class="hero">
+    <h1 class="hero__tagline" id="tagline"><span class="skeleton" style="display:block;width:420px;height:38px"></span></h1>
+    <p class="hero__summary" id="summary"></p>
+    <div class="hero__actions" id="entryPoints"></div>
+  </section>
+
+  <section class="section">
+    <div class="models" id="models"></div>
+  </section>
+
+  <section class="section panel">
+    <div class="panel__body">
+      <div class="rules">
+        <div>
+          <h2 class="section-title" id="tagRulesTitle">What a tag looks like</h2>
+          <div id="tagExamples"></div>
+        </div>
+        <div>
+          <ul class="rule-list" id="tagConstraints"></ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section panel">
+    <div class="panel__body">
+      <h2 class="panel__title" id="identityTitle" style="margin-bottom:8px"></h2>
+      <p class="page-sub" id="identityBody" style="max-width:78ch"></p>
+    </div>
+  </section>
+
+  <div class="footer">Tawk POC mockup. Nothing here is a live service.</div>
+</main>
+
+<script src="index-api.js"></script>
+<script>
+(async function () {
+  'use strict';
+
+  function el(tag, className, text) {
+    var node = document.createElement(tag);
+    if (className) { node.className = className; }
+    if (text !== undefined) { node.textContent = text; }
+    return node;
+  }
+
+  var summary = await HomeApi.getProductSummary();
+  document.getElementById('tagline').textContent = summary.tagline;
+  document.getElementById('summary').textContent = summary.summary;
+
+  var entries = await HomeApi.getEntryPoints();
+  var entryHost = document.getElementById('entryPoints');
+  entries.forEach(function (entry) {
+    var link = el('a', 'btn' + (entry.primary ? ' btn--primary' : ''), entry.label);
+    link.href = entry.href;
+    entryHost.appendChild(link);
+  });
+  entryHost.appendChild(el('span', 'small muted', 'No anonymous access.'));
+
+  var models = await HomeApi.getConversationModels();
+  var modelHost = document.getElementById('models');
+  models.forEach(function (model) {
+    var panel = el('div', 'panel');
+    var body = el('div', 'panel__body');
+
+    body.appendChild(el('div', 'model__eyebrow', 'Conversation type'));
+    body.appendChild(el('h2', 'model__name', model.name));
+    body.appendChild(el('div', 'model__headline', model.headline));
+    body.appendChild(el('p', 'model__desc', model.description));
+
+    var demo = el('div', 'model__demo');
+    demo.appendChild(el('div', 'model__demo-label', 'Shown in search results as'));
+    var unlisted = model.id === 'unlisted';
+    demo.appendChild(el('div', 'model__demo-name' + (unlisted ? ' model__demo-name--hidden' : ''), model.exampleName));
+    demo.appendChild(el('div', 'model__demo-topic', model.exampleTopic));
+    var tags = el('div', 'tags');
+    model.exampleTags.forEach(function (value) {
+      tags.appendChild(el('span', 'tag' + (model.id === 'unlisted' ? ' tag--hidden' : ''), value));
+    });
+    demo.appendChild(tags);
+    var match = el('div', 'model__match');
+    match.appendChild(el('span', '', model.id === 'listed' ? '✓' : '●'));
+    match.appendChild(el('span', '', model.matchNote));
+    demo.appendChild(match);
+    body.appendChild(demo);
+
+    body.appendChild(el('p', 'model__foot', model.footnote));
+    panel.appendChild(body);
+    modelHost.appendChild(panel);
+  });
+
+  var rules = await HomeApi.getTagRules();
+  document.getElementById('tagRulesTitle').textContent = rules.title;
+  var exampleHost = document.getElementById('tagExamples');
+  rules.examples.forEach(function (example) {
+    var row = el('div', 'rule-example');
+    row.appendChild(el('span', 'tag', example.value));
+    row.appendChild(el('span', 'small muted', example.note));
+    exampleHost.appendChild(row);
+  });
+  var constraintHost = document.getElementById('tagConstraints');
+  rules.constraints.forEach(function (line) {
+    constraintHost.appendChild(el('li', '', line));
+  });
+
+  var identity = await HomeApi.getIdentityNote();
+  document.getElementById('identityTitle').textContent = identity.title;
+  document.getElementById('identityBody').textContent = identity.body;
+})();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,839 @@
+{
+  "identity": {
+    "id": "id-priya",
+    "displayName": "Priya Raghunathan",
+    "initials": "PR",
+    "type": "person",
+    "handle": "priya-r"
+  },
+  "identities": {
+    "id-priya": {
+      "id": "id-priya",
+      "displayName": "Priya Raghunathan",
+      "handle": "priya-r",
+      "initials": "PR",
+      "type": "person",
+      "standing": "active"
+    },
+    "id-halvard": {
+      "id": "id-halvard",
+      "displayName": "Halvard Lindqvist",
+      "handle": "halvard-l",
+      "initials": "HL",
+      "type": "person",
+      "standing": "active"
+    },
+    "id-marisol": {
+      "id": "id-marisol",
+      "displayName": "Marisol Trevino",
+      "handle": "marisol-t",
+      "initials": "MT",
+      "type": "person",
+      "standing": "active"
+    },
+    "id-junie": {
+      "id": "id-junie",
+      "displayName": "Junie Castellanos",
+      "handle": "junie-c",
+      "initials": "JC",
+      "type": "person",
+      "standing": "active"
+    },
+    "id-tobias": {
+      "id": "id-tobias",
+      "displayName": "Tobias Mwangi",
+      "handle": "tobias-m",
+      "initials": "TM",
+      "type": "person",
+      "standing": "suspended"
+    },
+    "id-renata": {
+      "id": "id-renata",
+      "displayName": "Renata Fiedler",
+      "handle": "renata-f",
+      "initials": "RF",
+      "type": "person",
+      "standing": "former"
+    },
+    "id-desmond": {
+      "id": "id-desmond",
+      "displayName": "Desmond Achebe",
+      "handle": "desmond-a",
+      "initials": "DA",
+      "type": "person",
+      "standing": "active"
+    },
+    "id-noor": {
+      "id": "id-noor",
+      "displayName": "Noor Haddad",
+      "handle": "noor-h",
+      "initials": "NH",
+      "type": "person",
+      "standing": "active"
+    },
+    "id-oskar": {
+      "id": "id-oskar",
+      "displayName": "Oskar Bielski",
+      "handle": "oskar-b",
+      "initials": "OB",
+      "type": "person",
+      "standing": "active"
+    },
+    "id-kilnbot": {
+      "id": "id-kilnbot",
+      "displayName": "kiln-log-bot",
+      "handle": "kiln-log-bot",
+      "initials": "KB",
+      "type": "bot",
+      "standing": "active"
+    },
+    "id-permitbot": {
+      "id": "id-permitbot",
+      "displayName": "parcel-watch-bot",
+      "handle": "parcel-watch-bot",
+      "initials": "PW",
+      "type": "bot",
+      "standing": "active"
+    }
+  },
+  "reactionPalette": [
+    "👍",
+    "🔥",
+    "✅",
+    "😄",
+    "🙏",
+    "👀"
+  ],
+  "conversations": [
+    {
+      "id": "c-kiln",
+      "name": "Skutt kiln repair",
+      "topic": "Element, relay, and controller faults on Skutt kilns. Post your cold resistance readings with the model number.",
+      "tags": [
+        "kiln-repair",
+        "skutt",
+        "region:pnw"
+      ],
+      "listed": true,
+      "matching": "exclusive",
+      "kind": "conversation",
+      "myRole": "owner",
+      "otherOwnerCount": 0,
+      "memberCount": 7,
+      "canPost": true,
+      "messages": [
+        {
+          "id": "m-101",
+          "authorId": "id-halvard",
+          "at": "2026-08-01T09:14:00Z",
+          "time": "9:14 AM",
+          "text": "Element 3 on my KM-1027 went open circuit halfway through a bisque last night. Reading infinite across the terminals, the other two are sitting at 18.4 ohms.",
+          "reactions": []
+        },
+        {
+          "id": "m-102",
+          "authorId": "id-kilnbot",
+          "at": "2026-08-01T09:15:00Z",
+          "time": "9:15 AM",
+          "text": "Firing 2026-07-31 aborted at 04:12. Segment 3 of 4, 1642°F. Ramp rate had fallen to 41°F/hr against a target of 108°F/hr.",
+          "reactions": []
+        },
+        {
+          "id": "m-103",
+          "authorId": "id-priya",
+          "at": "2026-08-01T09:21:00Z",
+          "time": "9:21 AM",
+          "text": "@halvard-l That trailing rate is the giveaway. A failed relay cuts out cleanly instead of falling off over an hour.",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "identityIds": [
+                "id-halvard"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "m-104",
+          "authorId": "id-marisol",
+          "at": "2026-08-01T09:33:00Z",
+          "time": "9:33 AM",
+          "text": "Check the pigtail connection before you order anything. Mine read open at the terminal and the element itself was fine — the crimp had burned back inside the connector where you cannot see it.",
+          "reactions": [
+            {
+              "emoji": "🔥",
+              "identityIds": [
+                "id-priya",
+                "id-halvard"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "m-105",
+          "authorId": "id-halvard",
+          "at": "2026-08-01T10:02:00Z",
+          "time": "10:02 AM",
+          "text": "Pulled the cover. Connector is charred right through. Good call.",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "identityIds": [
+                "id-marisol",
+                "id-priya",
+                "id-junie"
+              ]
+            }
+          ],
+          "note": {
+            "authorId": "id-priya",
+            "authorName": "Priya Raghunathan",
+            "body": "Ordered two 1027-PT pigtail kits on 31 Jul, arriving Tuesday."
+          }
+        },
+        {
+          "id": "m-106",
+          "authorId": "id-renata",
+          "at": "2026-08-01T10:40:00Z",
+          "time": "10:40 AM",
+          "text": "Skutt sells the replacement as part 1027-PT, about $14 for the pair. Do not reuse the old porcelain wire nuts, they are single-use once they have been heat cycled.",
+          "reactions": [
+            {
+              "emoji": "🙏",
+              "identityIds": [
+                "id-halvard"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "m-107",
+          "authorId": "id-priya",
+          "at": "2026-08-01T11:05:00Z",
+          "time": "11:05 AM",
+          "text": "Worth saying out loud: that element set is at 340 hours. If one connector cooked, the other two are the same age and have seen the same cycles.",
+          "reactions": []
+        },
+        {
+          "id": "m-108",
+          "authorId": "id-tobias",
+          "at": "2026-08-01T11:48:00Z",
+          "time": "11:48 AM",
+          "text": "Anyone paying a shop to swap an element is getting robbed, honestly. If you cannot do this yourself you have no business owning a kiln. Half the questions in here could be answered by ten minutes of effort.",
+          "reactions": []
+        },
+        {
+          "id": "m-109",
+          "authorId": "id-junie",
+          "at": "2026-08-01T11:52:00Z",
+          "time": "11:52 AM",
+          "text": "@tobias-m That is not what people come here for.",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "identityIds": [
+                "id-marisol",
+                "id-halvard",
+                "id-priya"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "m-110",
+          "authorId": "id-kilnbot",
+          "at": "2026-08-01T13:30:00Z",
+          "time": "1:30 PM",
+          "text": "Firing 2026-08-01 completed. Segment 4 of 4 held 12 minutes at 1888°F. Peak drift 6°F.",
+          "reactions": []
+        },
+        {
+          "id": "m-111",
+          "authorId": "id-priya",
+          "at": "2026-08-01T14:12:00Z",
+          "time": "2:12 PM",
+          "text": "Ordering a full element set plus two pigtail kits. @kiln-log-bot will have the cold resistance readings the moment they are in, so we get a baseline to compare against.",
+          "reactions": [
+            {
+              "emoji": "👀",
+              "identityIds": [
+                "id-marisol"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "m-112",
+          "authorId": "id-halvard",
+          "at": "2026-08-01T14:20:00Z",
+          "time": "2:20 PM",
+          "text": "@priya-r if you are ordering anyway, put me down for a set of pigtails too. I will settle up when they land.",
+          "reactions": []
+        }
+      ],
+      "participants": [
+        "id-priya",
+        "id-halvard",
+        "id-kilnbot",
+        "id-marisol",
+        "id-junie",
+        "id-desmond",
+        "id-tobias"
+      ]
+    },
+    {
+      "id": "c-glaze",
+      "name": "Cone 6 glaze chemistry",
+      "topic": "Mid-fire recipe troubleshooting. Post the recipe and the fired result together or nobody can help you.",
+      "tags": [
+        "ceramics",
+        "glaze-chemistry",
+        "cone:6"
+      ],
+      "listed": true,
+      "matching": "inclusive",
+      "kind": "conversation",
+      "myRole": "member",
+      "otherOwnerCount": 2,
+      "memberCount": 34,
+      "canPost": true,
+      "messages": [
+        {
+          "id": "m-201",
+          "authorId": "id-noor",
+          "at": "2026-08-01T10:10:00Z",
+          "time": "10:10 AM",
+          "text": "Getting crawling on a satin matte at cone 6, worst on vertical surfaces. Recipe is 40 neph sy, 20 silica, 20 whiting, 20 EPK.",
+          "reactions": []
+        },
+        {
+          "id": "m-202",
+          "authorId": "id-desmond",
+          "at": "2026-08-01T10:26:00Z",
+          "time": "10:26 AM",
+          "text": "20% EPK is doing it. Raw clay shrinks as it dries and pulls the glaze apart before it ever melts. Calcine half of it and the crawling usually stops dead.",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "identityIds": [
+                "id-noor",
+                "id-priya"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "m-203",
+          "authorId": "id-priya",
+          "at": "2026-08-01T10:41:00Z",
+          "time": "10:41 AM",
+          "text": "@noor-h Also worth checking how long the pots sat between bisque and glazing. Dust on a bisque surface will do the same thing and it is a much cheaper fix than reformulating.",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "identityIds": [
+                "id-desmond"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "m-204",
+          "authorId": "id-noor",
+          "at": "2026-08-01T11:15:00Z",
+          "time": "11:15 AM",
+          "text": "They sat about three weeks on an open shelf. That is probably the whole story.",
+          "reactions": []
+        },
+        {
+          "id": "m-205",
+          "authorId": "id-oskar",
+          "at": "2026-08-01T11:58:00Z",
+          "time": "11:58 AM",
+          "text": "Rinse and let them dry overnight before you glaze. I stopped losing pots to crawling entirely once I started doing that.",
+          "reactions": [
+            {
+              "emoji": "🙏",
+              "identityIds": [
+                "id-noor"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "m-206",
+          "authorId": "id-desmond",
+          "at": "2026-08-01T12:05:00Z",
+          "time": "12:05 PM",
+          "text": "If it is still crawling after that, post the fired result and we can work out whether it is application thickness instead.",
+          "reactions": []
+        }
+      ],
+      "participants": [
+        "id-noor",
+        "id-desmond",
+        "id-priya",
+        "id-oskar"
+      ]
+    },
+    {
+      "id": "c-permit",
+      "name": "Parcel 44-1180 permit review",
+      "topic": "Tracking the Ashford county review. Everything here ends up attached to the file, so keep it professional.",
+      "tags": [
+        "permit-review",
+        "parcel:44-1180",
+        "city:ashford"
+      ],
+      "listed": false,
+      "matching": "all",
+      "kind": "conversation",
+      "myRole": "administrator",
+      "otherOwnerCount": 1,
+      "memberCount": 5,
+      "canPost": true,
+      "messages": [
+        {
+          "id": "m-301",
+          "authorId": "id-permitbot",
+          "at": "2026-07-31T08:00:00Z",
+          "time": "8:00 AM",
+          "text": "Parcel 44-1180 status changed: Submitted → Under review. Reviewer assigned in the county system on 31 Jul.",
+          "reactions": []
+        },
+        {
+          "id": "m-302",
+          "authorId": "id-desmond",
+          "at": "2026-07-31T09:12:00Z",
+          "time": "9:12 AM",
+          "text": "The setback drawing they have on file is the November revision. If they review against that we are going to get a correction notice for something we already fixed.",
+          "reactions": []
+        },
+        {
+          "id": "m-303",
+          "authorId": "id-priya",
+          "at": "2026-07-31T14:40:00Z",
+          "time": "2:40 PM",
+          "text": "@desmond-a Sent the March set to the reviewer directly and asked them to confirm receipt in writing. Will paste the reply here when it comes.",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "identityIds": [
+                "id-desmond"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "m-304",
+          "authorId": "id-desmond",
+          "at": "2026-07-31T16:20:00Z",
+          "time": "4:20 PM",
+          "text": "Good. Keep this one unlisted until the decision is public.",
+          "reactions": []
+        },
+        {
+          "id": "m-305",
+          "authorId": "id-noor",
+          "at": "2026-08-01T09:18:00Z",
+          "time": "9:18 AM",
+          "text": "Third week without a decision and nobody at the counter will tell us who has it. Who do we actually call?",
+          "reactions": []
+        },
+        {
+          "id": "m-306",
+          "authorId": "id-oskar",
+          "at": "2026-08-01T09:24:00Z",
+          "time": "9:24 AM",
+          "text": "Reviewer's direct line is 555-0148, call him at home if he stalls on this again.",
+          "reactions": []
+        },
+        {
+          "id": "m-307",
+          "authorId": "id-desmond",
+          "at": "2026-08-01T09:29:00Z",
+          "time": "9:29 AM",
+          "text": "Take that down please. Everything in here ends up attached to the file.",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "identityIds": [
+                "id-noor",
+                "id-priya"
+              ]
+            }
+          ]
+        }
+      ],
+      "participants": [
+        "id-desmond",
+        "id-priya",
+        "id-permitbot",
+        "id-noor",
+        "id-oskar"
+      ]
+    },
+    {
+      "id": "c-mod1042",
+      "name": "Report #1042 review",
+      "topic": "Private discussion for report #1042. Decision and reasoning go on the report itself.",
+      "tags": [
+        "moderation",
+        "ticket:1042"
+      ],
+      "listed": false,
+      "matching": "all",
+      "kind": "moderation-discussion",
+      "linkedTicket": 1042,
+      "myRole": "administrator",
+      "otherOwnerCount": 1,
+      "memberCount": 3,
+      "canPost": true,
+      "messages": [
+        {
+          "id": "m-401",
+          "authorId": "id-priya",
+          "at": "2026-08-01T13:05:00Z",
+          "time": "1:05 PM",
+          "text": "Opened this for report #1042. Tobias has been sharp before but this is the first one anyone has actually reported.",
+          "reactions": []
+        },
+        {
+          "id": "m-402",
+          "authorId": "id-halvard",
+          "at": "2026-08-01T13:22:00Z",
+          "time": "1:22 PM",
+          "text": "I would not delete it. It is unpleasant, not abusive, and deleting it makes the thread read strangely. A posting suspension for a week says the same thing more clearly.",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "identityIds": [
+                "id-priya"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "m-403",
+          "authorId": "id-priya",
+          "at": "2026-08-01T13:43:00Z",
+          "time": "1:43 PM",
+          "text": "@halvard-l Agreed. Suspend posting through the 8th and leave the message up. I will note the reasoning on the report itself.",
+          "reactions": []
+        }
+      ],
+      "participants": [
+        "id-priya",
+        "id-halvard",
+        "id-kilnbot"
+      ]
+    },
+    {
+      "id": "c-wheel",
+      "name": "Wheel throwing for beginners",
+      "topic": "No question is too basic. Six weeks in still counts as beginner.",
+      "tags": [
+        "wheelthrowing",
+        "beginners"
+      ],
+      "listed": true,
+      "matching": "inclusive",
+      "kind": "conversation",
+      "myRole": "member",
+      "otherOwnerCount": 3,
+      "memberCount": 128,
+      "canPost": true,
+      "messages": [
+        {
+          "id": "m-501",
+          "authorId": "id-oskar",
+          "at": "2026-07-29T08:30:00Z",
+          "time": "8:30 AM",
+          "text": "Six weeks in and I still cannot centre more than two pounds without it going off. What actually fixed this for you?",
+          "reactions": []
+        },
+        {
+          "id": "m-502",
+          "authorId": "id-marisol",
+          "at": "2026-07-29T08:52:00Z",
+          "time": "8:52 AM",
+          "text": "Brace your forearm against your hip and stop moving your hands. Centring is a bracing problem, not a strength problem.",
+          "reactions": [
+            {
+              "emoji": "🔥",
+              "identityIds": [
+                "id-oskar",
+                "id-noor"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "m-503",
+          "authorId": "id-junie",
+          "at": "2026-07-29T09:20:00Z",
+          "time": "9:20 AM",
+          "text": "And wetter than you think for the first thirty seconds. Most people fight dry clay and blame themselves.",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "identityIds": [
+                "id-oskar"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "m-504",
+          "authorId": "id-oskar",
+          "at": "2026-07-29T09:41:00Z",
+          "time": "9:41 AM",
+          "text": "Bracing against the hip did it. Three pounds centred first try this morning.",
+          "reactions": [
+            {
+              "emoji": "😄",
+              "identityIds": [
+                "id-marisol",
+                "id-junie"
+              ]
+            }
+          ]
+        }
+      ],
+      "participants": [
+        "id-oskar",
+        "id-marisol",
+        "id-junie",
+        "id-priya"
+      ]
+    },
+    {
+      "id": "c-raku",
+      "name": "PNW raku firings",
+      "topic": "Firing dates, who is hauling what, and results worth arguing about.",
+      "tags": [
+        "raku",
+        "reduction",
+        "region:pnw"
+      ],
+      "listed": true,
+      "matching": "inclusive",
+      "kind": "conversation",
+      "myRole": "member",
+      "otherOwnerCount": 2,
+      "memberCount": 20,
+      "canPost": true,
+      "messages": [
+        {
+          "id": "m-601",
+          "authorId": "id-junie",
+          "at": "2026-08-01T13:00:00Z",
+          "time": "1:00 PM",
+          "text": "Firing at the Kitsap yard on the 9th if anyone wants to bring work. Two cans of shredded newsprint, bring your own tongs.",
+          "reactions": [
+            {
+              "emoji": "🔥",
+              "identityIds": [
+                "id-marisol"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "m-602",
+          "authorId": "id-marisol",
+          "at": "2026-08-01T13:18:00Z",
+          "time": "1:18 PM",
+          "text": "I will be there. Bringing the copper matte batch that went grey last time so someone can tell me what I did wrong.",
+          "reactions": []
+        },
+        {
+          "id": "m-603",
+          "authorId": "id-oskar",
+          "at": "2026-08-01T13:35:00Z",
+          "time": "1:35 PM",
+          "text": "Grey usually means you opened the can too early. Give it the full twenty minutes even when it looks done.",
+          "reactions": [
+            {
+              "emoji": "👍",
+              "identityIds": [
+                "id-marisol"
+              ]
+            }
+          ]
+        }
+      ],
+      "participants": [
+        "id-junie",
+        "id-marisol",
+        "id-oskar",
+        "id-priya"
+      ]
+    },
+    {
+      "id": "c-landl",
+      "name": "L&L kiln repair (Midwest)",
+      "topic": "Element holders, controllers, and brick repair on L&L kilns.",
+      "tags": [
+        "kiln-repair",
+        "l-and-l",
+        "region:midwest"
+      ],
+      "listed": true,
+      "matching": "inclusive",
+      "kind": "conversation",
+      "myRole": "member",
+      "otherOwnerCount": 1,
+      "memberCount": 13,
+      "canPost": true,
+      "messages": [
+        {
+          "id": "m-701",
+          "authorId": "id-desmond",
+          "at": "2026-08-01T13:46:00Z",
+          "time": "1:46 PM",
+          "text": "The hard ceramic element holders on these are the whole reason to buy one. Ten years and I have never had an element sag into the brick.",
+          "reactions": []
+        },
+        {
+          "id": "m-702",
+          "authorId": "id-noor",
+          "at": "2026-08-01T14:01:00Z",
+          "time": "2:01 PM",
+          "text": "Anyone replaced a holder itself? Mine cracked when the element let go and I cannot tell whether it is structural.",
+          "reactions": []
+        },
+        {
+          "id": "m-703",
+          "authorId": "id-desmond",
+          "at": "2026-08-01T14:09:00Z",
+          "time": "2:09 PM",
+          "text": "They are sold individually and they slide out once the element is off. Do not fire with a cracked one, it will drop the coil onto the brick below it.",
+          "reactions": [
+            {
+              "emoji": "🙏",
+              "identityIds": [
+                "id-noor"
+              ]
+            }
+          ]
+        }
+      ],
+      "participants": [
+        "id-desmond",
+        "id-noor",
+        "id-priya"
+      ]
+    },
+    {
+      "id": "c-saltfire",
+      "name": "Salt firing at cone 10",
+      "topic": "Wadding recipes, salt introduction, and reading the atmosphere.",
+      "tags": [
+        "saltfire",
+        "cone:10",
+        "region:midwest"
+      ],
+      "listed": true,
+      "matching": "inclusive",
+      "kind": "conversation",
+      "myRole": "member",
+      "otherOwnerCount": 1,
+      "memberCount": 10,
+      "canPost": true,
+      "messages": [
+        {
+          "id": "m-801",
+          "authorId": "id-oskar",
+          "at": "2026-07-31T15:00:00Z",
+          "time": "3:00 PM",
+          "text": "Wadding recipe that actually releases: equal parts alumina hydrate and EPK, a pinch of sawdust. Nothing sticks and it crumbles off cold.",
+          "reactions": [
+            {
+              "emoji": "✅",
+              "identityIds": [
+                "id-noor"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "m-802",
+          "authorId": "id-noor",
+          "at": "2026-07-31T15:30:00Z",
+          "time": "3:30 PM",
+          "text": "How much salt are you introducing per cubic foot? Ours is coming out patchy on the back stack.",
+          "reactions": []
+        },
+        {
+          "id": "m-803",
+          "authorId": "id-oskar",
+          "at": "2026-07-31T16:02:00Z",
+          "time": "4:02 PM",
+          "text": "About a pound and a half, split across four introductions rather than two. Patchy usually means it went in too fast to volatilise evenly.",
+          "reactions": []
+        }
+      ],
+      "participants": [
+        "id-oskar",
+        "id-noor",
+        "id-priya"
+      ]
+    },
+    {
+      "id": "c-private",
+      "name": "Kiln and equipment for sale (PNW)",
+      "topic": "Studio closures and private sales. Do not repost anything from here.",
+      "tags": [
+        "kiln-repair",
+        "private-buyers",
+        "region:pnw"
+      ],
+      "listed": false,
+      "matching": "all",
+      "kind": "conversation",
+      "myRole": "member",
+      "otherOwnerCount": 1,
+      "memberCount": 6,
+      "canPost": true,
+      "messages": [
+        {
+          "id": "m-901",
+          "authorId": "id-marisol",
+          "at": "2026-08-01T12:40:00Z",
+          "time": "12:40 PM",
+          "text": "Studio in Olympia is closing and selling a KM-1027 with a fresh element set, plus two full shelves of furniture. Asking 900 for everything.",
+          "reactions": [
+            {
+              "emoji": "👀",
+              "identityIds": [
+                "id-halvard"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "m-902",
+          "authorId": "id-halvard",
+          "at": "2026-08-01T12:52:00Z",
+          "time": "12:52 PM",
+          "text": "Is the controller the KM-1 or the newer touchscreen? That is most of the difference in what it is worth.",
+          "reactions": []
+        },
+        {
+          "id": "m-903",
+          "authorId": "id-marisol",
+          "at": "2026-08-01T13:04:00Z",
+          "time": "1:04 PM",
+          "text": "KM-1. I will get photos of the brick tomorrow before anyone drives out there.",
+          "reactions": []
+        }
+      ],
+      "participants": [
+        "id-marisol",
+        "id-halvard",
+        "id-priya"
+      ]
+    }
+  ]
+}

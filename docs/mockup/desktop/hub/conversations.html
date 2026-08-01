@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Your Conversations · Tawk</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/styles.css">
+<style>
+  .conv-row__name { font-size: 15.5px; font-weight: 620; letter-spacing: -0.01em; margin-bottom: 2px; }
+  .conv-row__topic { font-size: 13.5px; color: var(--muted); margin-bottom: 8px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 62ch; }
+  .conv-row__tags { margin-bottom: 6px; }
+  .conv-row__sub { font-size: 12.5px; color: var(--muted); display: flex; gap: 10px; align-items: center; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar__inner">
+    <a class="brand" href="../index.html"><span class="brand__mark">T</span> Tawk</a>
+    <nav class="topnav">
+      <a href="conversations.html" class="is-current">Conversations</a>
+      <a href="find-conversations.html">Find</a>
+      <a href="../bots/bots.html">Bots</a>
+    </nav>
+    <div class="spacer"></div>
+    <span class="whoami"><span class="avatar avatar--sm" id="meInitials"></span><span id="meName"></span></span>
+  </div>
+</div>
+
+<main class="app">
+
+  <div class="page-head">
+    <div class="row row--between">
+      <div>
+        <h1 class="page-title">Your conversations</h1>
+        <p class="page-sub">The name tells you what a conversation is. The tags are what actually address it.</p>
+      </div>
+      <div class="row">
+        <a class="btn" href="create-conversation.html">Create</a>
+        <a class="btn btn--primary" href="find-conversations.html">Find a conversation</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <ul class="list" id="conversationList"></ul>
+  </div>
+
+</main>
+
+<script src="conversations-api.js"></script>
+<script>
+(async function () {
+  'use strict';
+
+  function el(tag, className, text) {
+    var node = document.createElement(tag);
+    if (className) { node.className = className; }
+    if (text !== undefined) { node.textContent = text; }
+    return node;
+  }
+
+  var ROLE_LABEL = { owner: 'Owner', administrator: 'Administrator', member: 'Member' };
+  var ROLE_CLASS = { owner: 'badge badge--owner', administrator: 'badge badge--admin', member: 'badge' };
+
+  var me = await ConversationsApi.getSignedInIdentity();
+  document.getElementById('meInitials').textContent = me.initials;
+  document.getElementById('meName').textContent = me.displayName;
+
+  var conversations = await ConversationsApi.getJoinedConversations();
+  var host = document.getElementById('conversationList');
+
+  if (!conversations.length) {
+    var empty = el('div', 'empty');
+    empty.appendChild(el('div', 'empty__title', 'You have not joined a conversation yet'));
+    empty.appendChild(el('div', '', 'Search for tags to find a listed conversation, or create your own.'));
+    host.replaceWith(empty);
+    return;
+  }
+
+  conversations.forEach(function (conversation) {
+    var row = el('a', 'list__item');
+    row.href = '../workspace/conversation.html?id=' + encodeURIComponent(conversation.id);
+
+    var main = el('div', 'list__main');
+    main.appendChild(el('div', 'conv-row__name', conversation.name));
+    if (conversation.topic) {
+      main.appendChild(el('div', 'conv-row__topic', conversation.topic));
+    }
+    var tags = el('div', 'tags conv-row__tags');
+    conversation.tags.forEach(function (value) {
+      tags.appendChild(el('span', 'tag', value));
+    });
+    main.appendChild(tags);
+
+    var sub = el('div', 'conv-row__sub');
+    sub.appendChild(el('span', '', conversation.listed
+      ? (conversation.matching === 'exclusive' ? 'Listed · all tags must match' : 'Listed')
+      : 'Unlisted'));
+    sub.appendChild(el('span', '', '·'));
+    sub.appendChild(el('span', '', conversation.memberCount + (conversation.memberCount === 1 ? ' member' : ' members')));
+    if (conversation.kind === 'moderation-discussion') {
+      sub.appendChild(el('span', '', '·'));
+      sub.appendChild(el('span', 'badge badge--warning', 'Moderation discussion · Report #' + conversation.linkedTicket));
+    }
+    main.appendChild(sub);
+    row.appendChild(main);
+
+    row.appendChild(el('span', ROLE_CLASS[conversation.role], ROLE_LABEL[conversation.role]));
+    row.appendChild(el('span', 'list__meta', conversation.lastActivity));
+    host.appendChild(row);
+  });
+})();
+</script>
+
+</body>
+</html>

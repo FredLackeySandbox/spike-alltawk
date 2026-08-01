@@ -1,0 +1,105 @@
+{
+  "identity": {
+    "id": "id-priya",
+    "displayName": "Priya Raghunathan",
+    "initials": "PR",
+    "type": "person"
+  },
+  "namePolicy": {
+    "minLength": 2,
+    "maxLength": 60,
+    "summary": "What members see in their conversation list and, for a listed conversation, in search results.",
+    "errors": {
+      "empty": "Every conversation needs a name.",
+      "short": "Give it at least 2 characters.",
+      "long": "Keep the name to 60 characters or fewer."
+    }
+  },
+  "topicPolicy": {
+    "maxLength": 200,
+    "optional": true,
+    "summary": "Optional. One line on what belongs here. Leave it empty to remove it.",
+    "errors": {
+      "long": "Keep the topic to 200 characters or fewer."
+    }
+  },
+  "tagPolicy": {
+    "minTags": 1,
+    "maxTags": 10,
+    "pattern": "^[a-z0-9]+(-[a-z0-9]+)*(:[a-z0-9]+(-[a-z0-9]+)*)?$",
+    "summary": "Latin letters and numbers, an optional key:value colon, hyphens only between words.",
+    "errors": {
+      "empty": "Enter a tag before adding it.",
+      "whitespace": "Tags cannot contain spaces.",
+      "unicode": "Tags use Latin letters and numbers only.",
+      "hyphenEdge": "A tag part cannot start or end with a hyphen.",
+      "doubleHyphen": "Use a single hyphen between words.",
+      "colons": "A tag can contain at most one colon, separating a key from a value.",
+      "shape": "That is not a valid tag.",
+      "duplicate": "This conversation already carries that tag.",
+      "max": "A conversation can carry at most 10 tags.",
+      "min": "A conversation must keep at least one tag."
+    }
+  },
+  "matchingOptions": [
+    {
+      "id": "inclusive",
+      "title": "Any tag can find it",
+      "description": "It appears in search when at least one of its tags is selected."
+    },
+    {
+      "id": "exclusive",
+      "title": "All tags required",
+      "description": "It appears only when every one of its tags is selected."
+    }
+  ],
+  "conversations": [
+    {
+      "id": "c-kiln",
+      "name": "Skutt kiln repair",
+      "topic": "Element, relay, and controller faults on Skutt kilns. Post your cold resistance readings with the model number.",
+      "tags": [
+        "kiln-repair",
+        "skutt",
+        "region:pnw"
+      ],
+      "listed": true,
+      "matching": "exclusive",
+      "archived": false,
+      "myRole": "owner",
+      "memberCount": 7,
+      "createdOn": "12 Mar 2026"
+    },
+    {
+      "id": "c-permit",
+      "name": "Parcel 44-1180 permit review",
+      "topic": "Tracking the Ashford county review. Everything here ends up attached to the file, so keep it professional.",
+      "tags": [
+        "permit-review",
+        "parcel:44-1180",
+        "city:ashford"
+      ],
+      "listed": false,
+      "matching": "all",
+      "archived": false,
+      "myRole": "administrator",
+      "memberCount": 5,
+      "createdOn": "6 Jun 2026"
+    },
+    {
+      "id": "c-mod1042",
+      "name": "Report #1042 review",
+      "topic": "Private discussion for report #1042. Decision and reasoning go on the report itself.",
+      "tags": [
+        "moderation",
+        "ticket:1042"
+      ],
+      "listed": false,
+      "matching": "all",
+      "archived": false,
+      "myRole": "administrator",
+      "memberCount": 3,
+      "createdOn": "1 Aug 2026"
+    }
+  ]
+}

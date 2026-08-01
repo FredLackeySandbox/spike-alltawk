@@ -1,0 +1,86 @@
+{
+  "identity": {
+    "id": "id-priya",
+    "displayName": "Priya Raghunathan",
+    "initials": "PR",
+    "type": "person"
+  },
+  "namePolicy": {
+    "minLength": 2,
+    "maxLength": 60,
+    "summary": "What people will see in their conversation list and in search results.",
+    "errors": {
+      "empty": "Every conversation needs a name.",
+      "short": "Give it at least 2 characters.",
+      "long": "Keep the name to 60 characters or fewer."
+    }
+  },
+  "topicPolicy": {
+    "maxLength": 200,
+    "optional": true,
+    "summary": "Optional. One line on what belongs here, which owners and administrators can change later.",
+    "errors": {
+      "long": "Keep the topic to 200 characters or fewer."
+    }
+  },
+  "tagPolicy": {
+    "minTags": 1,
+    "maxTags": 10,
+    "pattern": "^[a-z0-9]+(-[a-z0-9]+)*(:[a-z0-9]+(-[a-z0-9]+)*)?$",
+    "summary": "Latin letters and numbers, an optional key:value colon, hyphens only between words.",
+    "errors": {
+      "empty": "Enter a tag before adding it.",
+      "whitespace": "Tags cannot contain spaces.",
+      "unicode": "Tags use Latin letters and numbers only.",
+      "hyphenEdge": "A tag part cannot start or end with a hyphen.",
+      "doubleHyphen": "Use a single hyphen between words.",
+      "colons": "A tag can contain at most one colon, separating a key from a value.",
+      "shape": "That is not a valid tag.",
+      "duplicate": "That tag is already on this conversation.",
+      "max": "A conversation can carry at most 10 tags."
+    }
+  },
+  "visibilityOptions": [
+    {
+      "id": "listed",
+      "title": "Listed",
+      "description": "Appears in tag search with its tags visible. Anyone identified can join it."
+    },
+    {
+      "id": "unlisted",
+      "title": "Unlisted",
+      "description": "Never named in search. Reachable only by someone who supplies every one of its tags."
+    }
+  ],
+  "matchingOptions": [
+    {
+      "id": "inclusive",
+      "title": "Any tag can find it",
+      "description": "The conversation appears when a search includes at least one of its tags."
+    },
+    {
+      "id": "exclusive",
+      "title": "All tags required",
+      "description": "The conversation appears only when a search includes every one of its tags."
+    }
+  ],
+  "existingTags": [
+    { "value": "kiln-repair", "listedConversationCount": 2 },
+    { "value": "skutt", "listedConversationCount": 1 },
+    { "value": "l-and-l", "listedConversationCount": 1 },
+    { "value": "region:pnw", "listedConversationCount": 2 },
+    { "value": "region:midwest", "listedConversationCount": 2 },
+    { "value": "ceramics", "listedConversationCount": 1 },
+    { "value": "glaze-chemistry", "listedConversationCount": 1 },
+    { "value": "cone:6", "listedConversationCount": 1 },
+    { "value": "cone:10", "listedConversationCount": 1 },
+    { "value": "raku", "listedConversationCount": 1 },
+    { "value": "reduction", "listedConversationCount": 1 },
+    { "value": "saltfire", "listedConversationCount": 1 },
+    { "value": "slipcasting", "listedConversationCount": 1 },
+    { "value": "moldmaking", "listedConversationCount": 1 },
+    { "value": "wheelthrowing", "listedConversationCount": 1 },
+    { "value": "beginners", "listedConversationCount": 1 }
+  ],
+  "nextConversationId": "c-new"
+}

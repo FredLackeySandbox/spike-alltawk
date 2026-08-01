@@ -1,0 +1,76 @@
+{
+  "identity": {
+    "id": "id-priya",
+    "displayName": "Priya Raghunathan",
+    "initials": "PR",
+    "type": "person"
+  },
+  "conversations": [
+    {
+      "id": "c-kiln",
+      "name": "Skutt kiln repair",
+      "topic": "Element, relay, and controller faults on Skutt kilns. Post your cold resistance readings with the model number.",
+      "tags": ["kiln-repair", "skutt", "region:pnw"],
+      "listed": true,
+      "matching": "exclusive",
+      "role": "owner",
+      "kind": "conversation",
+      "memberCount": 7,
+      "lastActivity": "11 minutes ago",
+      "lastActivityAt": "2026-08-01T14:12:00Z"
+    },
+    {
+      "id": "c-mod1042",
+      "name": "Report #1042 review",
+      "topic": "Private discussion for report #1042. Decision and reasoning go on the report itself.",
+      "tags": ["moderation", "ticket:1042"],
+      "listed": false,
+      "matching": "all",
+      "role": "administrator",
+      "kind": "moderation-discussion",
+      "linkedTicket": 1042,
+      "memberCount": 3,
+      "lastActivity": "40 minutes ago",
+      "lastActivityAt": "2026-08-01T13:43:00Z"
+    },
+    {
+      "id": "c-glaze",
+      "name": "Cone 6 glaze chemistry",
+      "topic": "Mid-fire recipe troubleshooting. Post the recipe and the fired result together or nobody can help you.",
+      "tags": ["ceramics", "glaze-chemistry", "cone:6"],
+      "listed": true,
+      "matching": "inclusive",
+      "role": "member",
+      "kind": "conversation",
+      "memberCount": 34,
+      "lastActivity": "2 hours ago",
+      "lastActivityAt": "2026-08-01T12:05:00Z"
+    },
+    {
+      "id": "c-permit",
+      "name": "Parcel 44-1180 permit review",
+      "topic": "Tracking the Ashford county review. Everything here ends up attached to the file, so keep it professional.",
+      "tags": ["permit-review", "parcel:44-1180", "city:ashford"],
+      "listed": false,
+      "matching": "all",
+      "role": "administrator",
+      "kind": "conversation",
+      "memberCount": 5,
+      "lastActivity": "5 hours ago",
+      "lastActivityAt": "2026-08-01T09:29:00Z"
+    },
+    {
+      "id": "c-wheel",
+      "name": "Wheel throwing for beginners",
+      "topic": "No question is too basic. Six weeks in still counts as beginner.",
+      "tags": ["wheelthrowing", "beginners"],
+      "listed": true,
+      "matching": "inclusive",
+      "role": "member",
+      "kind": "conversation",
+      "memberCount": 128,
+      "lastActivity": "3 days ago",
+      "lastActivityAt": "2026-07-29T09:41:00Z"
+    }
+  ]
+}

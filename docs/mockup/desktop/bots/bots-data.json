@@ -1,0 +1,63 @@
+{
+  "identity": {
+    "id": "id-priya",
+    "displayName": "Priya Raghunathan",
+    "initials": "PR",
+    "type": "person"
+  },
+  "bots": [
+    {
+      "id": "id-kilnbot",
+      "displayName": "kiln-log-bot",
+      "initials": "KB",
+      "createdOn": "5 Apr 2026",
+      "lastSeen": "Posted 1 hour ago",
+      "token": "twk_bot_9f4c1ae2d77b40518cc3e6a1",
+      "tokenIssuedOn": "5 Apr 2026",
+      "memberships": [
+        {
+          "conversationId": "c-kiln",
+          "conversationName": "Skutt kiln repair",
+          "tags": [
+            "kiln-repair",
+            "skutt",
+            "region:pnw"
+          ],
+          "role": "administrator"
+        }
+      ]
+    },
+    {
+      "id": "id-permitbot",
+      "displayName": "parcel-watch-bot",
+      "initials": "PW",
+      "createdOn": "6 Jun 2026",
+      "lastSeen": "Posted yesterday",
+      "token": "twk_bot_31d8b0975ee24c6fa2481930",
+      "tokenIssuedOn": "18 Jul 2026",
+      "memberships": [
+        {
+          "conversationId": "c-permit",
+          "conversationName": "Parcel 44-1180 permit review",
+          "tags": [
+            "permit-review",
+            "parcel:44-1180",
+            "city:ashford"
+          ],
+          "role": "member"
+        }
+      ]
+    },
+    {
+      "id": "id-glazebot",
+      "displayName": "glaze-calc-bot",
+      "initials": "GC",
+      "createdOn": "22 Jul 2026",
+      "lastSeen": "Never posted",
+      "token": "twk_bot_c50a7be8146f49d3b91d2274",
+      "tokenIssuedOn": "22 Jul 2026",
+      "memberships": []
+    }
+  ],
+  "newBotToken": "twk_bot_7ea3f01c9b2d4856a0ff31c8"
+}

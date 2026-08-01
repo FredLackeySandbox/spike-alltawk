@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Bots · Tawk</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/styles.css">
+<style>
+  .bot-col { max-width: 760px; }
+  .bot__token { display: flex; align-items: center; gap: 10px; background: var(--surface-2); border: 1px solid var(--line); border-radius: var(--radius-sm); padding: 9px 12px; font-family: var(--mono); font-size: 13px; color: var(--ink-2); }
+  .bot__token span { flex: 1; overflow: hidden; text-overflow: ellipsis; }
+  .bot__where { margin-top: 16px; }
+  .bot__where-row { display: flex; align-items: center; gap: 10px; padding: 11px 0; border-top: 1px solid var(--line-soft); text-decoration: none; color: inherit; }
+  .bot__where-name { font-weight: 590; font-size: 14px; margin-bottom: 5px; }
+  .bot__where-row:hover .tag { border-color: var(--primary); }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar__inner">
+    <a class="brand" href="../index.html"><span class="brand__mark">T</span> Tawk</a>
+    <nav class="topnav">
+      <a href="../hub/conversations.html">Conversations</a>
+      <a href="../hub/find-conversations.html">Find</a>
+      <a href="bots.html" class="is-current">Bots</a>
+    </nav>
+    <div class="spacer"></div>
+    <span class="whoami"><span class="avatar avatar--sm" id="meInitials"></span><span id="meName"></span></span>
+  </div>
+</div>
+
+<main class="app">
+
+  <div class="page-head">
+    <div class="row row--between">
+      <div>
+        <h1 class="page-title">Bots</h1>
+        <p class="page-sub">A bot is an identity like any other. It authenticates with a token instead of signing in, and inside a conversation it holds whatever role it was given.</p>
+      </div>
+      <button class="btn btn--primary" id="registerButton" type="button">Register a bot</button>
+    </div>
+  </div>
+
+  <div class="bot-col" id="botList"></div>
+
+</main>
+
+<div class="modal-backdrop" id="modalBackdrop">
+  <div class="modal" id="modal"></div>
+</div>
+
+<div class="toast-host" id="toastHost"></div>
+
+<script src="bots-api.js"></script>
+<script>
+(async function () {
+  'use strict';
+
+  function el(tag, className, text) {
+    var node = document.createElement(tag);
+    if (className) { node.className = className; }
+    if (text !== undefined) { node.textContent = text; }
+    return node;
+  }
+
+  function toast(message, variant) {
+    var host = document.getElementById('toastHost');
+    var node = el('div', 'toast' + (variant ? ' toast--' + variant : ''), message);
+    host.appendChild(node);
+    setTimeout(function () { node.remove(); }, 3600);
+  }
+
+  var backdrop = document.getElementById('modalBackdrop');
+  var modal = document.getElementById('modal');
+
+  function closeModal() {
+    backdrop.classList.remove('is-open');
+    modal.innerHTML = '';
+  }
+
+  backdrop.addEventListener('click', function (event) {
+    if (event.target === backdrop) { closeModal(); }
+  });
+  document.addEventListener('keydown', function (event) {
+    if (event.key === 'Escape') { closeModal(); }
+  });
+
+  function openModal(options) {
+    modal.innerHTML = '';
+    var head = el('div', 'modal__head');
+    head.appendChild(el('h2', 'modal__title', options.title));
+    if (options.subtitle) { head.appendChild(el('p', 'modal__sub', options.subtitle)); }
+    modal.appendChild(head);
+    var body = el('div', 'modal__body');
+    body.appendChild(options.body);
+    modal.appendChild(body);
+    var foot = el('div', 'modal__foot');
+    (options.actions || []).forEach(function (action) {
+      var button = el('button', 'btn ' + (action.className || ''), action.label);
+      button.type = 'button';
+      button.addEventListener('click', function () { action.onClick(button); });
+      foot.appendChild(button);
+    });
+    modal.appendChild(foot);
+    backdrop.classList.add('is-open');
+    var field = modal.querySelector('input[type="text"]');
+    if (field) { field.focus(); }
+  }
+
+  /* ---------------------------------------------------------------- */
+
+  var ROLE_LABEL = { owner: 'Owner', administrator: 'Administrator', member: 'Member' };
+
+  var me = await BotsApi.getSignedInIdentity();
+  document.getElementById('meInitials').textContent = me.initials;
+  document.getElementById('meName').textContent = me.displayName;
+
+  var host = document.getElementById('botList');
+  await render();
+
+  async function render() {
+    var bots = await BotsApi.getBotIdentities();
+    host.innerHTML = '';
+
+    if (!bots.length) {
+      var panel = el('div', 'panel');
+      var empty = el('div', 'empty');
+      empty.appendChild(el('div', 'empty__title', 'You have not registered a bot'));
+      empty.appendChild(el('div', '', 'A bot needs a display name and a token. Everything else it can do comes from the conversations it joins.'));
+      panel.appendChild(empty);
+      host.appendChild(panel);
+      return;
+    }
+
+    bots.forEach(function (bot) { host.appendChild(renderBot(bot)); });
+  }
+
+  function renderBot(bot) {
+    var panel = el('div', 'panel section');
+
+    var head = el('div', 'panel__head');
+    head.appendChild(el('span', 'avatar avatar--bot', bot.initials));
+    var title = el('div', '');
+    title.appendChild(el('div', 'strong', bot.displayName));
+    title.appendChild(el('div', 'small muted', 'Registered ' + bot.createdOn + ' · ' + bot.lastSeen));
+    head.appendChild(title);
+    head.appendChild(el('div', 'spacer'));
+    head.appendChild(el('span', 'badge badge--bot', 'Bot identity'));
+    panel.appendChild(head);
+
+    var body = el('div', 'panel__body');
+
+    body.appendChild(el('div', 'section-title', 'Token'));
+    var tokenRow = el('div', 'bot__token');
+    var tokenText = el('span', '', bot.tokenPreview);
+    tokenRow.appendChild(tokenText);
+
+    var revealButton = el('button', 'btn btn--sm', 'Reveal');
+    revealButton.type = 'button';
+    revealButton.addEventListener('click', async function () {
+      if (revealButton.dataset.shown === 'true') {
+        tokenText.textContent = bot.tokenPreview;
+        revealButton.textContent = 'Reveal';
+        revealButton.dataset.shown = 'false';
+        copyButton.classList.add('is-hidden');
+        return;
+      }
+      var outcome = await BotsApi.revealBotToken(bot.id);
+      if (!outcome.revealed) { toast(outcome.reason, 'danger'); return; }
+      tokenText.textContent = outcome.token;
+      revealButton.textContent = 'Hide';
+      revealButton.dataset.shown = 'true';
+      copyButton.classList.remove('is-hidden');
+    });
+    tokenRow.appendChild(revealButton);
+
+    var copyButton = el('button', 'btn btn--sm is-hidden', 'Copy');
+    copyButton.type = 'button';
+    copyButton.addEventListener('click', function () {
+      var value = tokenText.textContent;
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(value);
+      }
+      toast('Token copied.');
+    });
+    tokenRow.appendChild(copyButton);
+
+    var regenerateButton = el('button', 'btn btn--sm btn--danger', 'Reissue');
+    regenerateButton.type = 'button';
+    regenerateButton.addEventListener('click', function () { confirmRegenerate(bot); });
+    tokenRow.appendChild(regenerateButton);
+
+    body.appendChild(tokenRow);
+    body.appendChild(el('p', 'hint', 'Issued ' + bot.tokenIssuedOn + '. This is the whole of the bot’s credentials, so treat it the way you would a password.'));
+
+    var where = el('div', 'bot__where');
+    where.appendChild(el('div', 'section-title', bot.memberships.length ? 'Where it participates' : 'Not in any conversation yet'));
+
+    if (!bot.memberships.length) {
+      var hint = el('p', 'hint');
+      hint.appendChild(document.createTextNode('It joins conversations the same way you do, by matching tags. '));
+      var findLink = el('a', 'link', 'Find a conversation');
+      findLink.href = '../hub/find-conversations.html';
+      hint.appendChild(findLink);
+      hint.appendChild(document.createTextNode('.'));
+      where.appendChild(hint);
+    } else {
+      bot.memberships.forEach(function (membership) {
+        var row = el('a', 'bot__where-row');
+        row.href = '../workspace/conversation.html?id=' + encodeURIComponent(membership.conversationId);
+        var detail = el('div', '');
+        detail.appendChild(el('div', 'bot__where-name', membership.conversationName));
+        var tags = el('div', 'tags');
+        membership.tags.forEach(function (value) { tags.appendChild(el('span', 'tag', value)); });
+        detail.appendChild(tags);
+        row.appendChild(detail);
+        row.appendChild(el('div', 'spacer'));
+        row.appendChild(el('span', 'badge' + (membership.role === 'administrator' ? ' badge--admin' : membership.role === 'owner' ? ' badge--owner' : ''), ROLE_LABEL[membership.role]));
+        where.appendChild(row);
+      });
+    }
+
+    body.appendChild(where);
+    panel.appendChild(body);
+    return panel;
+  }
+
+  function confirmRegenerate(bot) {
+    var body = el('div', '');
+    var callout = el('div', 'callout callout--warning');
+    callout.appendChild(el('span', 'callout__icon', '!'));
+    callout.appendChild(el('div', '', 'The current token stops working immediately. Anything running as ' + bot.displayName + ' will fail to authenticate until you give it the new one.'));
+    body.appendChild(callout);
+    body.appendChild(el('p', 'hint', 'Its conversations, roles, and past messages are untouched.'));
+
+    openModal({
+      title: 'Reissue this token?',
+      body: body,
+      actions: [
+        { label: 'Cancel', onClick: closeModal },
+        {
+          label: 'Reissue token',
+          className: 'btn--solid-danger',
+          onClick: async function (button) {
+            button.setAttribute('aria-disabled', 'true');
+            var outcome = await BotsApi.regenerateBotToken(bot.id);
+            if (!outcome.regenerated) {
+              button.removeAttribute('aria-disabled');
+              toast(outcome.reason, 'danger');
+              return;
+            }
+            closeModal();
+            await render();
+            showToken(bot.displayName, outcome.token, 'New token for ' + bot.displayName);
+          }
+        }
+      ]
+    });
+  }
+
+  document.getElementById('registerButton').addEventListener('click', function () {
+    var body = el('div', '');
+    var label = el('label', 'label', 'Display name');
+    body.appendChild(label);
+    var field = el('input', 'input');
+    field.type = 'text';
+    field.placeholder = 'firing-schedule-bot';
+    body.appendChild(field);
+    body.appendChild(el('p', 'hint', 'This is what people see next to everything it posts. Bots cannot be anonymous.'));
+    var error = el('p', 'hint hint--error');
+    body.appendChild(error);
+
+    openModal({
+      title: 'Register a bot identity',
+      subtitle: 'It starts with no conversations. It joins them by matching tags, the same way a person does.',
+      body: body,
+      actions: [
+        { label: 'Cancel', onClick: closeModal },
+        {
+          label: 'Register',
+          className: 'btn--primary',
+          onClick: async function (button) {
+            error.textContent = '';
+            button.setAttribute('aria-disabled', 'true');
+            var outcome = await BotsApi.registerBotIdentity(field.value);
+            if (!outcome.registered) {
+              button.removeAttribute('aria-disabled');
+              error.textContent = outcome.reason;
+              return;
+            }
+            closeModal();
+            await render();
+            showToken(outcome.bot.displayName, outcome.token, outcome.bot.displayName + ' is registered');
+          }
+        }
+      ]
+    });
+  });
+
+  function showToken(name, token, title) {
+    var body = el('div', '');
+    body.appendChild(el('p', 'hint', 'Copy this now. You can reveal it again from the list, but nothing else identifies this bot.'));
+    var tokenRow = el('div', 'bot__token');
+    tokenRow.style.marginTop = '12px';
+    tokenRow.appendChild(el('span', '', token));
+    var copyButton = el('button', 'btn btn--sm', 'Copy');
+    copyButton.type = 'button';
+    copyButton.addEventListener('click', function () {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(token);
+      }
+      toast('Token copied.');
+    });
+    tokenRow.appendChild(copyButton);
+    body.appendChild(tokenRow);
+
+    openModal({
+      title: title,
+      body: body,
+      actions: [
+        { label: 'Done', className: 'btn--primary', onClick: closeModal }
+      ]
+    });
+  }
+})();
+</script>
+
+</body>
+</html>

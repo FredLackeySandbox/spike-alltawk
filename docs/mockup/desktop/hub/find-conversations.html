@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Find a Conversation · Tawk</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/styles.css">
+<style>
+  .search-panel { padding: 20px; }
+  .result__name { font-size: 15.5px; font-weight: 620; letter-spacing: -0.01em; margin-bottom: 2px; }
+  .result__topic { font-size: 13.5px; color: var(--muted); margin-bottom: 8px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 62ch; }
+  .result__tags { margin-bottom: 6px; }
+  .result__sub { font-size: 12.5px; color: var(--muted); }
+  .hidden-strip { margin-top: 14px; }
+  .starter { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-top: 12px; }
+  .starter button { border: 1px dashed var(--line); background: var(--surface); border-radius: var(--radius-sm); padding: 5px 9px; font-family: var(--mono); font-size: 12px; color: var(--ink-2); cursor: pointer; }
+  .starter button:hover { border-color: var(--primary); color: var(--primary-dark); }
+  .searching { font-size: 13px; color: var(--muted); display: flex; align-items: center; gap: 8px; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar__inner">
+    <a class="brand" href="../index.html"><span class="brand__mark">T</span> Tawk</a>
+    <nav class="topnav">
+      <a href="conversations.html">Conversations</a>
+      <a href="find-conversations.html" class="is-current">Find</a>
+      <a href="../bots/bots.html">Bots</a>
+    </nav>
+    <div class="spacer"></div>
+    <span class="whoami"><span class="avatar avatar--sm" id="meInitials"></span><span id="meName"></span></span>
+  </div>
+</div>
+
+<main class="app">
+
+  <div class="page-head">
+    <h1 class="page-title">Find a conversation</h1>
+    <p class="page-sub">Add tags until you see what you are looking for. Listed conversations appear by name. Unlisted ones only ever appear as a count until you have supplied every tag they carry.</p>
+  </div>
+
+  <div class="panel section">
+    <div class="search-panel">
+      <div class="suggest">
+        <div class="tagbox" id="tagbox">
+          <input class="tagbox__input" id="tagInput" type="text" placeholder="Type a tag and press Enter" autocomplete="off" spellcheck="false">
+        </div>
+        <div class="suggest__menu is-hidden" id="suggestMenu"></div>
+      </div>
+      <div class="starter" id="starter">
+        <span class="small muted">Try:</span>
+      </div>
+    </div>
+  </div>
+
+  <div id="resultsArea"></div>
+
+</main>
+
+<div class="toast-host" id="toastHost"></div>
+
+<script src="find-conversations-api.js"></script>
+<script>
+(async function () {
+  'use strict';
+
+  function el(tag, className, text) {
+    var node = document.createElement(tag);
+    if (className) { node.className = className; }
+    if (text !== undefined) { node.textContent = text; }
+    return node;
+  }
+
+  function toast(message, variant) {
+    var host = document.getElementById('toastHost');
+    var node = el('div', 'toast' + (variant ? ' toast--' + variant : ''), message);
+    host.appendChild(node);
+    setTimeout(function () { node.remove(); }, 3200);
+  }
+
+  var TAG_PATTERN = /^[a-z0-9]+(-[a-z0-9]+)*(:[a-z0-9]+(-[a-z0-9]+)*)?$/;
+
+  var filter = [];
+  var activeSuggestion = -1;
+  var searchToken = 0;
+
+  var tagbox = document.getElementById('tagbox');
+  var input = document.getElementById('tagInput');
+  var menu = document.getElementById('suggestMenu');
+  var resultsArea = document.getElementById('resultsArea');
+
+  var me = await FindConversationsApi.getSignedInIdentity();
+  document.getElementById('meInitials').textContent = me.initials;
+  document.getElementById('meName').textContent = me.displayName;
+
+  var starters = await FindConversationsApi.getStarterTags();
+  var starterHost = document.getElementById('starter');
+  starters.forEach(function (value) {
+    var button = el('button', '', value);
+    button.type = 'button';
+    button.addEventListener('click', function () { addTag(value); });
+    starterHost.appendChild(button);
+  });
+
+  function renderFilter() {
+    Array.prototype.slice.call(tagbox.querySelectorAll('.tag')).forEach(function (node) { node.remove(); });
+    filter.forEach(function (value) {
+      var pill = el('span', 'tag', value);
+      var remove = el('button', 'tag__x', '×');
+      remove.type = 'button';
+      remove.title = 'Remove ' + value;
+      remove.addEventListener('click', function () {
+        filter = filter.filter(function (item) { return item !== value; });
+        renderFilter();
+        runSearch();
+      });
+      pill.appendChild(remove);
+      tagbox.insertBefore(pill, input);
+    });
+    document.getElementById('starter').style.display = filter.length ? 'none' : 'flex';
+  }
+
+  function addTag(raw) {
+    var value = String(raw || '').trim().toLowerCase();
+    if (!value) { return; }
+    if (!TAG_PATTERN.test(value)) {
+      toast('“' + raw + '” is not a valid tag. Letters, numbers, one optional colon, hyphens between words.', 'danger');
+      return;
+    }
+    if (filter.indexOf(value) === -1) {
+      filter.push(value);
+    }
+    input.value = '';
+    closeMenu();
+    renderFilter();
+    runSearch();
+    input.focus();
+  }
+
+  function closeMenu() {
+    menu.classList.add('is-hidden');
+    menu.innerHTML = '';
+    activeSuggestion = -1;
+  }
+
+  async function refreshSuggestions() {
+    var fragment = input.value.trim().toLowerCase();
+    if (!fragment) { closeMenu(); return; }
+    var suggestions = await FindConversationsApi.suggestTags(fragment, filter);
+    if (!suggestions.length) { closeMenu(); return; }
+    menu.innerHTML = '';
+    suggestions.forEach(function (suggestion, index) {
+      var item = el('button', 'suggest__item');
+      item.type = 'button';
+      item.appendChild(el('span', '', suggestion.value));
+      item.appendChild(el('span', 'suggest__count', suggestion.listedConversationCount + ' listed'));
+      item.addEventListener('mousedown', function (event) {
+        event.preventDefault();
+        addTag(suggestion.value);
+      });
+      item.dataset.index = String(index);
+      item.dataset.value = suggestion.value;
+      menu.appendChild(item);
+    });
+    menu.classList.remove('is-hidden');
+    activeSuggestion = -1;
+  }
+
+  function moveActive(step) {
+    var items = Array.prototype.slice.call(menu.querySelectorAll('.suggest__item'));
+    if (!items.length) { return; }
+    items.forEach(function (item) { item.classList.remove('is-active'); });
+    activeSuggestion = (activeSuggestion + step + items.length) % items.length;
+    items[activeSuggestion].classList.add('is-active');
+  }
+
+  input.addEventListener('input', refreshSuggestions);
+
+  input.addEventListener('keydown', function (event) {
+    if (event.key === 'ArrowDown') { event.preventDefault(); moveActive(1); return; }
+    if (event.key === 'ArrowUp') { event.preventDefault(); moveActive(-1); return; }
+    if (event.key === 'Escape') { closeMenu(); return; }
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      var items = Array.prototype.slice.call(menu.querySelectorAll('.suggest__item'));
+      if (activeSuggestion >= 0 && items[activeSuggestion]) {
+        addTag(items[activeSuggestion].dataset.value);
+      } else {
+        addTag(input.value);
+      }
+      return;
+    }
+    if (event.key === 'Backspace' && !input.value && filter.length) {
+      filter.pop();
+      renderFilter();
+      runSearch();
+    }
+  });
+
+  tagbox.addEventListener('click', function () { input.focus(); });
+  document.addEventListener('click', function (event) {
+    if (!menu.contains(event.target) && event.target !== input) { closeMenu(); }
+  });
+
+  function renderPrompt() {
+    var panel = el('div', 'panel');
+    var empty = el('div', 'empty');
+    empty.appendChild(el('div', 'empty__title', 'Start with a tag'));
+    empty.appendChild(el('div', '', 'Suggestions only ever include tags carried by a listed conversation. If a tag exists only on unlisted conversations, you will have to know it and type it yourself.'));
+    panel.appendChild(empty);
+    resultsArea.innerHTML = '';
+    resultsArea.appendChild(panel);
+  }
+
+  function renderSearching() {
+    resultsArea.innerHTML = '';
+    var panel = el('div', 'panel');
+    var body = el('div', 'panel__body');
+    var status = el('div', 'searching');
+    status.appendChild(el('span', 'btn__spinner'));
+    status.appendChild(el('span', '', 'Matching tags…'));
+    body.appendChild(status);
+    panel.appendChild(body);
+    resultsArea.appendChild(panel);
+  }
+
+  function resultRow(result) {
+    var row = el('div', 'list__item');
+    var main = el('div', 'list__main');
+
+    main.appendChild(el('div', 'result__name', result.name));
+    if (result.topic) { main.appendChild(el('div', 'result__topic', result.topic)); }
+
+    var tags = el('div', 'tags result__tags');
+    result.tags.forEach(function (value) {
+      var matched = result.matchedTags.indexOf(value.toLowerCase()) !== -1;
+      tags.appendChild(el('span', 'tag' + (matched ? ' tag--matched' : ' tag--plain'), value));
+    });
+    main.appendChild(tags);
+
+    var sub = el('div', 'result__sub');
+    var how = result.matching === 'exclusive'
+      ? 'Matched all ' + result.tags.length + ' required tags'
+      : 'Matched ' + result.matchedTags.length + ' of ' + result.tags.length + ' tags';
+    sub.textContent = how + ' · ' + result.memberCount + ' members · active ' + result.lastActivity;
+    main.appendChild(sub);
+    row.appendChild(main);
+
+    if (result.bannedForMe) {
+      row.appendChild(el('span', 'badge badge--danger', 'Banned'));
+      var blocked = el('button', 'btn btn--sm');
+      blocked.type = 'button';
+      blocked.textContent = 'Join';
+      blocked.setAttribute('aria-disabled', 'true');
+      row.appendChild(blocked);
+    } else if (result.alreadyJoined) {
+      row.appendChild(el('span', 'badge badge--success', 'Joined'));
+      var open = el('a', 'btn btn--sm', 'Open');
+      open.href = '../workspace/conversation.html?id=' + encodeURIComponent(result.id);
+      row.appendChild(open);
+    } else {
+      var join = el('button', 'btn btn--sm btn--primary', 'Join');
+      join.type = 'button';
+      join.addEventListener('click', function () { doJoin(result.id, join); });
+      row.appendChild(join);
+    }
+    return row;
+  }
+
+  async function doJoin(conversationId, button) {
+    button.setAttribute('aria-disabled', 'true');
+    button.textContent = '';
+    button.appendChild(el('span', 'btn__spinner'));
+    var outcome = await FindConversationsApi.joinConversation(conversationId);
+    if (!outcome.joined) {
+      button.removeAttribute('aria-disabled');
+      button.textContent = 'Join';
+      toast(outcome.reason, 'danger');
+      return;
+    }
+    button.textContent = 'Opening…';
+    toast('Joined. You are a member of this conversation.', 'success');
+    setTimeout(function () {
+      window.location.href = '../workspace/conversation.html?id=' + encodeURIComponent(conversationId);
+    }, 650);
+  }
+
+  function renderHidden(summary) {
+    if (!summary.count) { return null; }
+
+    if (summary.joinable) {
+      var ready = el('div', 'callout callout--success hidden-strip');
+      ready.appendChild(el('span', 'callout__icon', '●'));
+      var readyBody = el('div', '');
+      readyBody.appendChild(el('div', 'strong', 'One unlisted conversation matches every tag you supplied.'));
+      readyBody.appendChild(el('div', 'small', 'Its name, topic, and tags stay hidden until you are a member.'));
+      ready.appendChild(readyBody);
+      var spacer = el('div', 'spacer');
+      ready.appendChild(spacer);
+      var joinHidden = el('button', 'btn btn--sm btn--primary', 'Join');
+      joinHidden.type = 'button';
+      joinHidden.addEventListener('click', function () { doJoin(summary.conversationId, joinHidden); });
+      ready.appendChild(joinHidden);
+      return ready;
+    }
+
+    var note = el('div', 'callout hidden-strip');
+    note.appendChild(el('span', 'callout__icon', '●'));
+    var body = el('div', '');
+    body.appendChild(el('div', 'strong', summary.count === 1
+      ? '1 unlisted conversation is still consistent with these tags'
+      : summary.count + ' unlisted conversations are still consistent with these tags'));
+    body.appendChild(el('div', 'small muted', 'Nothing about them can be shown. Keep adding tags you already know; a hidden conversation only opens once you have supplied all of its tags and no other hidden conversation is left.'));
+    note.appendChild(body);
+    return note;
+  }
+
+  async function runSearch() {
+    if (!filter.length) { renderPrompt(); return; }
+    var token = ++searchToken;
+    renderSearching();
+
+    await new Promise(function (resolve) { setTimeout(resolve, 260); });
+    if (token !== searchToken) { return; }
+
+    var results = await FindConversationsApi.searchListedConversations(filter);
+    var hidden = await FindConversationsApi.getHiddenMatchSummary(filter);
+    if (token !== searchToken) { return; }
+
+    resultsArea.innerHTML = '';
+
+    var panel = el('div', 'panel');
+    var head = el('div', 'panel__head');
+    head.appendChild(el('h2', 'panel__title', results.length === 1 ? '1 listed conversation' : results.length + ' listed conversations'));
+    panel.appendChild(head);
+
+    if (results.length) {
+      var list = el('div', 'list');
+      results.forEach(function (result) { list.appendChild(resultRow(result)); });
+      panel.appendChild(list);
+    } else {
+      var empty = el('div', 'empty');
+      empty.appendChild(el('div', 'empty__title', 'No listed conversation matches these tags'));
+      var hint = el('div', '');
+      hint.appendChild(document.createTextNode('A conversation set to exclusive matching stays out of sight until every one of its tags is in your filter. '));
+      var createLink = el('a', 'link', 'Create a conversation with these tags');
+      createLink.href = 'create-conversation.html';
+      hint.appendChild(createLink);
+      hint.appendChild(document.createTextNode('.'));
+      empty.appendChild(hint);
+      panel.appendChild(empty);
+    }
+
+    resultsArea.appendChild(panel);
+
+    var hiddenNode = renderHidden(hidden);
+    if (hiddenNode) { resultsArea.appendChild(hiddenNode); }
+  }
+
+  renderFilter();
+  renderPrompt();
+  input.focus();
+})();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Members and Roles · Tawk</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/styles.css">
+<style>
+  .who { display: flex; align-items: center; gap: 11px; }
+  .who__name { font-weight: 570; }
+  .who__handle { display: flex; align-items: center; gap: 7px; margin-top: 1px; }
+  .who__handle .mono { font-size: 12px; }
+  .menu { position: fixed; z-index: 90; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-sm); box-shadow: var(--shadow); padding: 5px; min-width: 210px; }
+  .menu button { display: block; width: 100%; text-align: left; border: none; background: none; font-family: inherit; font-size: 13.5px; padding: 8px 11px; border-radius: 5px; cursor: pointer; color: var(--ink); }
+  .menu button:hover { background: var(--surface-2); }
+  .menu button.is-danger { color: var(--danger); }
+  .menu button.is-danger:hover { background: var(--danger-soft); }
+  .menu button[disabled] { color: var(--muted-2); cursor: not-allowed; }
+  .menu__sep { height: 1px; background: var(--line-soft); margin: 5px 0; }
+  .menu__note { font-size: 12px; color: var(--muted); padding: 6px 11px 8px; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar__inner">
+    <a class="brand" href="../index.html"><span class="brand__mark">T</span> Tawk</a>
+    <nav class="topnav">
+      <a href="../hub/conversations.html">Conversations</a>
+      <a href="../hub/find-conversations.html">Find</a>
+      <a href="../bots/bots.html">Bots</a>
+    </nav>
+    <div class="spacer"></div>
+    <span class="whoami"><span class="avatar avatar--sm" id="meInitials"></span><span id="meName"></span></span>
+  </div>
+</div>
+
+<main class="app">
+  <div id="page"></div>
+</main>
+
+<div class="modal-backdrop" id="modalBackdrop">
+  <div class="modal" id="modal"></div>
+</div>
+
+<div class="toast-host" id="toastHost"></div>
+
+<script src="members-api.js"></script>
+<script>
+(async function () {
+  'use strict';
+
+  function el(tag, className, text) {
+    var node = document.createElement(tag);
+    if (className) { node.className = className; }
+    if (text !== undefined) { node.textContent = text; }
+    return node;
+  }
+
+  function toast(message, variant) {
+    var host = document.getElementById('toastHost');
+    var node = el('div', 'toast' + (variant ? ' toast--' + variant : ''), message);
+    host.appendChild(node);
+    setTimeout(function () { node.remove(); }, 3600);
+  }
+
+  var backdrop = document.getElementById('modalBackdrop');
+  var modal = document.getElementById('modal');
+
+  function closeModal() {
+    backdrop.classList.remove('is-open');
+    modal.innerHTML = '';
+  }
+
+  backdrop.addEventListener('click', function (event) {
+    if (event.target === backdrop) { closeModal(); }
+  });
+  document.addEventListener('keydown', function (event) {
+    if (event.key === 'Escape') { closeModal(); closeMenu(); }
+  });
+
+  function openModal(options) {
+    modal.innerHTML = '';
+    var head = el('div', 'modal__head');
+    head.appendChild(el('h2', 'modal__title', options.title));
+    if (options.subtitle) { head.appendChild(el('p', 'modal__sub', options.subtitle)); }
+    modal.appendChild(head);
+    var body = el('div', 'modal__body');
+    body.appendChild(options.body);
+    modal.appendChild(body);
+    var foot = el('div', 'modal__foot');
+    (options.actions || []).forEach(function (action) {
+      var button = el('button', 'btn ' + (action.className || ''), action.label);
+      button.type = 'button';
+      button.addEventListener('click', function () { action.onClick(button); });
+      foot.appendChild(button);
+    });
+    modal.appendChild(foot);
+    backdrop.classList.add('is-open');
+  }
+
+  var menu = null;
+  function closeMenu() {
+    if (menu) { menu.remove(); menu = null; }
+  }
+  document.addEventListener('click', function (event) {
+    if (menu && !menu.contains(event.target)) { closeMenu(); }
+  });
+
+  /* ---------------------------------------------------------------- */
+
+  var ROLE_LABEL = { owner: 'Owner', administrator: 'Administrator', member: 'Member', none: 'None' };
+  var params = new URLSearchParams(window.location.search);
+  var conversationId = params.get('id') || 'c-kiln';
+
+  var me = await MembersApi.getSignedInIdentity();
+  document.getElementById('meInitials').textContent = me.initials;
+  document.getElementById('meName').textContent = me.displayName;
+
+  var page = document.getElementById('page');
+  var conversation = await MembersApi.getConversation(conversationId);
+
+  if (!conversation) {
+    var missing = el('div', 'panel');
+    var missingBody = el('div', 'empty');
+    missingBody.appendChild(el('div', 'empty__title', 'That conversation is not available to you'));
+    missing.appendChild(missingBody);
+    page.appendChild(missing);
+    return;
+  }
+
+  var isOwner = conversation.myRole === 'owner';
+
+  /* ---- header ---- */
+
+  var head = el('div', 'page-head');
+  var crumb = el('div', 'crumb');
+  var backLink = el('a', '', 'Conversation');
+  backLink.href = '../workspace/conversation.html?id=' + encodeURIComponent(conversation.id);
+  crumb.appendChild(backLink);
+  crumb.appendChild(document.createTextNode(' / Members'));
+  head.appendChild(crumb);
+
+  var headRow = el('div', 'row row--between row--top');
+  var headLeft = el('div', '');
+  headLeft.appendChild(el('h1', 'page-title', 'Members and roles'));
+  headLeft.appendChild(el('p', 'page-sub', conversation.name));
+  var tagRow = el('div', 'tags');
+  conversation.tags.forEach(function (value) { tagRow.appendChild(el('span', 'tag', value)); });
+  headLeft.appendChild(tagRow);
+  headRow.appendChild(headLeft);
+
+  var headRight = el('div', 'row');
+  var settingsLink = el('a', 'btn btn--sm', 'Conversation settings');
+  settingsLink.href = 'settings.html?id=' + encodeURIComponent(conversation.id);
+  headRight.appendChild(settingsLink);
+  var reportsLink = el('a', 'btn btn--sm', 'Reports');
+  reportsLink.href = '../moderation/reports.html';
+  headRight.appendChild(reportsLink);
+  headRow.appendChild(headRight);
+  head.appendChild(headRow);
+  page.appendChild(head);
+
+  if (!isOwner) {
+    var notice = el('div', 'callout section');
+    notice.appendChild(el('span', 'callout__icon', 'i'));
+    notice.appendChild(el('div', '', 'You are an administrator here. You can manage tags, members, and moderation, but owners are outside your authority.'));
+    page.appendChild(notice);
+  }
+
+  var activeSection = el('div', 'section');
+  page.appendChild(activeSection);
+  var inactiveSection = el('div', 'section');
+  page.appendChild(inactiveSection);
+
+  await render();
+
+  async function render() {
+    var members = await MembersApi.getConversationMembers(conversation.id);
+    conversation = await MembersApi.getConversation(conversation.id);
+
+    activeSection.innerHTML = '';
+    var panel = el('div', 'panel');
+    var panelHead = el('div', 'panel__head');
+    panelHead.appendChild(el('h2', 'panel__title', members.active.length + ' active members'));
+    panelHead.appendChild(el('div', 'spacer'));
+    panelHead.appendChild(el('span', 'small muted', conversation.activeOwnerCount === 1
+      ? 'One owner. The conversation cannot be left without one.'
+      : conversation.activeOwnerCount + ' owners.'));
+    panel.appendChild(panelHead);
+    panel.appendChild(buildTable(members.active, false));
+    activeSection.appendChild(panel);
+
+    inactiveSection.innerHTML = '';
+    if (!members.inactive.length) { return; }
+    var pastPanel = el('div', 'panel');
+    var pastHead = el('div', 'panel__head');
+    pastHead.appendChild(el('h2', 'panel__title', 'No longer participating'));
+    pastHead.appendChild(el('div', 'spacer'));
+    pastHead.appendChild(el('span', 'small muted', 'Visible to owners and administrators only.'));
+    pastPanel.appendChild(pastHead);
+    pastPanel.appendChild(buildTable(members.inactive, true));
+    inactiveSection.appendChild(pastPanel);
+  }
+
+  function buildTable(rows, inactive) {
+    var table = el('table', 'table');
+    var thead = el('thead');
+    var headRowEl = el('tr');
+    ['Identity', 'Role', inactive ? 'Standing' : 'Posting', inactive ? 'Ended' : 'Joined', ''].forEach(function (label) {
+      headRowEl.appendChild(el('th', '', label));
+    });
+    thead.appendChild(headRowEl);
+    table.appendChild(thead);
+
+    var tbody = el('tbody');
+    rows.forEach(function (member) {
+      var tr = el('tr', inactive ? 'is-inactive' : '');
+
+      var identityCell = el('td');
+      var who = el('div', 'who');
+      who.appendChild(el('span', 'avatar avatar--sm' + (member.type === 'bot' ? ' avatar--bot' : '') + (inactive ? ' avatar--gone' : ''), member.initials));
+      var nameWrap = el('div', '');
+      var nameLine = el('div', 'who__name');
+      nameLine.textContent = member.displayName;
+      if (member.identityId === me.id) {
+        nameLine.appendChild(document.createTextNode(' '));
+        nameLine.appendChild(el('span', 'small muted', '(you)'));
+      }
+      nameWrap.appendChild(nameLine);
+      var handleLine = el('div', 'who__handle');
+      handleLine.appendChild(el('span', 'mono muted', '@' + member.handle));
+      if (member.type === 'bot') { handleLine.appendChild(el('span', 'badge badge--bot', 'Bot')); }
+      nameWrap.appendChild(handleLine);
+      who.appendChild(nameWrap);
+      identityCell.appendChild(who);
+      tr.appendChild(identityCell);
+
+      var roleCell = el('td');
+      roleCell.appendChild(el('span', 'badge' + (member.role === 'owner' ? ' badge--owner' : member.role === 'administrator' ? ' badge--admin' : ''), ROLE_LABEL[member.role]));
+      tr.appendChild(roleCell);
+
+      var thirdCell = el('td');
+      if (inactive) {
+        var standingLabel = member.standing === 'banned' ? 'Banned'
+          : member.standing === 'removed' ? 'Removed' : 'Left';
+        thirdCell.appendChild(el('span', 'badge' + (member.standing === 'banned' ? ' badge--danger' : ' badge--muted'), standingLabel));
+      } else if (member.postingSuspendedUntil) {
+        thirdCell.appendChild(el('span', 'badge badge--warning', 'Suspended until ' + member.postingSuspendedUntil));
+      } else {
+        thirdCell.appendChild(el('span', 'muted small', 'Can post'));
+      }
+      tr.appendChild(thirdCell);
+
+      tr.appendChild(el('td', 'muted small', inactive ? (member.endedOn || '') : member.joined));
+
+      var actionCell = el('td', 'actions');
+      var manage = el('button', 'btn btn--sm', 'Manage');
+      manage.type = 'button';
+      manage.addEventListener('click', function (event) {
+        event.stopPropagation();
+        openRowMenu(event.currentTarget, member, inactive);
+      });
+      actionCell.appendChild(manage);
+      tr.appendChild(actionCell);
+
+      tbody.appendChild(tr);
+    });
+    table.appendChild(tbody);
+    return table;
+  }
+
+  function openRowMenu(anchor, member, inactive) {
+    closeMenu();
+    var box = anchor.getBoundingClientRect();
+    menu = el('div', 'menu');
+
+    function item(label, handler, options) {
+      var button = el('button', (options && options.danger) ? 'is-danger' : '', label);
+      button.type = 'button';
+      if (options && options.disabled) {
+        button.disabled = true;
+        button.title = options.disabledReason || '';
+      } else {
+        button.addEventListener('click', function () { closeMenu(); handler(); });
+      }
+      menu.appendChild(button);
+    }
+
+    function separator() { menu.appendChild(el('div', 'menu__sep')); }
+    function note(text) { menu.appendChild(el('div', 'menu__note', text)); }
+
+    var protectedOwner = member.role === 'owner' && !isOwner;
+    var isSelf = member.identityId === me.id;
+
+    if (inactive) {
+      item('Restore as member', function () { restore(member, 'member'); });
+      item('Restore as administrator', function () { restore(member, 'administrator'); });
+      item('Restore as owner', function () { restore(member, 'owner'); }, {
+        disabled: !isOwner,
+        disabledReason: 'Administrators cannot alter owners.'
+      });
+      if (!isOwner) { note('Only an owner can restore someone as an owner.'); }
+    } else {
+      if (member.role !== 'owner') {
+        item('Promote to administrator', function () { changeRole(member, 'administrator'); }, {
+          disabled: member.role === 'administrator'
+        });
+        item('Promote to owner', function () { changeRole(member, 'owner'); }, {
+          disabled: !isOwner,
+          disabledReason: 'Administrators cannot add owners.'
+        });
+      }
+      if (member.role === 'administrator') {
+        item('Return to member', function () { changeRole(member, 'member'); });
+      }
+      if (member.role === 'owner') {
+        item('Step down to administrator', function () { changeRole(member, 'administrator'); }, {
+          disabled: !isOwner || conversation.activeOwnerCount === 1,
+          disabledReason: conversation.activeOwnerCount === 1
+            ? 'A conversation must always keep at least one owner.'
+            : 'Administrators cannot alter owners.'
+        });
+        if (conversation.activeOwnerCount === 1) {
+          note('This is the only owner. Promote someone else first.');
+        }
+      }
+
+      separator();
+
+      if (member.postingSuspendedUntil) {
+        item('Lift posting suspension', function () { liftSuspension(member); });
+      } else {
+        item('Suspend posting…', function () { openSuspendModal(member); }, {
+          disabled: protectedOwner || isSelf,
+          disabledReason: protectedOwner ? 'Administrators cannot alter owners.' : 'You cannot suspend yourself.'
+        });
+      }
+
+      item('Remove from conversation', function () { confirmRemove(member); }, {
+        danger: true,
+        disabled: protectedOwner || isSelf,
+        disabledReason: protectedOwner ? 'Administrators cannot alter owners.' : 'Leave the conversation instead.'
+      });
+      item('Ban this identity', function () { confirmBan(member); }, {
+        danger: true,
+        disabled: protectedOwner || isSelf,
+        disabledReason: protectedOwner ? 'Administrators cannot alter owners.' : 'You cannot ban yourself.'
+      });
+    }
+
+    document.body.appendChild(menu);
+    var width = menu.offsetWidth;
+    menu.style.top = (box.bottom + 6) + 'px';
+    menu.style.left = Math.max(12, Math.min(box.right - width, window.innerWidth - width - 12)) + 'px';
+  }
+
+  /* ---- actions ---- */
+
+  async function changeRole(member, role) {
+    var outcome = await MembersApi.changeMemberRole(conversation.id, member.identityId, role);
+    if (!outcome.changed) { toast(outcome.reason, 'danger'); return; }
+    await render();
+    toast(member.displayName + ' is now ' + (role === 'owner' ? 'an owner' : role === 'administrator' ? 'an administrator' : 'an ordinary member') + '.');
+  }
+
+  async function restore(member, role) {
+    var outcome = await MembersApi.restoreMember(conversation.id, member.identityId, role);
+    if (!outcome.restored) { toast(outcome.reason, 'danger'); return; }
+    await render();
+    toast(member.displayName + ' can participate again as ' + (role === 'administrator' ? 'an administrator' : role === 'owner' ? 'an owner' : 'a member') + '.');
+  }
+
+  async function liftSuspension(member) {
+    var outcome = await MembersApi.liftPostingSuspension(conversation.id, member.identityId);
+    if (!outcome.lifted) { toast(outcome.reason, 'danger'); return; }
+    await render();
+    toast(member.displayName + ' can post again.');
+  }
+
+  function openSuspendModal(member) {
+    var body = el('div', '');
+    body.appendChild(el('p', 'hint', member.displayName + ' stays a member and can keep reading, but cannot post until the date you choose.'));
+    var label = el('label', 'label', 'Suspend posting until');
+    label.htmlFor = 'suspendUntil';
+    label.style.marginTop = '14px';
+    body.appendChild(label);
+    var field = el('input', 'input');
+    field.type = 'date';
+    field.id = 'suspendUntil';
+    field.value = '2026-08-08';
+    body.appendChild(field);
+    var error = el('p', 'hint hint--error');
+    body.appendChild(error);
+
+    openModal({
+      title: 'Suspend posting',
+      body: body,
+      actions: [
+        { label: 'Cancel', onClick: closeModal },
+        {
+          label: 'Suspend',
+          className: 'btn--primary',
+          onClick: async function (button) {
+            error.textContent = '';
+            if (!field.value) { error.textContent = 'A posting suspension needs an end date.'; return; }
+            button.setAttribute('aria-disabled', 'true');
+            var pretty = new Date(field.value + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+            var outcome = await MembersApi.suspendMemberPosting(conversation.id, member.identityId, pretty);
+            if (!outcome.suspended) {
+              button.removeAttribute('aria-disabled');
+              error.textContent = outcome.reason;
+              return;
+            }
+            closeModal();
+            await render();
+            toast(member.displayName + ' cannot post until ' + pretty + '.');
+          }
+        }
+      ]
+    });
+  }
+
+  function confirmRemove(member) {
+    var body = el('div', '');
+    body.appendChild(el('p', 'hint', 'Their membership ends, but the record is kept and their messages stay in the conversation. They are not banned, so they can join again if the tags still let them.'));
+    openModal({
+      title: 'Remove ' + member.displayName + '?',
+      body: body,
+      actions: [
+        { label: 'Cancel', onClick: closeModal },
+        {
+          label: 'Remove',
+          className: 'btn--solid-danger',
+          onClick: async function (button) {
+            button.setAttribute('aria-disabled', 'true');
+            var outcome = await MembersApi.removeMember(conversation.id, member.identityId);
+            if (!outcome.removed) {
+              button.removeAttribute('aria-disabled');
+              toast(outcome.reason, 'danger');
+              return;
+            }
+            closeModal();
+            await render();
+            toast(member.displayName + ' was removed from this conversation.');
+          }
+        }
+      ]
+    });
+  }
+
+  function confirmBan(member) {
+    var body = el('div', '');
+    var callout = el('div', 'callout callout--danger');
+    callout.appendChild(el('span', 'callout__icon', '!'));
+    callout.appendChild(el('div', '', 'A banned identity cannot rejoin, even with the correct tags. The membership record is kept with no role attached.'));
+    body.appendChild(callout);
+    body.appendChild(el('p', 'hint', 'Their existing messages stay in the conversation unless you delete them separately.'));
+    openModal({
+      title: 'Ban ' + member.displayName + '?',
+      body: body,
+      actions: [
+        { label: 'Cancel', onClick: closeModal },
+        {
+          label: 'Ban identity',
+          className: 'btn--solid-danger',
+          onClick: async function (button) {
+            button.setAttribute('aria-disabled', 'true');
+            var outcome = await MembersApi.banMember(conversation.id, member.identityId);
+            if (!outcome.banned) {
+              button.removeAttribute('aria-disabled');
+              toast(outcome.reason, 'danger');
+              return;
+            }
+            closeModal();
+            await render();
+            toast(member.displayName + ' is banned from this conversation.', 'danger');
+          }
+        }
+      ]
+    });
+  }
+})();
+</script>
+
+</body>
+</html>

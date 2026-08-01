@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Report Review · Tawk</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/styles.css">
+<style>
+  .review { display: grid; grid-template-columns: 1fr 320px; gap: 22px; align-items: start; }
+  .ctx { padding: 12px 18px; border-left: 3px solid transparent; }
+  .ctx--reported { border-left-color: var(--danger); background: var(--danger-soft); }
+  .ctx--deleted .ctx__text { color: var(--muted-2); font-style: italic; }
+  .ctx__head { display: flex; align-items: baseline; gap: 8px; margin-bottom: 3px; }
+  .ctx__name { font-weight: 600; font-size: 13.5px; }
+  .ctx__time { font-size: 12px; color: var(--muted-2); }
+  .ctx__text { font-size: 14px; color: var(--ink-2); margin: 0; }
+  .action-list button { margin-bottom: 8px; }
+  .fact { display: flex; gap: 10px; font-size: 13px; color: var(--ink-2); margin-bottom: 6px; }
+  .fact__key { color: var(--muted); min-width: 74px; }
+  .note { padding: 12px 0; border-bottom: 1px solid var(--line-soft); }
+  .note:last-child { border-bottom: none; }
+  .note__head { font-size: 12.5px; color: var(--muted); margin-bottom: 3px; }
+  .note__body { font-size: 13.5px; color: var(--ink-2); }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar__inner">
+    <a class="brand" href="../index.html"><span class="brand__mark">T</span> Tawk</a>
+    <nav class="topnav">
+      <a href="../hub/conversations.html">Conversations</a>
+      <a href="../hub/find-conversations.html">Find</a>
+      <a href="../bots/bots.html">Bots</a>
+    </nav>
+    <div class="spacer"></div>
+    <span class="whoami"><span class="avatar avatar--sm" id="meInitials"></span><span id="meName"></span></span>
+  </div>
+</div>
+
+<main class="app">
+  <div id="page"></div>
+</main>
+
+<div class="modal-backdrop" id="modalBackdrop">
+  <div class="modal" id="modal"></div>
+</div>
+
+<div class="toast-host" id="toastHost"></div>
+
+<script src="report-api.js"></script>
+<script>
+(async function () {
+  'use strict';
+
+  function el(tag, className, text) {
+    var node = document.createElement(tag);
+    if (className) { node.className = className; }
+    if (text !== undefined) { node.textContent = text; }
+    return node;
+  }
+
+  function toast(message, variant) {
+    var host = document.getElementById('toastHost');
+    var node = el('div', 'toast' + (variant ? ' toast--' + variant : ''), message);
+    host.appendChild(node);
+    setTimeout(function () { node.remove(); }, 3600);
+  }
+
+  var backdrop = document.getElementById('modalBackdrop');
+  var modal = document.getElementById('modal');
+
+  function closeModal() {
+    backdrop.classList.remove('is-open');
+    modal.innerHTML = '';
+  }
+
+  backdrop.addEventListener('click', function (event) {
+    if (event.target === backdrop) { closeModal(); }
+  });
+  document.addEventListener('keydown', function (event) {
+    if (event.key === 'Escape') { closeModal(); }
+  });
+
+  function openModal(options) {
+    modal.innerHTML = '';
+    var head = el('div', 'modal__head');
+    head.appendChild(el('h2', 'modal__title', options.title));
+    if (options.subtitle) { head.appendChild(el('p', 'modal__sub', options.subtitle)); }
+    modal.appendChild(head);
+    var body = el('div', 'modal__body');
+    body.appendChild(options.body);
+    modal.appendChild(body);
+    var foot = el('div', 'modal__foot');
+    (options.actions || []).forEach(function (action) {
+      var button = el('button', 'btn ' + (action.className || ''), action.label);
+      button.type = 'button';
+      button.addEventListener('click', function () { action.onClick(button); });
+      foot.appendChild(button);
+    });
+    modal.appendChild(foot);
+    backdrop.classList.add('is-open');
+  }
+
+  /* ---------------------------------------------------------------- */
+
+  var params = new URLSearchParams(window.location.search);
+  var ticketNumber = params.get('ticket') || '1042';
+
+  var me = await ReportApi.getSignedInIdentity();
+  document.getElementById('meInitials').textContent = me.initials;
+  document.getElementById('meName').textContent = me.displayName;
+
+  var page = document.getElementById('page');
+  var report = await ReportApi.getReport(ticketNumber);
+
+  if (!report) {
+    var missing = el('div', 'panel');
+    var missingBody = el('div', 'empty');
+    missingBody.appendChild(el('div', 'empty__title', 'Report #' + ticketNumber + ' is not available to you'));
+    missingBody.appendChild(el('div', '', 'You only see reports from conversations you own or administer.'));
+    var back = el('a', 'btn', 'Back to reports');
+    back.href = 'reports.html';
+    back.style.marginTop = '16px';
+    missingBody.appendChild(back);
+    missing.appendChild(missingBody);
+    page.appendChild(missing);
+    return;
+  }
+
+  render();
+
+  function render() {
+    page.innerHTML = '';
+
+    /* ---- header ---- */
+
+    var head = el('div', 'page-head');
+    var crumb = el('div', 'crumb');
+    var crumbLink = el('a', '', 'Reports');
+    crumbLink.href = 'reports.html';
+    crumb.appendChild(crumbLink);
+    crumb.appendChild(document.createTextNode(' / Report #' + report.ticketNumber));
+    head.appendChild(crumb);
+
+    var headRow = el('div', 'row row--between row--top');
+    var headLeft = el('div', '');
+    headLeft.appendChild(el('h1', 'page-title', 'Report #' + report.ticketNumber));
+    headLeft.appendChild(el('p', 'page-sub', 'In ' + report.conversationName));
+    var meta = el('div', 'row row--wrap');
+    var tags = el('div', 'tags');
+    report.conversationTags.forEach(function (value) { tags.appendChild(el('span', 'tag tag--plain', value)); });
+    meta.appendChild(tags);
+    meta.appendChild(el('span', 'small muted', 'opened ' + report.openedOn));
+    headLeft.appendChild(meta);
+    headRow.appendChild(headLeft);
+
+    var openConversation = el('a', 'btn btn--sm', 'Open conversation');
+    openConversation.href = '../workspace/conversation.html?id=' + encodeURIComponent(report.conversationId);
+    headRow.appendChild(openConversation);
+    head.appendChild(headRow);
+    page.appendChild(head);
+
+    if (report.state === 'acted') {
+      var settled = el('div', 'callout callout--success section');
+      settled.appendChild(el('span', 'callout__icon', '✓'));
+      var settledBody = el('div', '');
+      settledBody.appendChild(el('div', 'strong', report.outcome));
+      settledBody.appendChild(el('div', 'small', 'Decided by ' + report.actedBy + ' on ' + report.actedOn + '.'));
+      settled.appendChild(settledBody);
+      page.appendChild(settled);
+    }
+
+    /* ---- two columns ---- */
+
+    var grid = el('div', 'review');
+    var left = el('div', '');
+    var right = el('div', '');
+
+    /* evidence */
+
+    var evidence = el('div', 'panel section');
+    var evidenceHead = el('div', 'panel__head');
+    evidenceHead.appendChild(el('h2', 'panel__title', 'What was reported'));
+    evidence.appendChild(evidenceHead);
+
+    var evidenceBody = el('div', 'panel__body');
+
+    var reason = el('div', 'callout');
+    var reasonBody = el('div', '');
+    reasonBody.appendChild(el('div', 'strong', report.reporter.displayName + ' wrote:'));
+    reasonBody.appendChild(el('div', '', report.reason));
+    reason.appendChild(reasonBody);
+    evidenceBody.appendChild(reason);
+    evidence.appendChild(evidenceBody);
+
+    var contextRows = report.context && report.context.length
+      ? report.context
+      : [{
+        authorName: report.reportedMessage.authorName,
+        authorInitials: report.reportedMessage.authorInitials,
+        time: report.reportedMessage.time,
+        text: report.reportedMessage.text,
+        reported: true,
+        deleted: report.reportedMessage.deleted
+      }];
+
+    var contextWrap = el('div', '');
+    contextWrap.style.padding = '0 0 14px';
+    contextRows.forEach(function (row) {
+      var isReported = Boolean(row.reported);
+      var deleted = isReported && report.reportedMessage.deleted;
+      var block = el('div', 'ctx' + (isReported ? ' ctx--reported' : '') + (deleted ? ' ctx--deleted' : ''));
+      var headLine = el('div', 'ctx__head');
+      headLine.appendChild(el('span', 'ctx__name', row.authorName));
+      headLine.appendChild(el('span', 'ctx__time', row.time));
+      if (isReported) { headLine.appendChild(el('span', 'badge badge--danger', deleted ? 'Deleted' : 'Reported')); }
+      block.appendChild(headLine);
+      block.appendChild(el('p', 'ctx__text', deleted
+        ? 'This message was deleted and no longer appears in the conversation.'
+        : row.text));
+      contextWrap.appendChild(block);
+    });
+    evidence.appendChild(contextWrap);
+    left.appendChild(evidence);
+
+    /* notes */
+
+    var notesPanel = el('div', 'panel section');
+    var notesHead = el('div', 'panel__head');
+    notesHead.appendChild(el('h2', 'panel__title', 'Review notes'));
+    notesPanel.appendChild(notesHead);
+    var notesBody = el('div', 'panel__body');
+
+    if (!report.notes.length) {
+      notesBody.appendChild(el('p', 'muted small', 'Nothing recorded yet. A note here explains the decision to whoever reads this next.'));
+    } else {
+      report.notes.forEach(function (note) {
+        var block = el('div', 'note');
+        block.appendChild(el('div', 'note__head', note.authorName + ' · ' + note.at));
+        block.appendChild(el('div', 'note__body', note.body));
+        notesBody.appendChild(block);
+      });
+    }
+
+    var noteField = el('textarea', 'textarea');
+    noteField.placeholder = 'Add a note';
+    noteField.style.marginTop = '14px';
+    notesBody.appendChild(noteField);
+    notesPanel.appendChild(notesBody);
+
+    var notesFoot = el('div', 'panel__foot row row--between');
+    var discussionWrap = el('div', 'row');
+    if (report.discussionConversationId) {
+      var openDiscussion = el('a', 'btn btn--sm', 'Open the private discussion');
+      openDiscussion.href = '../workspace/conversation.html?id=' + encodeURIComponent(report.discussionConversationId);
+      discussionWrap.appendChild(openDiscussion);
+    } else {
+      var startDiscussion = el('button', 'btn btn--sm', 'Discuss privately');
+      startDiscussion.type = 'button';
+      startDiscussion.addEventListener('click', startPrivateDiscussion);
+      discussionWrap.appendChild(startDiscussion);
+    }
+    notesFoot.appendChild(discussionWrap);
+
+    var saveNote = el('button', 'btn btn--sm btn--primary', 'Save note');
+    saveNote.type = 'button';
+    saveNote.addEventListener('click', async function () {
+      var outcome = await ReportApi.addReviewNote(report.ticketNumber, noteField.value);
+      if (!outcome.saved) { toast(outcome.reason, 'danger'); return; }
+      report = await ReportApi.getReport(report.ticketNumber);
+      render();
+      toast('Note recorded on report #' + report.ticketNumber + '.');
+    });
+    notesFoot.appendChild(saveNote);
+    notesPanel.appendChild(notesFoot);
+    left.appendChild(notesPanel);
+
+    /* author + actions */
+
+    var authorPanel = el('div', 'panel section');
+    var authorHead = el('div', 'panel__head');
+    authorHead.appendChild(el('h2', 'panel__title', 'Who wrote it'));
+    authorPanel.appendChild(authorHead);
+    var authorBody = el('div', 'panel__body');
+
+    var who = el('div', 'row');
+    who.style.marginBottom = '14px';
+    who.appendChild(el('span', 'avatar', report.author.initials));
+    var whoText = el('div', '');
+    whoText.appendChild(el('div', 'strong', report.author.displayName));
+    whoText.appendChild(el('div', 'small muted', 'In this conversation since ' + report.author.joined));
+    who.appendChild(whoText);
+    authorBody.appendChild(who);
+
+    function fact(key, value) {
+      var row = el('div', 'fact');
+      row.appendChild(el('span', 'fact__key', key));
+      row.appendChild(el('span', '', value));
+      authorBody.appendChild(row);
+    }
+
+    fact('Role', report.author.role === 'none' ? 'None (banned)' : report.author.role.charAt(0).toUpperCase() + report.author.role.slice(1));
+    fact('Posting', report.author.banned
+      ? 'Banned from this conversation'
+      : report.author.removed
+        ? 'No longer a member'
+        : report.author.postingSuspendedUntil
+          ? 'Suspended until ' + report.author.postingSuspendedUntil
+          : 'Allowed');
+
+    authorPanel.appendChild(authorBody);
+    right.appendChild(authorPanel);
+
+    var actionsPanel = el('div', 'panel section');
+    var actionsHead = el('div', 'panel__head');
+    actionsHead.appendChild(el('h2', 'panel__title', report.state === 'acted' ? 'Decision' : 'What you can do'));
+    actionsPanel.appendChild(actionsHead);
+    var actionsBody = el('div', 'panel__body action-list');
+
+    if (report.state === 'acted') {
+      actionsBody.appendChild(el('p', 'muted small', 'This report has been decided. Anything further belongs in the conversation itself.'));
+      var toMembers = el('a', 'btn btn--sm btn--block', 'Members and roles');
+      toMembers.href = '../governance/members.html?id=' + encodeURIComponent(report.conversationId);
+      actionsBody.appendChild(toMembers);
+    } else {
+      addAction(actionsBody, 'Delete the message', 'btn--block', function () {
+        confirm({
+          title: 'Delete the reported message?',
+          detail: 'It disappears from the conversation for everyone with no placeholder left behind. The record is retained.',
+          label: 'Delete message',
+          className: 'btn--solid-danger',
+          run: function () { return ReportApi.deleteReportedMessage(report.ticketNumber); }
+        });
+      });
+
+      addAction(actionsBody, 'Suspend posting…', 'btn--block', openSuspendModal);
+
+      addAction(actionsBody, 'Remove the participant', 'btn--block btn--danger', function () {
+        confirm({
+          title: 'Remove ' + report.author.displayName + '?',
+          detail: 'Their membership ends and their messages stay. They are not banned, so they can rejoin if the tags still allow it.',
+          label: 'Remove participant',
+          className: 'btn--solid-danger',
+          run: function () { return ReportApi.removeReportedAuthor(report.ticketNumber); }
+        });
+      });
+
+      addAction(actionsBody, 'Ban the identity', 'btn--block btn--danger', function () {
+        confirm({
+          title: 'Ban ' + report.author.displayName + '?',
+          detail: 'A banned identity cannot rejoin this conversation even with the correct tags. The membership record is kept with no role attached.',
+          label: 'Ban identity',
+          className: 'btn--solid-danger',
+          run: function () { return ReportApi.banReportedAuthor(report.ticketNumber); }
+        });
+      });
+
+      actionsBody.appendChild(el('div', 'divider'));
+
+      addAction(actionsBody, 'Close with no action', 'btn--block btn--ghost', function () {
+        confirm({
+          title: 'Close report #' + report.ticketNumber + ' without acting?',
+          detail: 'The message stays, the author is unaffected, and your notes stay attached to the report.',
+          label: 'Close report',
+          className: 'btn--primary',
+          run: function () { return ReportApi.closeReportWithoutAction(report.ticketNumber); }
+        });
+      });
+    }
+
+    actionsPanel.appendChild(actionsBody);
+    right.appendChild(actionsPanel);
+
+    grid.appendChild(left);
+    grid.appendChild(right);
+    page.appendChild(grid);
+  }
+
+  function addAction(host, label, className, handler) {
+    var button = el('button', 'btn btn--sm ' + className, label);
+    button.type = 'button';
+    button.addEventListener('click', handler);
+    host.appendChild(button);
+  }
+
+  function confirm(options) {
+    var body = el('div', '');
+    body.appendChild(el('p', 'hint', options.detail));
+    openModal({
+      title: options.title,
+      body: body,
+      actions: [
+        { label: 'Cancel', onClick: closeModal },
+        {
+          label: options.label,
+          className: options.className,
+          onClick: async function (button) {
+            button.setAttribute('aria-disabled', 'true');
+            var outcome = await options.run();
+            if (!outcome.applied) {
+              button.removeAttribute('aria-disabled');
+              toast(outcome.reason, 'danger');
+              return;
+            }
+            closeModal();
+            report = await ReportApi.getReport(report.ticketNumber);
+            render();
+            toast('Report #' + report.ticketNumber + ': ' + outcome.outcome.toLowerCase() + '.');
+          }
+        }
+      ]
+    });
+  }
+
+  function openSuspendModal() {
+    var body = el('div', '');
+    body.appendChild(el('p', 'hint', report.author.displayName + ' stays a member and can keep reading, but cannot post until the date you choose.'));
+    var label = el('label', 'label', 'Suspend posting until');
+    label.style.marginTop = '14px';
+    body.appendChild(label);
+    var field = el('input', 'input');
+    field.type = 'date';
+    field.value = '2026-08-08';
+    body.appendChild(field);
+    var error = el('p', 'hint hint--error');
+    body.appendChild(error);
+
+    openModal({
+      title: 'Suspend posting',
+      body: body,
+      actions: [
+        { label: 'Cancel', onClick: closeModal },
+        {
+          label: 'Suspend posting',
+          className: 'btn--primary',
+          onClick: async function (button) {
+            error.textContent = '';
+            if (!field.value) { error.textContent = 'A posting suspension needs an end date.'; return; }
+            button.setAttribute('aria-disabled', 'true');
+            var pretty = new Date(field.value + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+            var outcome = await ReportApi.suspendReportedAuthorPosting(report.ticketNumber, pretty);
+            if (!outcome.applied) {
+              button.removeAttribute('aria-disabled');
+              error.textContent = outcome.reason;
+              return;
+            }
+            closeModal();
+            report = await ReportApi.getReport(report.ticketNumber);
+            render();
+            toast('Report #' + report.ticketNumber + ': posting suspended until ' + pretty + '.');
+          }
+        }
+      ]
+    });
+  }
+
+  async function startPrivateDiscussion() {
+    var outcome = await ReportApi.openModerationDiscussion(report.ticketNumber);
+    if (!outcome.opened) { toast(outcome.reason, 'danger'); return; }
+    report = await ReportApi.getReport(report.ticketNumber);
+    render();
+    toast('A private conversation tagged moderation and ticket:' + report.ticketNumber + ' is now in your conversation list.');
+  }
+})();
+</script>
+
+</body>
+</html>

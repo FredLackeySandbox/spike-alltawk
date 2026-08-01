@@ -1,0 +1,99 @@
+{
+  "identity": {
+    "id": "id-priya",
+    "displayName": "Priya Raghunathan",
+    "initials": "PR",
+    "type": "person"
+  },
+  "reports": [
+    {
+      "ticketNumber": 1047,
+      "state": "awaiting",
+      "conversationId": "c-permit",
+      "conversationName": "Parcel 44-1180 permit review",
+      "conversationTags": [
+        "permit-review",
+        "parcel:44-1180",
+        "city:ashford"
+      ],
+      "reportedExcerpt": "Reviewer's direct line is 555-0148, call him at home if he stalls on this again.",
+      "reportedAuthorName": "Oskar Bielski",
+      "reporterName": "Noor Haddad",
+      "reason": "Personal contact details for a county employee, in a conversation that becomes public record.",
+      "waitedFor": "5 hours",
+      "openedAt": "2026-08-01T09:30:00Z"
+    },
+    {
+      "ticketNumber": 1042,
+      "state": "awaiting",
+      "conversationId": "c-kiln",
+      "conversationName": "Skutt kiln repair",
+      "conversationTags": [
+        "kiln-repair",
+        "skutt",
+        "region:pnw"
+      ],
+      "reportedExcerpt": "Anyone paying a shop to swap an element is getting robbed, honestly. If you cannot do this yourself you have no business owning a kiln.",
+      "reportedAuthorName": "Tobias Mwangi",
+      "reporterName": "Junie Castellanos",
+      "reason": "He does this every time someone new asks a question and it is driving people out of the conversation.",
+      "waitedFor": "2 hours",
+      "openedAt": "2026-08-01T12:02:00Z",
+      "hasDiscussion": true
+    },
+    {
+      "ticketNumber": 1044,
+      "state": "acted",
+      "conversationId": "c-permit",
+      "conversationName": "Parcel 44-1180 permit review",
+      "conversationTags": [
+        "permit-review",
+        "parcel:44-1180",
+        "city:ashford"
+      ],
+      "reportedExcerpt": "This whole review process is a joke and everyone involved knows it.",
+      "reportedAuthorName": "Noor Haddad",
+      "reporterName": "Oskar Bielski",
+      "reason": "Unprofessional given who reads this conversation.",
+      "outcome": "Reviewed, no action taken",
+      "actedOn": "31 Jul 2026",
+      "actedBy": "Desmond Achebe"
+    },
+    {
+      "ticketNumber": 1039,
+      "state": "acted",
+      "conversationId": "c-kiln",
+      "conversationName": "Skutt kiln repair",
+      "conversationTags": [
+        "kiln-repair",
+        "skutt",
+        "region:pnw"
+      ],
+      "reportedExcerpt": "Message removed by a moderator.",
+      "reportedAuthorName": "Coby Aldritch",
+      "reporterName": "Marisol Trevino",
+      "reason": "Repeated abuse aimed at one member after being asked to stop.",
+      "outcome": "Message deleted and identity banned",
+      "actedOn": "14 May 2026",
+      "actedBy": "Priya Raghunathan"
+    },
+    {
+      "ticketNumber": 1036,
+      "state": "acted",
+      "conversationId": "c-kiln",
+      "conversationName": "Skutt kiln repair",
+      "conversationTags": [
+        "kiln-repair",
+        "skutt",
+        "region:pnw"
+      ],
+      "reportedExcerpt": "Message removed by a moderator.",
+      "reportedAuthorName": "Wen Zhao",
+      "reporterName": "Halvard Lindqvist",
+      "reason": "Advertising a rebuild service in every thread.",
+      "outcome": "Message deleted and participant removed",
+      "actedOn": "14 Jun 2026",
+      "actedBy": "Halvard Lindqvist"
+    }
+  ]
+}

@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Create a Conversation · Tawk</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/styles.css">
+<style>
+  .form-col { max-width: 680px; }
+  .tag-count { font-size: 12.5px; color: var(--muted); }
+  .preview { background: var(--surface-2); border: 1px solid var(--line); border-radius: var(--radius-sm); padding: 16px; }
+  .preview__line { display: flex; gap: 9px; align-items: flex-start; font-size: 13.5px; color: var(--ink-2); margin-bottom: 8px; }
+  .preview__line:last-child { margin-bottom: 0; }
+  .preview__mark { color: var(--muted-2); font-family: var(--mono); font-size: 12px; padding-top: 1px; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar__inner">
+    <a class="brand" href="../index.html"><span class="brand__mark">T</span> Tawk</a>
+    <nav class="topnav">
+      <a href="conversations.html">Conversations</a>
+      <a href="find-conversations.html">Find</a>
+      <a href="../bots/bots.html">Bots</a>
+    </nav>
+    <div class="spacer"></div>
+    <span class="whoami"><span class="avatar avatar--sm" id="meInitials"></span><span id="meName"></span></span>
+  </div>
+</div>
+
+<main class="app">
+
+  <div class="page-head">
+    <div class="crumb"><a href="conversations.html">Your conversations</a> / Create</div>
+    <h1 class="page-title">Create a conversation</h1>
+    <p class="page-sub">Its tags are its address. Choose them the way you would want someone to find it, or the way you would want them not to.</p>
+  </div>
+
+  <div id="createArea">
+    <div class="panel form-col">
+      <div class="panel__body">
+
+        <div class="field">
+          <label class="label" for="nameInput">Name</label>
+          <input class="input" id="nameInput" type="text" placeholder="Skutt kiln repair" autocomplete="off" maxlength="60">
+          <p class="hint" id="nameHint"></p>
+        </div>
+
+        <div class="field">
+          <label class="label" for="topicInput">Topic</label>
+          <textarea class="textarea" id="topicInput" rows="2" maxlength="200" placeholder="One line on what belongs in here."></textarea>
+          <p class="hint" id="topicHint"></p>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="field">
+          <label class="label" for="tagInput">Tags</label>
+          <div class="suggest">
+            <div class="tagbox" id="tagbox">
+              <input class="tagbox__input" id="tagInput" type="text" placeholder="Type a tag and press Enter" autocomplete="off" spellcheck="false">
+            </div>
+            <div class="suggest__menu is-hidden" id="suggestMenu"></div>
+          </div>
+          <p class="hint" id="tagHint"></p>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="field">
+          <span class="label">Visibility</span>
+          <div id="visibilityOptions"></div>
+        </div>
+
+        <div class="field" id="matchingField">
+          <span class="label">How a search matches it</span>
+          <div id="matchingOptions"></div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="field">
+          <span class="label">What this will do</span>
+          <div class="preview" id="preview"></div>
+        </div>
+
+      </div>
+      <div class="panel__foot row row--between">
+        <span class="tag-count" id="tagCount"></span>
+        <div class="row">
+          <a class="btn" href="conversations.html">Cancel</a>
+          <button class="btn btn--primary" id="createButton" type="button">Create conversation</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<div class="toast-host" id="toastHost"></div>
+
+<script src="create-conversation-api.js"></script>
+<script>
+(async function () {
+  'use strict';
+
+  function el(tag, className, text) {
+    var node = document.createElement(tag);
+    if (className) { node.className = className; }
+    if (text !== undefined) { node.textContent = text; }
+    return node;
+  }
+
+  function toast(message, variant) {
+    var host = document.getElementById('toastHost');
+    var node = el('div', 'toast' + (variant ? ' toast--' + variant : ''), message);
+    host.appendChild(node);
+    setTimeout(function () { node.remove(); }, 3400);
+  }
+
+  var draft = { name: '', topic: '', tags: [], listed: true, matching: 'inclusive' };
+
+  var me = await CreateConversationApi.getSignedInIdentity();
+  document.getElementById('meInitials').textContent = me.initials;
+  document.getElementById('meName').textContent = me.displayName;
+
+  var policy = await CreateConversationApi.getTagPolicy();
+  var namePolicy = await CreateConversationApi.getNamePolicy();
+  var topicPolicy = await CreateConversationApi.getTopicPolicy();
+  document.getElementById('tagHint').textContent = policy.summary;
+
+  var tagbox = document.getElementById('tagbox');
+  var input = document.getElementById('tagInput');
+  var menu = document.getElementById('suggestMenu');
+  var hint = document.getElementById('tagHint');
+
+  /* ---- name and topic ---- */
+
+  var nameInput = document.getElementById('nameInput');
+  var nameHint = document.getElementById('nameHint');
+  var topicInput = document.getElementById('topicInput');
+  var topicHint = document.getElementById('topicHint');
+
+  nameHint.textContent = namePolicy.summary;
+  topicHint.textContent = topicPolicy.summary;
+
+  nameInput.addEventListener('input', function () {
+    draft.name = nameInput.value;
+    nameHint.textContent = namePolicy.summary;
+    nameHint.classList.remove('hint--error');
+    renderPreview();
+  });
+
+  nameInput.addEventListener('blur', async function () {
+    if (!nameInput.value.trim()) { return; }
+    var outcome = await CreateConversationApi.validateConversationName(nameInput.value);
+    if (!outcome.valid) {
+      nameHint.textContent = outcome.reason;
+      nameHint.classList.add('hint--error');
+    }
+  });
+
+  topicInput.addEventListener('input', function () {
+    draft.topic = topicInput.value;
+    var remaining = topicPolicy.maxLength - topicInput.value.length;
+    topicHint.textContent = topicInput.value.length
+      ? remaining + ' characters left'
+      : topicPolicy.summary;
+    topicHint.classList.remove('hint--error');
+  });
+
+  /* ---- visibility and matching choices ---- */
+
+  var visibilityOptions = await CreateConversationApi.getVisibilityOptions();
+  var visibilityHost = document.getElementById('visibilityOptions');
+  visibilityOptions.forEach(function (option) {
+    var label = el('label', 'choice');
+    label.dataset.option = option.id;
+    var radio = el('input');
+    radio.type = 'radio';
+    radio.name = 'visibility';
+    radio.value = option.id;
+    radio.checked = (option.id === 'listed') === draft.listed;
+    var body = el('div', '');
+    body.appendChild(el('div', 'choice__title', option.title));
+    body.appendChild(el('div', 'choice__desc', option.description));
+    label.appendChild(radio);
+    label.appendChild(body);
+    radio.addEventListener('change', function () {
+      draft.listed = option.id === 'listed';
+      renderChoiceState();
+      renderPreview();
+    });
+    visibilityHost.appendChild(label);
+  });
+
+  var matchingOptions = await CreateConversationApi.getMatchingOptions();
+  var matchingHost = document.getElementById('matchingOptions');
+  matchingOptions.forEach(function (option) {
+    var label = el('label', 'choice');
+    label.dataset.matching = option.id;
+    var radio = el('input');
+    radio.type = 'radio';
+    radio.name = 'matching';
+    radio.value = option.id;
+    radio.checked = option.id === draft.matching;
+    var body = el('div', '');
+    body.appendChild(el('div', 'choice__title', option.title));
+    body.appendChild(el('div', 'choice__desc', option.description));
+    label.appendChild(radio);
+    label.appendChild(body);
+    radio.addEventListener('change', function () {
+      draft.matching = option.id;
+      renderChoiceState();
+      renderPreview();
+    });
+    matchingHost.appendChild(label);
+  });
+
+  var matchingNote = el('p', 'hint');
+  matchingHost.appendChild(matchingNote);
+
+  function renderChoiceState() {
+    Array.prototype.slice.call(visibilityHost.querySelectorAll('.choice')).forEach(function (node) {
+      node.classList.toggle('is-selected', (node.dataset.option === 'listed') === draft.listed);
+    });
+    Array.prototype.slice.call(matchingHost.querySelectorAll('.choice')).forEach(function (node) {
+      node.classList.toggle('is-selected', draft.listed && node.dataset.matching === draft.matching);
+      node.classList.toggle('is-disabled', !draft.listed);
+      var radio = node.querySelector('input');
+      radio.disabled = !draft.listed;
+      if (!draft.listed) { radio.checked = false; }
+      if (draft.listed) { radio.checked = node.dataset.matching === draft.matching; }
+    });
+    matchingNote.textContent = draft.listed
+      ? ''
+      : 'An unlisted conversation always requires every one of its tags, so there is nothing to choose here.';
+  }
+
+  /* ---- tags ---- */
+
+  function renderTags() {
+    Array.prototype.slice.call(tagbox.querySelectorAll('.tag')).forEach(function (node) { node.remove(); });
+    draft.tags.forEach(function (value) {
+      var pill = el('span', 'tag', value);
+      var remove = el('button', 'tag__x', '×');
+      remove.type = 'button';
+      remove.title = 'Remove ' + value;
+      remove.addEventListener('click', function () {
+        draft.tags = draft.tags.filter(function (item) { return item !== value; });
+        renderTags();
+        renderPreview();
+      });
+      pill.appendChild(remove);
+      tagbox.insertBefore(pill, input);
+    });
+    document.getElementById('tagCount').textContent =
+      draft.tags.length + ' of ' + policy.maxTags + ' tags used';
+    input.disabled = draft.tags.length >= policy.maxTags;
+    input.placeholder = input.disabled ? 'Tag limit reached' : 'Type a tag and press Enter';
+  }
+
+  async function addTag(raw) {
+    var outcome = await CreateConversationApi.validateTag(raw, draft.tags);
+    if (!outcome.valid) {
+      hint.textContent = outcome.reason;
+      hint.classList.add('hint--error');
+      return;
+    }
+    hint.textContent = policy.summary;
+    hint.classList.remove('hint--error');
+    draft.tags.push(outcome.tag);
+    input.value = '';
+    closeMenu();
+    renderTags();
+    renderPreview();
+    if (!input.disabled) { input.focus(); }
+  }
+
+  function closeMenu() {
+    menu.classList.add('is-hidden');
+    menu.innerHTML = '';
+  }
+
+  input.addEventListener('input', async function () {
+    var fragment = input.value.trim().toLowerCase();
+    if (!fragment) { closeMenu(); return; }
+    var suggestions = await CreateConversationApi.suggestExistingTags(fragment, draft.tags);
+    if (!suggestions.length) { closeMenu(); return; }
+    menu.innerHTML = '';
+    suggestions.forEach(function (suggestion) {
+      var item = el('button', 'suggest__item');
+      item.type = 'button';
+      item.appendChild(el('span', '', suggestion.value));
+      item.appendChild(el('span', 'suggest__count', 'used by ' + suggestion.listedConversationCount));
+      item.addEventListener('mousedown', function (event) {
+        event.preventDefault();
+        addTag(suggestion.value);
+      });
+      menu.appendChild(item);
+    });
+    menu.classList.remove('is-hidden');
+  });
+
+  input.addEventListener('keydown', function (event) {
+    if (event.key === 'Enter') { event.preventDefault(); addTag(input.value); }
+    if (event.key === 'Escape') { closeMenu(); }
+    if (event.key === 'Backspace' && !input.value && draft.tags.length) {
+      draft.tags.pop();
+      renderTags();
+      renderPreview();
+    }
+  });
+
+  tagbox.addEventListener('click', function () { if (!input.disabled) { input.focus(); } });
+  document.addEventListener('click', function (event) {
+    if (!menu.contains(event.target) && event.target !== input) { closeMenu(); }
+  });
+
+  /* ---- preview ---- */
+
+  function renderPreview() {
+    var host = document.getElementById('preview');
+    host.innerHTML = '';
+
+    if (!draft.tags.length) {
+      host.appendChild(el('div', 'small muted', 'Add a tag to see how this conversation will behave.'));
+      return;
+    }
+
+    function line(mark, text) {
+      var row = el('div', 'preview__line');
+      row.appendChild(el('span', 'preview__mark', mark));
+      row.appendChild(el('span', '', text));
+      host.appendChild(row);
+    }
+
+    var shown = draft.name.trim() ? '“' + draft.name.trim() + '”' : 'this conversation';
+
+    if (draft.listed && draft.matching === 'inclusive') {
+      line('01', 'Anyone searching for ' + draft.tags.map(function (t) { return '“' + t + '”'; }).join(' or ') + ' will see ' + shown + ', its topic, and its tags.');
+    } else if (draft.listed) {
+      line('01', shown.charAt(0).toUpperCase() + shown.slice(1) + ' stays out of search results until someone supplies all ' + draft.tags.length + ' of its tags.');
+    } else {
+      line('01', 'Search will never name ' + shown + ' or show its topic. Someone who supplies all ' + draft.tags.length + ' of its tags, and nothing else that rules it out, can join it.');
+    }
+
+    if (!draft.listed) {
+      var privateOnly = draft.tags.length ? draft.tags[draft.tags.length - 1] : '';
+      line('02', 'Its tags will not be offered as suggestions to anyone else, so “' + privateOnly + '” has to be shared out of band.');
+    } else {
+      line('02', 'Its tags become suggestible to other people searching, alongside every other listed conversation using them.');
+    }
+
+    line('03', 'You become its first owner. It cannot be left without one.');
+  }
+
+  /* ---- create ---- */
+
+  document.getElementById('createButton').addEventListener('click', async function () {
+    var button = this;
+    button.setAttribute('aria-disabled', 'true');
+    var original = button.textContent;
+    button.textContent = '';
+    button.appendChild(el('span', 'btn__spinner'));
+
+    var outcome = await CreateConversationApi.createConversation(draft);
+
+    if (!outcome.created) {
+      button.removeAttribute('aria-disabled');
+      button.textContent = original;
+      if (outcome.field === 'name') {
+        nameHint.textContent = outcome.reason;
+        nameHint.classList.add('hint--error');
+        nameInput.focus();
+      } else if (outcome.field === 'topic') {
+        topicHint.textContent = outcome.reason;
+        topicHint.classList.add('hint--error');
+        topicInput.focus();
+      } else {
+        hint.textContent = outcome.reason;
+        hint.classList.add('hint--error');
+      }
+      toast(outcome.reason, 'danger');
+      return;
+    }
+
+    renderCreated(outcome.conversation);
+  });
+
+  function renderCreated(conversation) {
+    var area = document.getElementById('createArea');
+    area.innerHTML = '';
+
+    var panel = el('div', 'panel form-col');
+    var body = el('div', 'panel__body');
+
+    var callout = el('div', 'callout callout--success');
+    callout.appendChild(el('span', 'callout__icon', '✓'));
+    var calloutBody = el('div', '');
+    calloutBody.appendChild(el('div', 'strong', 'Conversation created. You are its owner.'));
+    calloutBody.appendChild(el('div', 'small', conversation.listed
+      ? (conversation.matching === 'exclusive'
+        ? 'It is listed and requires all of its tags to match.'
+        : 'It is listed and any one of its tags will find it.')
+      : 'It is unlisted. Share its full tag set with anyone who should be able to reach it.'));
+    callout.appendChild(calloutBody);
+    body.appendChild(callout);
+
+    var nameWrap = el('div', '');
+    nameWrap.style.marginTop = '20px';
+    nameWrap.appendChild(el('div', 'section-title', 'Name'));
+    nameWrap.appendChild(el('div', 'strong', conversation.name));
+    if (conversation.topic) {
+      nameWrap.appendChild(el('div', 'small muted', conversation.topic));
+    }
+    body.appendChild(nameWrap);
+
+    var tagWrap = el('div', '');
+    tagWrap.style.marginTop = '20px';
+    tagWrap.appendChild(el('div', 'section-title', 'Tags'));
+    var tags = el('div', 'tags');
+    conversation.tags.forEach(function (value) { tags.appendChild(el('span', 'tag', value)); });
+    tagWrap.appendChild(tags);
+    body.appendChild(tagWrap);
+
+    panel.appendChild(body);
+
+    var foot = el('div', 'panel__foot row row--between');
+    var back = el('a', 'btn', 'Back to your conversations');
+    back.href = 'conversations.html';
+    foot.appendChild(back);
+    var open = el('a', 'btn btn--primary', 'Open conversation');
+    open.href = '../workspace/conversation.html?id=' + encodeURIComponent(conversation.id);
+    foot.appendChild(open);
+    panel.appendChild(foot);
+
+    area.appendChild(panel);
+  }
+
+  renderTags();
+  renderChoiceState();
+  renderPreview();
+  input.focus();
+})();
+</script>
+
+</body>
+</html>
