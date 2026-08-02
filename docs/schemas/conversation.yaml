@@ -1,0 +1,114 @@
+$schema: "https://json-schema.org/draft/2020-12/schema"
+$id: "https://tawk.local/schemas/conversation.schema.json"
+title: "Conversation"
+description: "A titled, described messaging space whose tags control listed or unlisted discovery."
+type: object
+additionalProperties: false
+required:
+  - id
+  - title
+  - description
+  - visibility
+  - matchingMode
+  - status
+  - purpose
+  - accessMode
+  - createdById
+  - allowTopLevelNotes
+  - createdAt
+  - updatedAt
+properties:
+  id:
+    type: string
+    format: uuid
+    description: "Stable unique identifier for the conversation."
+  title:
+    type: string
+    minLength: 1
+    description: "Required human-readable conversation title."
+  description:
+    type: string
+    minLength: 1
+    description: "Required description presented with an identifiable listed conversation."
+  visibility:
+    type: string
+    enum: [listed, unlisted]
+    description: "Whether the conversation is identifiable in public tag search results."
+  matchingMode:
+    type: string
+    enum: [inclusive, all]
+    description: "Whether any assigned tag or all assigned tags are required for listed discovery; unlisted conversations always use all."
+  status:
+    type: string
+    enum: [active, archived]
+    description: "Whether the conversation permits discovery, joining, viewing, and posting."
+  purpose:
+    type: string
+    enum: [general, moderationDiscussion]
+    description: "Normal conversation purpose or confidential discussion associated with a moderation ticket."
+  accessMode:
+    type: string
+    enum: [tagJoin, ticketReviewers]
+    description: "Whether eligible identities join through ordinary tag rules or through the source ticket's owner-and-administrator reviewer set."
+  createdById:
+    type: string
+    format: uuid
+    description: "Identity that created the conversation and became its first owner, referencing identity.yaml."
+  allowTopLevelNotes:
+    type: boolean
+    description: "Owner-controlled setting that determines whether authors may create top-level conversation notes."
+  archivedAt:
+    type: string
+    format: date-time
+    description: "When the conversation was archived, when applicable."
+  archivedById:
+    type: string
+    format: uuid
+    description: "Owner identity that archived the conversation, referencing identity.yaml."
+  createdAt:
+    type: string
+    format: date-time
+    description: "When this conversation was created."
+  updatedAt:
+    type: string
+    format: date-time
+    description: "When this conversation was last updated."
+allOf:
+  - if:
+      properties:
+        purpose:
+          const: general
+      required: [purpose]
+    then:
+      properties:
+        accessMode:
+          const: tagJoin
+  - if:
+      properties:
+        purpose:
+          const: moderationDiscussion
+      required: [purpose]
+    then:
+      properties:
+        accessMode:
+          const: ticketReviewers
+        visibility:
+          const: unlisted
+        matchingMode:
+          const: all
+  - if:
+      properties:
+        visibility:
+          const: unlisted
+      required: [visibility]
+    then:
+      properties:
+        matchingMode:
+          const: all
+  - if:
+      properties:
+        status:
+          const: archived
+      required: [status]
+    then:
+      required: [archivedAt, archivedById]

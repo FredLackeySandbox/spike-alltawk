@@ -1,0 +1,50 @@
+$schema: "https://json-schema.org/draft/2020-12/schema"
+$id: "https://tawk.local/schemas/audit-event.schema.json"
+title: "Audit Event"
+description: "An append-only record of retained conversation, membership, message, and moderation history not fully represented by temporal records."
+type: object
+additionalProperties: false
+required:
+  - id
+  - subjectType
+  - subjectId
+  - action
+  - occurredAt
+  - createdAt
+properties:
+  id:
+    type: string
+    format: uuid
+    description: "Stable unique identifier for the audit event."
+  subjectType:
+    type: string
+    enum: [conversation, conversationTag, membership, membershipRolePeriod, message, messageThread, moderationTicket, moderationAction, postingSuspension, note]
+    description: "Kind of durable record whose history this event describes."
+  subjectId:
+    type: string
+    format: uuid
+    description: "Identifier of the affected record in the corresponding schema."
+  conversationId:
+    type: string
+    format: uuid
+    description: "Conversation scope used to retrieve related history, referencing conversation.yaml."
+  actorIdentityId:
+    type: string
+    format: uuid
+    description: "Identity that caused the event when it was user initiated, referencing identity.yaml."
+  action:
+    type: string
+    minLength: 1
+    description: "Stable application-defined event name such as conversationArchived or messageDeleted."
+  details:
+    type: object
+    additionalProperties: true
+    description: "Small, non-authoritative event metadata or reason needed to explain the historical change; source schemas remain authoritative and complete record bodies must not be copied here."
+  occurredAt:
+    type: string
+    format: date-time
+    description: "When the recorded change took effect."
+  createdAt:
+    type: string
+    format: date-time
+    description: "When this audit event was persisted."

@@ -1,0 +1,93 @@
+$schema: "https://json-schema.org/draft/2020-12/schema"
+$id: "https://tawk.local/schemas/emoji.schema.json"
+title: "Emoji"
+description: "A standard or custom emoji available for Slack-like message reactions."
+type: object
+additionalProperties: false
+required:
+  - id
+  - shortcode
+  - type
+  - scope
+  - isActive
+  - createdAt
+  - updatedAt
+properties:
+  id:
+    type: string
+    format: uuid
+    description: "Stable unique identifier for the emoji."
+  shortcode:
+    type: string
+    pattern: "^[a-z0-9][a-z0-9_-]*$"
+    description: "Lowercase reaction name used to identify the emoji."
+  type:
+    type: string
+    enum: [standard, custom]
+    description: "Whether the emoji comes from the standard set or an uploaded image."
+  scope:
+    type: string
+    enum: [standard, identity, conversation]
+    description: "Audience in which the emoji is available; conversation-scoped custom emoji may be created only by a current owner or administrator of that conversation."
+  unicodeValue:
+    type: string
+    minLength: 1
+    description: "Unicode sequence displayed for a standard emoji."
+  assetUrl:
+    type: string
+    format: uri
+    description: "Stored PNG, JPEG, or animated GIF asset for a custom emoji."
+  assetMediaType:
+    type: string
+    enum: [image/png, image/jpeg, image/gif]
+    description: "Allowed media type for a custom emoji asset."
+  ownerIdentityId:
+    type: string
+    format: uuid
+    description: "Identity that supplied or owns a custom emoji, referencing identity.yaml."
+  conversationId:
+    type: string
+    format: uuid
+    description: "Conversation to which a conversation-scoped custom emoji belongs, referencing conversation.yaml."
+  isActive:
+    type: boolean
+    description: "Whether participants may add this emoji to new reactions."
+  createdAt:
+    type: string
+    format: date-time
+    description: "When this emoji definition was created."
+  updatedAt:
+    type: string
+    format: date-time
+    description: "When this emoji definition was last updated."
+oneOf:
+  - properties:
+      type:
+        const: standard
+      scope:
+        const: standard
+    required: [unicodeValue]
+    not:
+      anyOf:
+        - required: [assetUrl]
+        - required: [assetMediaType]
+        - required: [ownerIdentityId]
+        - required: [conversationId]
+  - properties:
+      type:
+        const: custom
+      scope:
+        const: identity
+    required: [assetUrl, assetMediaType, ownerIdentityId]
+    not:
+      anyOf:
+        - required: [unicodeValue]
+        - required: [conversationId]
+  - properties:
+      type:
+        const: custom
+      scope:
+        const: conversation
+    required: [assetUrl, assetMediaType, ownerIdentityId, conversationId]
+    not:
+      required: [unicodeValue]

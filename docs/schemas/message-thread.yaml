@@ -1,0 +1,54 @@
+$schema: "https://json-schema.org/draft/2020-12/schema"
+$id: "https://tawk.local/schemas/message-thread.schema.json"
+title: "Message Thread"
+description: "A reply thread within a conversation that can be paused while its reported content is reviewed."
+type: object
+additionalProperties: false
+required:
+  - id
+  - conversationId
+  - rootMessageId
+  - status
+  - createdAt
+  - updatedAt
+properties:
+  id:
+    type: string
+    format: uuid
+    description: "Stable unique identifier for the message thread."
+  conversationId:
+    type: string
+    format: uuid
+    description: "Conversation containing the thread, referencing conversation.yaml."
+  rootMessageId:
+    type: string
+    format: uuid
+    description: "Message that starts the thread, referencing message.yaml."
+  status:
+    type: string
+    enum: [active, paused]
+    description: "Whether participants may currently reply; paused is derived while any moderation ticket for a message in this thread is not closed."
+  pausedAt:
+    type: string
+    format: date-time
+    description: "When replies to this thread most recently became paused."
+  resumedAt:
+    type: string
+    format: date-time
+    description: "When replies to this thread most recently resumed after every related moderation ticket closed."
+  createdAt:
+    type: string
+    format: date-time
+    description: "When this thread was created."
+  updatedAt:
+    type: string
+    format: date-time
+    description: "When this thread was last updated."
+allOf:
+  - if:
+      properties:
+        status:
+          const: paused
+      required: [status]
+    then:
+      required: [pausedAt]

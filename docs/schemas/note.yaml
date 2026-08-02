@@ -1,0 +1,163 @@
+$schema: "https://json-schema.org/draft/2020-12/schema"
+$id: "https://tawk.local/schemas/note.schema.json"
+title: "Note"
+description: "Retained contextual text attached to exactly one conversation, thread, message, or moderation ticket with context-sensitive visibility."
+type: object
+additionalProperties: false
+required:
+  - id
+  - authorIdentityId
+  - targetType
+  - visibility
+  - content
+  - status
+  - createdAt
+  - updatedAt
+properties:
+  id:
+    type: string
+    format: uuid
+    description: "Stable unique identifier for the note."
+  authorIdentityId:
+    type: string
+    format: uuid
+    description: "Identity that authored the note, referencing identity.yaml."
+  targetType:
+    type: string
+    enum: [conversation, thread, message, moderationTicket]
+    description: "Kind of record to which this note is attached."
+  conversationId:
+    type: string
+    format: uuid
+    description: "Target conversation for a top-level note, referencing conversation.yaml."
+  threadId:
+    type: string
+    format: uuid
+    description: "Target message thread, referencing message-thread.yaml."
+  messageId:
+    type: string
+    format: uuid
+    description: "Target message, referencing message.yaml."
+  moderationTicketId:
+    type: string
+    format: uuid
+    description: "Target moderation ticket, referencing moderation-ticket.yaml."
+  visibility:
+    type: string
+    enum: [private, threadParticipants, conversationParticipants, moderators]
+    description: "Audience permitted to read the note; valid choices depend on its target context."
+  content:
+    type: string
+    minLength: 1
+    description: "Persistent note body."
+  status:
+    type: string
+    enum: [active, deleted]
+    description: "Whether the note is available to its audience or retained as soft-deleted."
+  deletedAt:
+    type: string
+    format: date-time
+    description: "When the note was soft-deleted."
+  deletedById:
+    type: string
+    format: uuid
+    description: "Identity that soft-deleted the note, referencing identity.yaml."
+  createdAt:
+    type: string
+    format: date-time
+    description: "When this note was created."
+  updatedAt:
+    type: string
+    format: date-time
+    description: "When this note was last updated."
+oneOf:
+  - properties:
+      targetType:
+        const: conversation
+    required: [conversationId]
+    not:
+      anyOf:
+        - required: [threadId]
+        - required: [messageId]
+        - required: [moderationTicketId]
+  - properties:
+      targetType:
+        const: thread
+    required: [threadId]
+    not:
+      anyOf:
+        - required: [conversationId]
+        - required: [messageId]
+        - required: [moderationTicketId]
+  - properties:
+      targetType:
+        const: message
+    required: [messageId]
+    not:
+      anyOf:
+        - required: [conversationId]
+        - required: [threadId]
+        - required: [moderationTicketId]
+  - properties:
+      targetType:
+        const: moderationTicket
+    required: [moderationTicketId]
+    not:
+      anyOf:
+        - required: [conversationId]
+        - required: [threadId]
+        - required: [messageId]
+allOf:
+  - if:
+      properties:
+        targetType:
+          const: conversation
+      required: [targetType]
+    then:
+      properties:
+        visibility:
+          enum: [private, conversationParticipants]
+  - if:
+      properties:
+        targetType:
+          const: thread
+      required: [targetType]
+    then:
+      properties:
+        visibility:
+          enum: [private, threadParticipants]
+  - if:
+      properties:
+        targetType:
+          const: message
+      required: [targetType]
+    then:
+      properties:
+        visibility:
+          enum: [private, threadParticipants, conversationParticipants]
+  - if:
+      properties:
+        targetType:
+          const: moderationTicket
+      required: [targetType]
+    then:
+      properties:
+        visibility:
+          const: moderators
+  - if:
+      properties:
+        status:
+          const: deleted
+      required: [status]
+    then:
+      required: [deletedAt, deletedById]
+  - if:
+      properties:
+        status:
+          const: active
+      required: [status]
+    then:
+      not:
+        anyOf:
+          - required: [deletedAt]
+          - required: [deletedById]

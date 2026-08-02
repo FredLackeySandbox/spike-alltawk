@@ -1,0 +1,64 @@
+$schema: "https://json-schema.org/draft/2020-12/schema"
+$id: "https://tawk.local/schemas/human-authentication.schema.json"
+title: "Human Authentication"
+description: "A verified OIDC or passwordless-email sign-in connection belonging to a human identity."
+type: object
+additionalProperties: false
+required:
+  - id
+  - identityId
+  - method
+  - email
+  - emailVerified
+  - createdAt
+  - updatedAt
+properties:
+  id:
+    type: string
+    format: uuid
+    description: "Stable unique identifier for the authentication connection."
+  identityId:
+    type: string
+    format: uuid
+    description: "Human identity that owns this authentication connection, referencing identity.yaml."
+  method:
+    type: string
+    enum: [oidc, passwordlessEmail]
+    description: "Supported human authentication method."
+  email:
+    type: string
+    format: email
+    description: "Verified email address resolved by this authentication method."
+  emailVerified:
+    type: boolean
+    const: true
+    description: "Confirms that the connection positively identifies the email address."
+  issuer:
+    type: string
+    format: uri
+    description: "OIDC issuer URL when the connection uses OIDC."
+  subject:
+    type: string
+    minLength: 1
+    description: "Stable provider subject identifier when the connection uses OIDC."
+  lastAuthenticatedAt:
+    type: string
+    format: date-time
+    description: "Most recent successful authentication through this connection."
+  createdAt:
+    type: string
+    format: date-time
+    description: "When this authentication connection was created."
+  updatedAt:
+    type: string
+    format: date-time
+    description: "When this authentication connection was last updated."
+allOf:
+  - if:
+      properties:
+        method:
+          const: oidc
+      required: [method]
+    then:
+      required: [issuer, subject]
+

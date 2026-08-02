@@ -1,0 +1,67 @@
+$schema: "https://json-schema.org/draft/2020-12/schema"
+$id: "https://tawk.local/schemas/posting-suspension.schema.json"
+title: "Posting Suspension"
+description: "A time-limited restriction that prevents an otherwise active conversation member from posting."
+type: object
+additionalProperties: false
+required:
+  - id
+  - conversationId
+  - identityId
+  - issuedById
+  - startsAt
+  - endsAt
+  - createdAt
+  - updatedAt
+properties:
+  id:
+    type: string
+    format: uuid
+    description: "Stable unique identifier for the posting suspension."
+  conversationId:
+    type: string
+    format: uuid
+    description: "Conversation in which posting is restricted, referencing conversation.yaml."
+  identityId:
+    type: string
+    format: uuid
+    description: "Member whose posting permission is suspended, referencing identity.yaml."
+  issuedById:
+    type: string
+    format: uuid
+    description: "Owner or administrator who issued the suspension, referencing identity.yaml."
+  ticketId:
+    type: string
+    format: uuid
+    description: "Moderation ticket that prompted the suspension, when applicable, referencing moderation-ticket.yaml."
+  reason:
+    type: string
+    minLength: 1
+    description: "Optional explanation for the posting restriction."
+  startsAt:
+    type: string
+    format: date-time
+    description: "When the posting suspension begins."
+  endsAt:
+    type: string
+    format: date-time
+    description: "Required time at which this time-limited suspension expires."
+  liftedAt:
+    type: string
+    format: date-time
+    description: "When a moderator ended the suspension before its scheduled expiry."
+  liftedById:
+    type: string
+    format: uuid
+    description: "Owner or administrator who lifted the suspension, referencing identity.yaml."
+  createdAt:
+    type: string
+    format: date-time
+    description: "When this suspension record was created."
+  updatedAt:
+    type: string
+    format: date-time
+    description: "When this suspension record was last updated."
+dependentRequired:
+  liftedAt: [liftedById]
+  liftedById: [liftedAt]

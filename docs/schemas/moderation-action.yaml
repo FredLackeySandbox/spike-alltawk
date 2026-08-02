@@ -1,0 +1,102 @@
+$schema: "https://json-schema.org/draft/2020-12/schema"
+$id: "https://tawk.local/schemas/moderation-action.schema.json"
+title: "Moderation Action"
+description: "An immutable action taken by a conversation owner or administrator during moderation."
+type: object
+additionalProperties: false
+required:
+  - id
+  - conversationId
+  - actorIdentityId
+  - actionType
+  - occurredAt
+  - createdAt
+  - updatedAt
+properties:
+  id:
+    type: string
+    format: uuid
+    description: "Stable unique identifier for the moderation action."
+  conversationId:
+    type: string
+    format: uuid
+    description: "Conversation in which the action was taken, referencing conversation.yaml."
+  ticketId:
+    type: string
+    format: uuid
+    description: "Moderation ticket associated with the action when it arose from a report, referencing moderation-ticket.yaml."
+  actorIdentityId:
+    type: string
+    format: uuid
+    description: "Owner or administrator who performed the action, referencing identity.yaml."
+  targetIdentityId:
+    type: string
+    format: uuid
+    description: "Identity affected by a warning, removal, ban, unban, or suspension action, referencing identity.yaml."
+  targetMessageId:
+    type: string
+    format: uuid
+    description: "Message affected by a delete or restore decision, referencing message.yaml."
+  postingSuspensionId:
+    type: string
+    format: uuid
+    description: "Posting suspension created or lifted by this action, referencing posting-suspension.yaml."
+  actionType:
+    type: string
+    enum: [deleteMessage, restoreMessage, warnIdentity, removeParticipant, banParticipant, unbanParticipant, suspendPosting, liftPostingSuspension]
+    description: "Moderation operation recorded by this event."
+  rationale:
+    type: string
+    minLength: 1
+    description: "Optional moderator explanation for the action."
+  occurredAt:
+    type: string
+    format: date-time
+    description: "When the moderation action took effect."
+  createdAt:
+    type: string
+    format: date-time
+    description: "When this action record was created."
+  updatedAt:
+    type: string
+    format: date-time
+    description: "When this action record was last updated."
+oneOf:
+  - properties:
+      actionType:
+        enum: [deleteMessage, restoreMessage]
+    required: [targetMessageId]
+    not:
+      anyOf:
+        - required: [targetIdentityId]
+        - required: [postingSuspensionId]
+  - properties:
+      actionType:
+        enum: [removeParticipant, banParticipant, unbanParticipant]
+    required: [targetIdentityId]
+    not:
+      anyOf:
+        - required: [targetMessageId]
+        - required: [postingSuspensionId]
+  - properties:
+      actionType:
+        const: warnIdentity
+    required: [targetIdentityId, ticketId, rationale]
+    not:
+      anyOf:
+        - required: [targetMessageId]
+        - required: [postingSuspensionId]
+  - properties:
+      actionType:
+        const: suspendPosting
+    required: [targetIdentityId, postingSuspensionId]
+    not:
+      required: [targetMessageId]
+  - properties:
+      actionType:
+        const: liftPostingSuspension
+    required: [postingSuspensionId]
+    not:
+      anyOf:
+        - required: [targetIdentityId]
+        - required: [targetMessageId]

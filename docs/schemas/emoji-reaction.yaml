@@ -1,0 +1,42 @@
+$schema: "https://json-schema.org/draft/2020-12/schema"
+$id: "https://tawk.local/schemas/emoji-reaction.schema.json"
+title: "Emoji Reaction"
+description: "One identity's use of one standard or custom emoji on a visible message."
+type: object
+additionalProperties: false
+required:
+  - id
+  - messageId
+  - identityId
+  - emojiId
+  - createdAt
+  - updatedAt
+properties:
+  id:
+    type: string
+    format: uuid
+    description: "Stable unique identifier for the reaction."
+  messageId:
+    type: string
+    format: uuid
+    description: "Reacted-to message, referencing message.yaml."
+  identityId:
+    type: string
+    format: uuid
+    description: "Active participant who added the reaction, referencing identity.yaml."
+  emojiId:
+    type: string
+    format: uuid
+    description: "Standard or custom emoji used by the reaction, referencing emoji.yaml."
+  removedAt:
+    type: string
+    format: date-time
+    description: "When the participant removed this reaction; omission means it remains active."
+  createdAt:
+    type: string
+    format: date-time
+    description: "When this reaction was added."
+  updatedAt:
+    type: string
+    format: date-time
+    description: "When this reaction record was last updated."

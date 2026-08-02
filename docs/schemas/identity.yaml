@@ -1,0 +1,94 @@
+$schema: "https://json-schema.org/draft/2020-12/schema"
+$id: "https://tawk.local/schemas/identity.schema.json"
+title: "Identity"
+description: "An identified human or bot that can own, join, and participate in conversations."
+type: object
+additionalProperties: false
+required:
+  - id
+  - type
+  - displayName
+  - isActive
+  - createdAt
+  - updatedAt
+properties:
+  id:
+    type: string
+    format: uuid
+    description: "Stable unique identifier for the identity."
+  type:
+    type: string
+    enum: [human, bot]
+    description: "Whether the identity represents a person or an automated bot."
+  displayName:
+    type: string
+    minLength: 1
+    description: "Required public name shown with conversation activity."
+  email:
+    type: string
+    format: email
+    description: "Positively identified email address for a human identity."
+  emailVerified:
+    type: boolean
+    description: "Whether the human identity's email address has been verified."
+  fullName:
+    type: string
+    minLength: 1
+    description: "Optional proper or full name imported from an identity provider or entered by the person."
+  firstName:
+    type: string
+    minLength: 1
+    description: "Optional given name for a human identity."
+  lastName:
+    type: string
+    minLength: 1
+    description: "Optional family name for a human identity."
+  profileImageUrl:
+    type: string
+    format: uri
+    description: "Optional profile image obtained from an identity provider or profile settings."
+  providerAttributes:
+    type: object
+    additionalProperties: true
+    description: "Optional identity-provider attributes retained for profile enrichment."
+  isActive:
+    type: boolean
+    description: "Whether this identity may authenticate to Tawk."
+  deactivatedAt:
+    type: string
+    format: date-time
+    description: "When this identity was deactivated, when applicable."
+  createdAt:
+    type: string
+    format: date-time
+    description: "When this identity was created."
+  updatedAt:
+    type: string
+    format: date-time
+    description: "When this identity was last updated."
+allOf:
+  - if:
+      properties:
+        type:
+          const: human
+      required: [type]
+    then:
+      required: [email, emailVerified]
+      properties:
+        emailVerified:
+          const: true
+  - if:
+      properties:
+        isActive:
+          const: false
+      required: [isActive]
+    then:
+      required: [deactivatedAt]
+  - if:
+      properties:
+        isActive:
+          const: true
+      required: [isActive]
+    then:
+      not:
+        required: [deactivatedAt]

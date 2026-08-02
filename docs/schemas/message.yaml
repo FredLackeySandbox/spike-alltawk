@@ -1,0 +1,71 @@
+$schema: "https://json-schema.org/draft/2020-12/schema"
+$id: "https://tawk.local/schemas/message.schema.json"
+title: "Message"
+description: "Persistent conversation content that remains attributable to its author and is hidden or soft-deleted through lifecycle state."
+type: object
+additionalProperties: false
+required:
+  - id
+  - conversationId
+  - authorIdentityId
+  - content
+  - status
+  - createdAt
+  - updatedAt
+properties:
+  id:
+    type: string
+    format: uuid
+    description: "Stable unique identifier for the message."
+  conversationId:
+    type: string
+    format: uuid
+    description: "Conversation containing the message, referencing conversation.yaml."
+  authorIdentityId:
+    type: string
+    format: uuid
+    description: "Human or bot author retained even after membership ends, referencing identity.yaml."
+  threadId:
+    type: string
+    format: uuid
+    description: "Thread containing this message when it is a thread root or reply, referencing message-thread.yaml."
+  replyToMessageId:
+    type: string
+    format: uuid
+    description: "Immediate parent message for a threaded reply, referencing message.yaml."
+  content:
+    type: string
+    minLength: 1
+    description: "Original persistent message body."
+  status:
+    type: string
+    enum: [visible, hiddenPendingReview, deleted]
+    description: "Visibility state; hiddenPendingReview is derived while any moderation ticket for this message is not closed, and deleted is retained soft deletion."
+  deletedAt:
+    type: string
+    format: date-time
+    description: "When the message was soft-deleted."
+  deletedById:
+    type: string
+    format: uuid
+    description: "Author or moderator identity that soft-deleted the message, referencing identity.yaml."
+  deletionReason:
+    type: string
+    minLength: 1
+    description: "Optional explanation for the soft deletion."
+  createdAt:
+    type: string
+    format: date-time
+    description: "When this message was posted."
+  updatedAt:
+    type: string
+    format: date-time
+    description: "When this message record was last updated."
+allOf:
+  - if:
+      properties:
+        status:
+          const: deleted
+      required: [status]
+    then:
+      required: [deletedAt, deletedById]

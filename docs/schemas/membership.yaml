@@ -1,0 +1,111 @@
+$schema: "https://json-schema.org/draft/2020-12/schema"
+$id: "https://tawk.local/schemas/membership.schema.json"
+title: "Membership"
+description: "The retained relationship between one identity and one conversation, including its current participation state across leaving and rejoining."
+type: object
+additionalProperties: false
+required:
+  - id
+  - conversationId
+  - identityId
+  - status
+  - firstJoinedAt
+  - lastJoinedAt
+  - joinCount
+  - createdAt
+  - updatedAt
+properties:
+  id:
+    type: string
+    format: uuid
+    description: "Stable unique identifier for the membership."
+  conversationId:
+    type: string
+    format: uuid
+    description: "Conversation to which the membership belongs, referencing conversation.yaml."
+  identityId:
+    type: string
+    format: uuid
+    description: "Human or bot participant, referencing identity.yaml."
+  status:
+    type: string
+    enum: [active, left, removed, banned]
+    description: "Current participation state; banned prevents rejoining while left and removed preserve former membership."
+  firstJoinedAt:
+    type: string
+    format: date-time
+    description: "When the identity first joined this conversation."
+  lastJoinedAt:
+    type: string
+    format: date-time
+    description: "When the identity most recently joined or rejoined this conversation."
+  joinCount:
+    type: integer
+    minimum: 1
+    description: "Number of times the identity has joined this conversation."
+  endedAt:
+    type: string
+    format: date-time
+    description: "When the current active membership ended, when applicable."
+  endedById:
+    type: string
+    format: uuid
+    description: "Identity that ended the membership, or the member for a voluntary departure, referencing identity.yaml."
+  endReason:
+    type: string
+    enum: [left, removed, banned]
+    description: "Reason the current active membership ended."
+  createdAt:
+    type: string
+    format: date-time
+    description: "When this membership was first created."
+  updatedAt:
+    type: string
+    format: date-time
+    description: "When this membership was last updated."
+allOf:
+  - if:
+      properties:
+        status:
+          const: active
+      required: [status]
+    then:
+      not:
+        anyOf:
+          - required: [endedAt]
+          - required: [endedById]
+          - required: [endReason]
+  - if:
+      properties:
+        status:
+          enum: [left, removed, banned]
+      required: [status]
+    then:
+      required: [endedAt, endedById, endReason]
+  - if:
+      properties:
+        status:
+          const: left
+      required: [status]
+    then:
+      properties:
+        endReason:
+          const: left
+  - if:
+      properties:
+        status:
+          const: removed
+      required: [status]
+    then:
+      properties:
+        endReason:
+          const: removed
+  - if:
+      properties:
+        status:
+          const: banned
+      required: [status]
+    then:
+      properties:
+        endReason:
+          const: banned

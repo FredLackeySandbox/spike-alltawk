@@ -1,0 +1,104 @@
+$schema: "https://json-schema.org/draft/2020-12/schema"
+$id: "https://tawk.local/schemas/moderation-ticket.schema.json"
+title: "Moderation Ticket"
+description: "A numbered report of a message, its review lifecycle, and its required confidential discussion conversation."
+type: object
+additionalProperties: false
+required:
+  - id
+  - ticketNumber
+  - conversationId
+  - messageId
+  - reportedById
+  - reason
+  - status
+  - discussionConversationId
+  - reportedAt
+  - createdAt
+  - updatedAt
+properties:
+  id:
+    type: string
+    format: uuid
+    description: "Stable unique identifier for the moderation ticket."
+  ticketNumber:
+    type: integer
+    minimum: 1
+    description: "User-facing unique sequential number for the moderation report."
+  conversationId:
+    type: string
+    format: uuid
+    description: "Conversation in which the reported message was posted, referencing conversation.yaml."
+  messageId:
+    type: string
+    format: uuid
+    description: "Reported message that is hidden during review, referencing message.yaml."
+  reportedById:
+    type: string
+    format: uuid
+    description: "Participant identity that submitted the report, referencing identity.yaml."
+  reason:
+    type: string
+    minLength: 1
+    description: "Reporter-provided explanation of the concern."
+  status:
+    type: string
+    enum: [reported, underReview, reviewed, closed]
+    description: "Basic moderation lifecycle; closed is terminal and a closed ticket cannot be reopened."
+  disposition:
+    type: string
+    enum: [keepMessage, removeMessage]
+    description: "Reviewer's final decision to keep or remove the reported message; present only when the ticket is closed."
+  discussionConversationId:
+    type: string
+    format: uuid
+    description: "Required confidential conversation used by reviewers to discuss this ticket, referencing conversation.yaml."
+  reportedAt:
+    type: string
+    format: date-time
+    description: "When the message was reported and hidden for review."
+  reviewStartedAt:
+    type: string
+    format: date-time
+    description: "When an owner or administrator began reviewing the ticket."
+  reviewedAt:
+    type: string
+    format: date-time
+    description: "When review findings were recorded."
+  closedAt:
+    type: string
+    format: date-time
+    description: "When the ticket was closed."
+  createdAt:
+    type: string
+    format: date-time
+    description: "When this moderation ticket was created."
+  updatedAt:
+    type: string
+    format: date-time
+    description: "When this moderation ticket was last updated."
+allOf:
+  - if:
+      properties:
+        status:
+          const: underReview
+      required: [status]
+    then:
+      required: [reviewStartedAt]
+  - if:
+      properties:
+        status:
+          const: reviewed
+      required: [status]
+    then:
+      required: [reviewedAt]
+  - if:
+      properties:
+        status:
+          const: closed
+      required: [status]
+    then:
+      required: [disposition, closedAt]
+    else:
+      not:
+        required: [disposition]

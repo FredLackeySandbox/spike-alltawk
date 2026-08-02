@@ -72,7 +72,7 @@ Ordinary members participate in conversations, post and delete their own message
 
 **What it does:** Gives every person and bot a visible, non-anonymous identity.
 
-**How it works:** A person signs in through an OpenID Connect (OIDC) provider, such as Google, or through a passwordless email flow. Every successful human authentication must resolve to a positively identified email address. When available, Tawk attempts to import the person's name, profile image, and other identity attributes from the OIDC provider. A bot authenticates using a token. Each identity has a profile containing at least a display name, which is shown alongside its conversation activity.
+**How it works:** A person signs in through an OpenID Connect (OIDC) provider, such as Google, or through a passwordless email flow. Every successful human authentication must resolve to a positively identified email address. A human identity may have multiple linked authentication connections and email addresses; an email returned by an OIDC provider participates in resolving that sign-in to the correct identity. When available, Tawk attempts to import the person's name, profile image, and other identity attributes from the OIDC provider. A bot authenticates using a token. Each identity has a profile containing at least a display name, which is shown alongside its conversation activity.
 
 **Rules and constraints:**
 
@@ -81,6 +81,7 @@ Ordinary members participate in conversations, post and delete their own message
 - A profile must have a display name.
 - A person's profile can store a proper or full name, first name, last name, profile image, and other available identity-provider attributes.
 - Human authentication must use OIDC or passwordless email and resolve to a verified email address.
+- A human identity may link multiple verified email-based authentication connections. The MVP does not yet define which address is the canonical profile email or how a canonical address is selected or changed.
 - Dedicated impersonation-prevention functionality is out of scope for the MVP.
 
 ### Conversation creation and settings
@@ -110,7 +111,8 @@ Ordinary members participate in conversations, post and delete their own message
 - Tags use English-alphabet Latin letters and numbers.
 - Unicode and whitespace are not allowed.
 - Tags are case-insensitive.
-- A tag component may contain any number of separator hyphens within the component's maximum length.
+- Each tag component contains between one and fifteen characters. A `key:value` tag applies that limit independently to both components and therefore has a maximum total length of thirty-one characters, including the colon.
+- A tag component may contain any number of separator hyphens within its fifteen-character limit.
 - A component cannot begin or end with a hyphen.
 - A key/value tag contains exactly one colon.
 - Tags belonging only to unlisted conversations must never be offered through tag completion.
@@ -183,20 +185,21 @@ For a listed conversation without exclusive matching, matching at least one of t
 
 **What it does:** Allows participants to respond to messages with emojis.
 
-**How it works:** A participant selects an emoji on a message in a manner similar to reactions in Slack. The reaction is associated with both the message and the reacting identity.
+**How it works:** A participant selects an emoji on a message in a manner similar to reactions in Slack. The reaction is associated with both the message and the reacting identity. Tawk provides a familiar standard emoji set and supports custom PNG, JPEG, and animated GIF emoji.
 
 **Rules and constraints:**
 
 - Reactions are available to active participants who can view the message.
-- The supported emoji set and whether users may add multiple reactions to the same message remain unresolved.
+- Only a current owner or administrator may create a custom emoji scoped to an entire conversation.
+- Whether one identity may add multiple different reactions to the same message remains unresolved.
 
 ### Message flagging and moderation tickets
 
 **What it does:** Lets a participant report a message and gives conversation owners and administrators a record for reviewing it.
 
-**How it works:** A participant flags a message and enters a description of what is offensive, incorrect, or otherwise concerning. Tawk creates a numbered moderation ticket linked to the flagged message, its conversation, and the identity that submitted the flag.
+**How it works:** A participant flags a message and enters a description of what is offensive, incorrect, or otherwise concerning. Tawk creates a distinct numbered moderation ticket linked to the flagged message, its conversation, and the identity that submitted the flag. Multiple participants may create simultaneous tickets for the same message. Each ticket has its own confidential discussion, and a reporter cannot discover the identities of people who submitted other reports for that message.
 
-Owners and administrators review the ticket and may delete the message, remove or ban a participant, or suspend a participant's ability to post until a specified time.
+Owners and administrators review the ticket and may delete the message, remove or ban a participant, suspend a participant's ability to post until a specified time, or warn either the reporting identity or the author of the reported message. When closing a ticket, the reviewer records a disposition of keep message or remove message. A warning is retained as a moderation action; the MVP does not define karma, warning-point totals, or a reputation-scoring formula.
 
 **Rules and constraints:**
 
@@ -204,22 +207,29 @@ Owners and administrators review the ticket and may delete the message, remove o
 - The reporting participant can provide explanatory text.
 - Moderation tickets receive unique numbers.
 - Owners and administrators for the affected conversation receive access to the report.
+- The MVP ticket statuses are reported, under review, reviewed, and closed.
+- A closed ticket is terminal and cannot be reopened or changed to another status.
+- Each ticket requires its own confidential moderation discussion, accessible only to current owners and administrators of the source conversation.
+- A message remains hidden while any ticket for it is not closed. A reported message's thread remains paused under the same condition.
+- Closing a ticket requires the reviewer to choose keep message or remove message. A remove decision soft-deletes the message. A keep decision restores the message only after every ticket for that message is closed and no ticket has an accepted remove decision.
+- Multiple tickets may reference the same message, but a reporter must not be shown the reporting identities associated with other tickets.
+- A reviewer may record a retained warning against either the reporter of a false claim or the author of the reported message. Reputation scoring based on warnings is not defined for the MVP.
 - Posting suspension must support an end date or time.
 - A suspended participant may remain a member while being prevented from posting.
-- The exact ticket workflow and status values remain unresolved.
 
 ### Notes and private moderation discussion
 
 **What it does:** Provides contextual notes about conversations, messages, and moderation work.
 
-**How it works:** A user may create a note on a conversation or message. Owners and administrators may also attach operational notes to a conversation or moderation ticket. A related conversation may be created for confidential discussion of a ticket and linked back to that ticket.
+**How it works:** A user may create a note on a conversation, thread, or message. Owners and administrators may also attach moderator-only operational notes to a moderation ticket. Every ticket has a separate confidential moderation-discussion conversation linked back to that ticket.
 
 **Rules and constraints:**
 
-- The visibility model for personal, administrator, and owner notes remains unresolved.
-- A moderation discussion conversation behaves like any other conversation and appears in the participating administrators' conversation lists.
+- A conversation note may be private to its author or visible to conversation participants. A thread note may be private to its author or visible to thread participants. A message note uses the thread audience when the message belongs to a thread and the conversation audience otherwise. A moderation-ticket note is visible only to moderators.
+- Only the author may change an active note's visibility, and the new audience must remain valid for the note's context. Every visibility change must retain who made it, when it occurred, and the previous and new audience in append-only audit history.
+- A moderation discussion conversation appears in the participating owners' and administrators' conversation lists but is not searchable or joinable through tags.
 - A moderation discussion conversation must retain a relationship to its ticket.
-- Whether a related moderation conversation is required or optional remains unresolved.
+- Every moderation ticket requires its own related moderation discussion conversation.
 
 ### Conversation archival
 
@@ -283,9 +293,11 @@ Owners and administrators review the ticket and may delete the message, remove o
 2. The participant enters a reason for the report.
 3. Tawk creates a numbered ticket linked to the message, conversation, and reporting identity.
 4. The conversation's owners and administrators review the ticket.
-5. Reviewers may record notes or open a related private conversation for further discussion.
-6. A reviewer may delete the message, suspend the participant's posting ability, remove the participant, or ban the participant.
-7. The action and relevant notes remain associated with the ticket.
+5. Tawk gives the ticket its own confidential discussion, visible only to current owners and administrators of the source conversation.
+6. A reviewer may warn the reporter or message author, suspend the author's posting ability, remove or ban a participant, or take no identity-level action.
+7. The reviewer closes the ticket with a keep-message or remove-message disposition. A closed ticket cannot be reopened.
+8. Tawk keeps the message hidden and its thread paused while any ticket for that message remains unresolved. After the last ticket closes, Tawk restores a kept message and resumes its thread unless any accepted ticket disposition removed the message.
+9. The actions, relevant notes, and distinct ticket discussion remain associated with the ticket.
 
 ### Ban and restore a participant
 
@@ -345,10 +357,10 @@ The MVP requires at least the following concepts:
 - **Membership role period:** Records an owner's, administrator's, member's, or banned identity's role over a specific period using start and end timestamps.
 - **Message:** Belongs to a conversation and an author. It retains its original relationship to the author even after that identity leaves. A soft-deletion state controls whether it remains visible.
 - **Emoji reaction:** Associates an identity and emoji with a message.
-- **Moderation ticket:** Has a unique ticket number and links to the flagged message, its conversation, and the reporting identity. It may also track moderation actions and discussion.
+- **Moderation ticket:** Has a unique ticket number and links to the flagged message, its conversation, the reporting identity, one required confidential discussion conversation, its terminal review lifecycle, and its keep-message or remove-message disposition. Multiple distinct tickets may reference the same message.
 - **Posting suspension:** Associates an identity with a conversation and records the period during which the identity cannot post.
-- **Note:** Belongs to an author and may be attached to a message, conversation, or moderation ticket. It requires a visibility setting once the visibility model is finalized.
-- **Related moderation conversation:** A normal conversation that optionally links back to a moderation ticket for confidential discussion.
+- **Note:** Belongs to an author and may be attached to a conversation, thread, message, or moderation ticket. Its visibility is constrained by that context, and an active note's author may change visibility only when the change is retained in audit history.
+- **Related moderation conversation:** A required, confidential conversation linked one-to-one with a moderation ticket and accessible only to current owners and administrators of the source conversation.
 
 ---
 
@@ -379,7 +391,7 @@ The MVP requires at least the following concepts:
 2. **Human authentication:** How do people authenticate? Anonymous access is prohibited, but no human identity provider, credential method, or session mechanism has been selected.
 
     **ANSWER**
-    Users must always authenticate. Supported methods are an OIDC connection, such as Google/Gmail, or a passwordless connection using an email address. Regardless of the method, successful authentication must resolve to and positively identify the user by an email address.
+    Users must always authenticate. Supported methods are an OIDC connection, such as Google/Gmail, or a passwordless connection using an email address. Regardless of the method, successful authentication must resolve to and positively identify the user by an email address. A user may link multiple email-based authentication connections to one identity, and an email returned by an OIDC provider participates in resolving the sign-in to that identity. The canonical profile-email relationship remains undefined for the MVP.
 
 3. **Profile names:** Does an identity store both a proper name and a display name, or only a display name?
 
@@ -394,7 +406,7 @@ The MVP requires at least the following concepts:
 5. **Exact tag grammar:** Does “a single hyphen” mean one hyphen per key or value component, or any number of nonconsecutive separator hyphens? The allowed behavior for multiple colons also needs to be defined.
 
     **ANSWER**
-    A key or value component may contain any number of hyphens within that component's maximum length, but it must not begin or end with a hyphen. A complete tag allows exactly one colon.
+    A key or value component may contain any number of hyphens within its maximum length of fifteen characters, but it must not begin or end with a hyphen. A complete tag allows exactly one colon, so a `key:value` tag may contain no more than thirty-one characters including the colon.
 
 6. **Extra tags in listed search:** A normal listed conversation matches when any assigned tag is selected, while an exclusive listed conversation requires all of its assigned tags. If the user's search also contains unrelated tags, should that otherwise matching conversation remain in the results or be excluded?
 
@@ -424,7 +436,7 @@ The MVP requires at least the following concepts:
 11. **Moderation ticket workflow:** What user-visible lifecycle must a moderation ticket support in the MVP, including statuses, reviewer assignment, notifications, closure, and reopening?
 
     **ANSWER**
-    The MVP needs a basic lifecycle with statuses such as Reported, Under Review or Investigating, Reviewed, and Closed. When a message is reported, hide it from everyone while it is reviewed. If the reported message belongs to a thread, pause that thread so nobody can reply during the review. Reviewer-assignment rules, notifications, and whether a closed ticket can be reopened are not yet defined.
+    The MVP lifecycle statuses are Reported, Under Review, Reviewed, and Closed. Each report creates a distinct ticket and required confidential discussion, even when multiple people report the same message; reporters are not shown who submitted other reports. Hide the message and pause its thread while any ticket for that message remains unresolved. At closure, the reviewer chooses keep message or remove message and may warn either a false reporter or the reported message's author. A keep decision restores content only after all tickets close and no accepted remove decision exists. Closed tickets cannot be reopened. Reviewer-assignment and notification rules remain undefined.
 
 12. **Moderation authority:** Can both owners and administrators apply every listed moderation action, including posting suspension, or are any actions owner-only?
 
@@ -434,7 +446,7 @@ The MVP requires at least the following concepts:
 13. **Notes visibility:** Which visibility choices are supported for notes—for example, author only, all administrators, owners only, or all participants—and can visibility be changed after creation?
 
     **ANSWER**
-    Note visibility depends on its context. A note on a thread or on a message within a thread may be private to its author or visible to the other participants in that thread. A note on a message outside a thread may be private to its author or visible to the conversation's participants. The conversation owner controls whether top-level conversation notes are allowed at all; when allowed, their authors may make them private or visible to the entire conversation. Whether visibility can be changed after creation is not yet defined.
+    Note visibility depends on its context. A note on a thread or on a message within a thread may be private to its author or visible to the other participants in that thread. A note on a message outside a thread may be private to its author or visible to the conversation's participants. The conversation owner controls whether top-level conversation notes are allowed at all; when allowed, their authors may make them private or visible to the entire conversation. The author may change an active note's visibility to another audience allowed for that context, and every change must be retained in append-only audit history with the actor, time, previous audience, and new audience.
 
 14. **Private moderation discussions:** For the MVP, must every moderation ticket have a linked private discussion, may reviewers create one only when needed, or is this capability out of scope?
 
@@ -444,7 +456,7 @@ The MVP requires at least the following concepts:
 15. **Emoji behavior:** Which emoji set is supported, and can one identity add more than one different reaction to a message?
 
     **ANSWER**
-    Reaction behavior should follow Slack-like logic. Provide a standard, familiar default emoji set like those used by Slack and similar clients. Also support custom emojis supplied by people or conversation owners as PNG, JPEG, or animated GIF files. No further custom-emoji permission rules are defined yet.
+    Reaction behavior should follow Slack-like logic. Provide a standard, familiar default emoji set like those used by Slack and similar clients. Also support custom emojis supplied as PNG, JPEG, or animated GIF files. Only current conversation owners and administrators may create conversation-scoped custom emoji.
 
 16. **Archived conversations:** Should archived conversations disappear from search, become read-only for existing members, or remain accessible in another form?
 

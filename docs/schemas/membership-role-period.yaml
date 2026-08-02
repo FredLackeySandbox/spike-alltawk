@@ -1,0 +1,73 @@
+$schema: "https://json-schema.org/draft/2020-12/schema"
+$id: "https://tawk.local/schemas/membership-role-period.schema.json"
+title: "Membership Role Period"
+description: "A time-bounded owner, administrator, member, or banned role assignment in a conversation membership."
+type: object
+additionalProperties: false
+required:
+  - id
+  - membershipId
+  - role
+  - effectiveFrom
+  - assignedById
+  - startReason
+  - createdAt
+  - updatedAt
+properties:
+  id:
+    type: string
+    format: uuid
+    description: "Stable unique identifier for the role period."
+  membershipId:
+    type: string
+    format: uuid
+    description: "Membership whose role is recorded, referencing membership.yaml."
+  role:
+    type: string
+    enum: [owner, administrator, member, none]
+    description: "Role active during the period; none represents a retained ban."
+  effectiveFrom:
+    type: string
+    format: date-time
+    description: "When this role assignment began."
+  effectiveTo:
+    type: string
+    format: date-time
+    description: "When this role assignment ended; omission means it is current."
+  assignedById:
+    type: string
+    format: uuid
+    description: "Identity responsible for this assignment, or the joining identity for its initial member role, referencing identity.yaml."
+  endedById:
+    type: string
+    format: uuid
+    description: "Identity responsible for ending this role period, referencing identity.yaml."
+  startReason:
+    type: string
+    enum: [createdConversation, joined, rejoined, promoted, demoted, banned, unbanned]
+    description: "Product event that caused this role period to begin."
+  endReason:
+    type: string
+    enum: [left, removed, promoted, demoted, banned, unbanned]
+    description: "Product event that ended this role period."
+  createdAt:
+    type: string
+    format: date-time
+    description: "When this role-period record was created."
+  updatedAt:
+    type: string
+    format: date-time
+    description: "When this role-period record was last updated."
+allOf:
+  - if:
+      required: [effectiveTo]
+    then:
+      required: [endReason, endedById]
+  - if:
+      not:
+        required: [effectiveTo]
+    then:
+      not:
+        anyOf:
+          - required: [endReason]
+          - required: [endedById]
