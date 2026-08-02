@@ -1,9 +1,9 @@
 # Product Requirements: Tawk
 
-**Version:** 1.0 — Draft  
-**Date:** 2026-07-22  
-**Status:** POC / Pre-production  
-**Changelog:** Initial draft
+**Version:** 1.2 — Draft
+**Date:** 2026-08-02
+**Status:** MVP / Pre-production
+**Changelog:** Reconciled recorded interview answers, resolved redundant questions, and refocused remaining questions on product behavior.
 
 ---
 
@@ -17,11 +17,11 @@ Conversation owners and administrators manage tags, membership, moderation, and 
 
 ### Why we're building it
 
-Tawk explores whether tags can serve both as a flexible discovery system for public conversations and as a lightweight access mechanism for unlisted conversations. The POC also needs to prove that people and bots can participate in the same conversation model while conversation-level roles provide enough control for basic administration and moderation.
+Tawk uses tags as both a flexible discovery system for public conversations and a lightweight access mechanism for unlisted conversations. The MVP must support people and bots in the same conversation model while conversation-level roles provide enough control for administration and moderation.
 
-### What success looks like for the POC
+### What success looks like for the MVP
 
-The POC is successful when it demonstrates that:
+The MVP is successful when:
 
 - An identified person or token-authenticated bot can create a conversation with between one and ten tags.
 - A conversation can be configured as listed or unlisted.
@@ -42,7 +42,7 @@ The POC is successful when it demonstrates that:
 
 People use Tawk to find conversations by tag, join them, exchange messages, react to messages, add notes, and flag content that needs moderator attention. Every person must have an identity; anonymous participation is not allowed.
 
-A person's profile must provide a display name. The product may also distinguish between a proper name and a display name, but that distinction has not been finalized.
+A person's profile must provide a display name and may also store a proper or full name, first name, last name, profile image, and other available identity-provider attributes.
 
 ### Bots
 
@@ -72,16 +72,16 @@ Ordinary members participate in conversations, post and delete their own message
 
 **What it does:** Gives every person and bot a visible, non-anonymous identity.
 
-**How it works:** A person signs in using the human authentication mechanism selected for the POC. A bot authenticates using a token. Each identity has a profile containing at least a display name, which is shown alongside its conversation activity.
+**How it works:** A person signs in through an OpenID Connect (OIDC) provider, such as Google, or through a passwordless email flow. Every successful human authentication must resolve to a positively identified email address. When available, Tawk attempts to import the person's name, profile image, and other identity attributes from the OIDC provider. A bot authenticates using a token. Each identity has a profile containing at least a display name, which is shown alongside its conversation activity.
 
 **Rules and constraints:**
 
 - Anonymous participation is not allowed.
 - Bots authenticate with tokens.
 - A profile must have a display name.
-- Whether profiles also store a separate proper name is unresolved.
-- Dedicated impersonation-prevention functionality is out of scope for the POC.
-- The human authentication mechanism remains to be selected.
+- A person's profile can store a proper or full name, first name, last name, profile image, and other available identity-provider attributes.
+- Human authentication must use OIDC or passwordless email and resolve to a verified email address.
+- Dedicated impersonation-prevention functionality is out of scope for the MVP.
 
 ### Conversation creation and settings
 
@@ -110,10 +110,11 @@ Ordinary members participate in conversations, post and delete their own message
 - Tags use English-alphabet Latin letters and numbers.
 - Unicode and whitespace are not allowed.
 - Tags are case-insensitive.
-- A tag component may contain a hyphen only as a separator.
+- A tag component may contain any number of separator hyphens within the component's maximum length.
 - A component cannot begin or end with a hyphen.
+- A key/value tag contains exactly one colon.
 - Tags belonging only to unlisted conversations must never be offered through tag completion.
-- The storage and display rules for letter casing remain unresolved.
+- Tags are normalized, stored, and displayed in lowercase; creator-supplied capitalization is not preserved.
 
 ### Listed conversation discovery
 
@@ -144,7 +145,7 @@ For a listed conversation without exclusive matching, matching at least one of t
 - A hidden result must not disclose the conversation's identity.
 - Tags known only from unlisted conversations must not be suggested through autocomplete.
 - A banned identity cannot join, even with the correct tags.
-- Brute-force resistance and a formal privacy or abuse threat model are out of scope for the POC.
+- Brute-force resistance and a formal privacy or abuse threat model are out of scope for the MVP.
 
 ### Conversation membership and roles
 
@@ -311,33 +312,32 @@ Owners and administrators review the ticket and may delete the message, remove o
 | Layer | Technology | Notes |
 |-------|-----------|-------|
 | Runtime | Node.js | Runs the backend API and database-related packages. |
-| Framework | React with JavaScript; Fastify or Hono | React provides the client application. The API framework has not yet been selected between Fastify and Hono. |
+| Framework | React with JavaScript; framework-neutral Node.js API/data package with Hono and Lambda wrappers | React provides the client application. Fastify is explicitly excluded. |
 | Database | Amazon DynamoDB | Stores application data using a non-relational database model. |
 | ORM | Not specified | DynamoDB access packages and data-access design remain to be selected. |
-| Auth | Bot tokens; human authentication not specified | Anonymous access is not permitted. |
-| Payments | None | There are no free or paid product tiers in the POC. |
-| Hosting/Deployment | Docker for local development; eventual AWS Lambda wrapper or harness | The API is packaged in a Docker-based local environment and should be structured so it can later run through a Lambda adapter. |
+| Auth | Bot tokens; OIDC or passwordless email for people | Every successful human authentication must resolve to a positively identified email address. |
+| Payments | None | There are no free or paid product tiers in the MVP. |
+| Hosting/Deployment | Docker for local development; Hono and AWS Lambda wrappers | The framework-neutral API/data package is exposed through separate Hono and Lambda wrappers. |
 
 ### Technical constraints
 
 - The frontend must use React with JavaScript. This is an explicit decision from the 2026-07-22 technical brain dump.
 - The backend must run on Node.js. This is an explicit decision from the 2026-07-22 technical brain dump.
-- The API must use either Fastify or Hono; the final choice is unresolved.
+- The API and data calls must live in a framework-neutral package with separate Hono and Lambda wrappers. Fastify must not be used.
 - DynamoDB is the required database.
 - Local development and execution must be supported through Docker.
-- The backend should be structured so that a Lambda wrapper or harness can be added later.
 - Persistent records use soft deletion or temporal end dates rather than physical deletion.
 - Messages and other retained content are not hard-deleted.
 - Basic rate limiting will be applied at the firewall layer, but specific thresholds and infrastructure are not defined.
 - No Unicode or whitespace is allowed in tags.
-- Tag comparisons are case-insensitive.
+- Tags are normalized, stored, compared, and displayed in lowercase.
 - A conversation supports no more than ten tags.
 
 ### Data model
 
-The POC requires at least the following concepts:
+The MVP requires at least the following concepts:
 
-- **Identity:** Represents a person or bot. It stores the identity type and profile information, including a display name. Bot identities also require token credentials.
+- **Identity:** Represents a person or bot. A human identity stores a positively identified email address and a required display name, and may also store a proper or full name, first name, last name, profile image, and other identity-provider attributes. Bot identities require token credentials.
 - **Conversation:** Stores the conversation's active or archived state, listed or unlisted setting, and listed-conversation matching mode.
 - **Tag:** Stores a normalized, case-insensitive tag value. A tag can be reused by any number of conversations and is not owned by an identity.
 - **Conversation tag:** Associates a conversation with between one and ten tags.
@@ -352,7 +352,7 @@ The POC requires at least the following concepts:
 
 ---
 
-## 6. Out of scope for the POC
+## 6. Out of scope for the MVP
 
 - Anonymous participation.
 - Dedicated impersonation-prevention functionality.
@@ -364,33 +364,102 @@ The POC requires at least the following concepts:
 - Retention guarantees or configurable retention policies.
 - Hard deletion of messages or other retained conversation records.
 - Automatic archival based on inactivity.
-- Production hosting and a complete AWS Lambda deployment, although the API should be compatible with a future Lambda wrapper or harness.
-- Production-grade scale, availability, and operational guarantees not required to demonstrate the concept.
+- Production hosting and production-grade AWS Lambda operations, although the MVP includes a Lambda wrapper around the framework-neutral API/data package.
+- Production-grade scale, availability, and operational guarantees beyond the initial MVP release.
 
 ---
 
 ## 7. Open questions
 
 1. **Fastify or Hono:** Which Node.js API framework will be used? This affects project structure, middleware, validation, and the future Lambda wrapper.
+
+    **ANSWER**
+    This is no longer the spike/POC phase; the next implementation is the MVP. Fastify will never be used—it was only an early experiment. Build an individual, framework-neutral package for the actual API and data calls that go to Lambda, then create both a Hono wrapper and a Lambda wrapper around that package.
+
 2. **Human authentication:** How do people authenticate? Anonymous access is prohibited, but no human identity provider, credential method, or session mechanism has been selected.
+
+    **ANSWER**
+    Users must always authenticate. Supported methods are an OIDC connection, such as Google/Gmail, or a passwordless connection using an email address. Regardless of the method, successful authentication must resolve to and positively identify the user by an email address.
+
 3. **Profile names:** Does an identity store both a proper name and a display name, or only a display name?
+
+    **ANSWER**
+    A display name is required at minimum. The identity model must also support a proper/full name, first name, and last name. When authentication uses OIDC, such as Google/Gmail, the system should attempt to retrieve the user's proper name, profile icon or image, and other available identity attributes from the provider.
+
 4. **Tag casing:** Tags are compared case-insensitively, but should the system preserve the creator's capitalization for display, always display lowercase, or allow a separate display form?
+
+    **ANSWER**
+    Tags must always be lowercase. Normalize, store, and display them in lowercase; do not preserve creator-supplied capitalization.
+
 5. **Exact tag grammar:** Does “a single hyphen” mean one hyphen per key or value component, or any number of nonconsecutive separator hyphens? The allowed behavior for multiple colons also needs to be defined.
-6. **Listed search semantics:** When a user selects several tags, how are extra search tags handled? The requirements define inclusive and exclusive conversation matching but do not fully define whether the search filter uses AND, OR, or another rule across all selected tags.
+
+    **ANSWER**
+    A key or value component may contain any number of hyphens within that component's maximum length, but it must not begin or end with a hyphen. A complete tag allows exactly one colon.
+
+6. **Extra tags in listed search:** A normal listed conversation matches when any assigned tag is selected, while an exclusive listed conversation requires all of its assigned tags. If the user's search also contains unrelated tags, should that otherwise matching conversation remain in the results or be excluded?
+
+    **ANSWER**
+    By default, listed search is inclusive: an otherwise matching conversation remains in the results when the search includes unrelated tags. Adding tags narrows the results. The UI should also offer an option such as "Only show exact matches" so the user can explicitly exclude conversations whose tag sets are not an exact match.
+
 7. **Hidden-result joining:** Must a user's submitted tags exactly equal an unlisted conversation's tag set, or is supplying all required tags plus unrelated tags acceptable?
+
+    **ANSWER**
+    The submitted tag set must match the unlisted conversation's tag set exactly. The user must know every required tag and cannot join by guessing or by supplying extra unrelated tags.
+
 8. **Multiple hidden matches:** What should happen if the user has supplied all required tags for more than one unlisted conversation? The current concept says the user must narrow the result to one conversation, but the interface behavior is unspecified.
-9. **Conversation rejoining:** When a participant voluntarily leaves and later rejoins, should Tawk create a new membership period on the existing membership record, and are any restrictions applied?
-10. **Posting permissions:** Beyond bans and time-limited posting suspensions, are there other reasons or states that can prevent a member from posting?
-11. **Moderation tickets:** What statuses, assignment rules, notifications, and closure behavior does a ticket require for the POC?
+
+    **ANSWER**
+    Tawk must reveal only the number of hidden matches and must not reveal any hidden conversation's identity or private tags. The user must add or remove search tags until exactly one hidden conversation matches before Tawk allows the user to join it.
+
+9. **Conversation rejoining:** May a participant who voluntarily leaves a conversation rejoin it later, and what product-level restrictions apply?
+
+    **ANSWER**
+    A participant may leave and rejoin a conversation as many times as they want, provided they are not blocked from that conversation.
+
+10. **When posting is unavailable:** In which user-visible states must an otherwise identified participant be unable to post? At minimum, banned participants and participants with an active posting suspension cannot post; define whether archival, membership state, or any other product state also disables posting.
+
+    **ANSWER**
+    A user cannot post when the conversation is archived or when they are not a member. An archived conversation remains visible as an existing conversation, but users cannot join it or see any of its messages or other contents. A non-member likewise cannot see the conversation's contents.
+
+11. **Moderation ticket workflow:** What user-visible lifecycle must a moderation ticket support in the MVP, including statuses, reviewer assignment, notifications, closure, and reopening?
+
+    **ANSWER**
+    The MVP needs a basic lifecycle with statuses such as Reported, Under Review or Investigating, Reviewed, and Closed. When a message is reported, hide it from everyone while it is reviewed. If the reported message belongs to a thread, pause that thread so nobody can reply during the review. Reviewer-assignment rules, notifications, and whether a closed ticket can be reopened are not yet defined.
+
 12. **Moderation authority:** Can both owners and administrators apply every listed moderation action, including posting suspension, or are any actions owner-only?
+
+    **ANSWER**
+    Both owners and administrators may review moderation tickets, delete messages, remove or ban participants, restore banned participants, and apply time-limited posting suspensions. No listed moderation action is owner-only. Administrators still cannot add, remove, or otherwise alter conversation owners.
+
 13. **Notes visibility:** Which visibility choices are supported for notes—for example, author only, all administrators, owners only, or all participants—and can visibility be changed after creation?
-14. **Moderation discussions:** Is a linked private conversation required for every moderation ticket, optional when a reviewer requests it, or deferred from the POC?
+
+    **ANSWER**
+    Note visibility depends on its context. A note on a thread or on a message within a thread may be private to its author or visible to the other participants in that thread. A note on a message outside a thread may be private to its author or visible to the conversation's participants. The conversation owner controls whether top-level conversation notes are allowed at all; when allowed, their authors may make them private or visible to the entire conversation. Whether visibility can be changed after creation is not yet defined.
+
+14. **Private moderation discussions:** For the MVP, must every moderation ticket have a linked private discussion, may reviewers create one only when needed, or is this capability out of scope?
+
+    **ANSWER**
+    Every moderation ticket must have a linked private discussion.
+
 15. **Emoji behavior:** Which emoji set is supported, and can one identity add more than one different reaction to a message?
+
+    **ANSWER**
+    Reaction behavior should follow Slack-like logic. Provide a standard, familiar default emoji set like those used by Slack and similar clients. Also support custom emojis supplied by people or conversation owners as PNG, JPEG, or animated GIF files. No further custom-emoji permission rules are defined yet.
+
 16. **Archived conversations:** Should archived conversations disappear from search, become read-only for existing members, or remain accessible in another form?
+
+    **ANSWER**
+    Archived conversations must not appear in search.
+
 17. **Conversation metadata:** Beyond tags, listed state, matching mode, and archive state, does a conversation require a title or description? Search results need some identifiable presentation, but the brain dumps do not define it.
+
+    **ANSWER**
+    Every conversation requires both a title and a description.
+
 18. **Tag changes on unlisted conversations:** If an owner or administrator changes the tags, what happens to existing members, saved links, or users currently attempting to join?
-19. **Firewall rate limiting:** What infrastructure applies the rate limit, and what basic threshold is sufficient for the POC?
-20. **DynamoDB access layer:** Which library or data-access pattern will be used, and how will temporal membership history and multi-entity lookups be modeled efficiently?
+
+    **ANSWER**
+    Changing an unlisted conversation's tags affects only search and discovery. Existing members, saved links, and users currently attempting to join are not otherwise affected.
 
 ---
 
@@ -411,5 +480,5 @@ The POC requires at least the following concepts:
 - Owners and administrators can inspect former membership records; ordinary members cannot.
 - Conversation archival is the product's delete action.
 - There is no automatic conversation lifecycle behavior based on inactivity.
-- All data is retained for the POC unless it is hidden through soft deletion or an ended temporal record.
-- Docker is the required local deployment target; AWS Lambda compatibility is a future-facing technical constraint rather than a completed deployment requirement.
+- All data is retained for the MVP unless it is hidden through soft deletion or an ended temporal record.
+- Docker is the required local deployment target; the framework-neutral API/data package must also be exposed through a Lambda wrapper.
