@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1080">
+<title>Moderation Center · Tawk</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/tawk.css">
+<style>
+  .filter {
+    padding: 6px 12px; border-radius: 999px; font-size: 12.5px; font-weight: 550;
+    border: 1px solid var(--line); background: var(--surface); color: var(--muted); cursor: pointer;
+  }
+  .filter:hover { border-color: var(--line-2); color: var(--ink); }
+  .filter.on { background: var(--ink); border-color: var(--ink); color: #fff; }
+  .case { display: block; border-bottom: 1px solid var(--line); padding: 15px 20px; }
+  .case:last-child { border-bottom: 0; }
+  .case:hover { background: var(--surface-2); }
+  .caseno { font-family: var(--mono); font-size: 12.5px; font-weight: 600; letter-spacing: -.01em; }
+</style>
+</head>
+<body>
+
+<!-- Moderation Center · area-specific navigation · case-management workbench.
+     Confidential: every ticket here belongs to a conversation Dana owns or administers. -->
+
+<div class="areabar">
+  <div class="shell px-10">
+    <div class="flex items-center gap-4" style="height:62px;">
+      <a href="hub.html" class="backlink" style="flex:none;">← Leave moderation</a>
+      <span style="width:1px; height:22px; background:var(--line);"></span>
+      <div class="min-w-0 flex-1">
+        <div class="flex items-center gap-2">
+          <h1 class="text-[15.5px] font-semibold">Moderation Center</h1>
+          <span class="badge badge--unlisted">◎ Confidential</span>
+        </div>
+        <p class="text-[11px]" style="color:var(--faint);">
+          Cases from the 2 conversations you moderate · reporter identities are never shared between tickets
+        </p>
+      </div>
+      <div class="flex items-center gap-2" style="flex:none;">
+        <a href="conversation.html" class="btn btn-sm">NYC Bike Commuters</a>
+        <a href="profile.html" class="avatar avatar--sm a-clay" title="Dana Okafor">DO</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="shell px-10 py-7">
+
+  <!-- ------------------------------------------------------------ summary -->
+  <div class="grid grid-cols-4 gap-4 mb-6">
+    <div class="card card-pad">
+      <p class="eyebrow mb-1.5">Reported</p>
+      <p class="text-[26px] font-semibold" style="letter-spacing:-.03em; color:var(--danger);">1</p>
+      <p class="text-[11.5px]" style="color:var(--muted);">Not yet picked up</p>
+    </div>
+    <div class="card card-pad">
+      <p class="eyebrow mb-1.5">Under review</p>
+      <p class="text-[26px] font-semibold" style="letter-spacing:-.03em; color:var(--hold);">1</p>
+      <p class="text-[11.5px]" style="color:var(--muted);">Being worked</p>
+    </div>
+    <div class="card card-pad">
+      <p class="eyebrow mb-1.5">Messages held</p>
+      <p class="text-[26px] font-semibold" style="letter-spacing:-.03em;">1</p>
+      <p class="text-[11.5px]" style="color:var(--muted);">Hidden until all tickets close</p>
+    </div>
+    <div class="card card-pad">
+      <p class="eyebrow mb-1.5">Closed this month</p>
+      <p class="text-[26px] font-semibold" style="letter-spacing:-.03em; color:var(--muted);">7</p>
+      <p class="text-[11.5px]" style="color:var(--muted);">Terminal, cannot reopen</p>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-[minmax(0,1fr)_282px] gap-7 items-start">
+
+    <div>
+      <!-- filters -->
+      <div class="flex items-center gap-2 mb-3.5">
+        <button class="filter on" data-filter="all">All cases <span class="faint">6</span></button>
+        <button class="filter" data-filter="reported">Reported</button>
+        <button class="filter" data-filter="review">Under review</button>
+        <button class="filter" data-filter="reviewed">Reviewed</button>
+        <button class="filter" data-filter="closed">Closed</button>
+      </div>
+
+      <section class="card overflow-hidden">
+        <div class="panel-head">
+          <span class="panel-title">Ticket queue</span>
+          <span class="eyebrow">Newest first</span>
+        </div>
+
+        <div id="queue">
+
+          <!-- TKT-1043 -->
+          <a href="ticket.html" class="case" data-status="reported">
+            <div class="flex items-start gap-4">
+              <div style="flex:none; width:78px;">
+                <p class="caseno" style="color:var(--danger);">TKT-1043</p>
+                <p class="mono text-[10.5px] mt-0.5" style="color:var(--faint);">1 hr ago</p>
+              </div>
+              <div class="flex-1 min-w-0">
+                <div class="flex items-center gap-2 flex-wrap">
+                  <span class="badge badge--danger"><i class="dot"></i>Reported</span>
+                  <span class="text-[12.5px] font-semibold">NYC Bike Commuters</span>
+                  <span class="badge badge--hold">Message held</span>
+                </div>
+                <p class="text-[13px] mt-1.5" style="color:var(--ink-2);">
+                  “Numbers in this post are made up. I checked the DOT dataset and nothing
+                  matches, and this keeps getting reposted.”
+                </p>
+                <p class="text-[11.5px] mt-1.5" style="color:var(--muted);">
+                  Second, independent report on the same message as TKT-1042 · own discussion room · no reviewer assigned
+                </p>
+              </div>
+              <span class="btn btn-sm btn-primary" style="flex:none;">Review</span>
+            </div>
+          </a>
+
+          <!-- TKT-1042 -->
+          <a href="ticket.html" class="case" data-status="review">
+            <div class="flex items-start gap-4">
+              <div style="flex:none; width:78px;">
+                <p class="caseno" style="color:var(--hold);">TKT-1042</p>
+                <p class="mono text-[10.5px] mt-0.5" style="color:var(--faint);">2 hr ago</p>
+              </div>
+              <div class="flex-1 min-w-0">
+                <div class="flex items-center gap-2 flex-wrap">
+                  <span class="badge badge--hold"><i class="dot"></i>Under review</span>
+                  <span class="text-[12.5px] font-semibold">NYC Bike Commuters</span>
+                  <span class="badge badge--hold">Message held</span>
+                  <span class="badge">Thread paused</span>
+                </div>
+                <p class="text-[13px] mt-1.5" style="color:var(--ink-2);">
+                  “This is straight-up misinformation about the bridge closure and people are
+                  planning their commutes around it.”
+                </p>
+                <p class="text-[11.5px] mt-1.5" style="color:var(--muted);">
+                  2 new messages in the confidential discussion · Priya Raghunathan is looking at it
+                </p>
+              </div>
+              <span class="btn btn-sm" style="flex:none;">Open</span>
+            </div>
+          </a>
+
+          <!-- TKT-1040 -->
+          <a href="ticket.html" class="case" data-status="reviewed">
+            <div class="flex items-start gap-4">
+              <div style="flex:none; width:78px;">
+                <p class="caseno" style="color:var(--pine);">TKT-1040</p>
+                <p class="mono text-[10.5px] mt-0.5" style="color:var(--faint);">Yesterday</p>
+              </div>
+              <div class="flex-1 min-w-0">
+                <div class="flex items-center gap-2 flex-wrap">
+                  <span class="badge badge--admin"><i class="dot"></i>Reviewed</span>
+                  <span class="text-[12.5px] font-semibold">Atlas Release War Room</span>
+                </div>
+                <p class="text-[13px] mt-1.5" style="color:var(--ink-2);">
+                  “Bot dumped a full stack trace with an internal hostname in it.”
+                </p>
+                <p class="text-[11.5px] mt-1.5" style="color:var(--muted);">
+                  Decision drafted, awaiting close · disposition not yet recorded
+                </p>
+              </div>
+              <span class="btn btn-sm" style="flex:none;">Open</span>
+            </div>
+          </a>
+
+          <!-- TKT-1039 -->
+          <a href="ticket.html" class="case" data-status="closed" style="opacity:.62;">
+            <div class="flex items-start gap-4">
+              <div style="flex:none; width:78px;">
+                <p class="caseno" style="color:var(--muted);">TKT-1039</p>
+                <p class="mono text-[10.5px] mt-0.5" style="color:var(--faint);">Jul 28</p>
+              </div>
+              <div class="flex-1 min-w-0">
+                <div class="flex items-center gap-2 flex-wrap">
+                  <span class="badge">Closed</span>
+                  <span class="text-[12.5px] font-semibold">Atlas Release War Room</span>
+                  <span class="badge badge--listed">Kept message</span>
+                </div>
+                <p class="text-[13px] mt-1.5" style="color:var(--ink-2);">
+                  “Tone in this thread is getting personal.”
+                </p>
+                <p class="text-[11.5px] mt-1.5" style="color:var(--muted);">
+                  Closed by Dana Okafor · warning recorded against the reporter for a false claim
+                </p>
+              </div>
+              <span class="btn btn-sm" style="flex:none;">View</span>
+            </div>
+          </a>
+
+          <!-- TKT-0994 -->
+          <a href="ticket.html" class="case" data-status="closed" style="opacity:.62;">
+            <div class="flex items-start gap-4">
+              <div style="flex:none; width:78px;">
+                <p class="caseno" style="color:var(--muted);">TKT-0994</p>
+                <p class="mono text-[10.5px] mt-0.5" style="color:var(--faint);">Jul 3</p>
+              </div>
+              <div class="flex-1 min-w-0">
+                <div class="flex items-center gap-2 flex-wrap">
+                  <span class="badge">Closed</span>
+                  <span class="text-[12.5px] font-semibold">NYC Bike Commuters</span>
+                  <span class="badge badge--danger">Removed message</span>
+                </div>
+                <p class="text-[13px] mt-1.5" style="color:var(--ink-2);">
+                  “Posted someone's home address after an argument about a near-miss.”
+                </p>
+                <p class="text-[11.5px] mt-1.5" style="color:var(--muted);">
+                  Closed by Priya Raghunathan · message soft-deleted, author suspended 14 days
+                </p>
+              </div>
+              <span class="btn btn-sm" style="flex:none;">View</span>
+            </div>
+          </a>
+
+          <!-- TKT-0981 -->
+          <a href="ticket.html" class="case" data-status="closed" style="opacity:.62;">
+            <div class="flex items-start gap-4">
+              <div style="flex:none; width:78px;">
+                <p class="caseno" style="color:var(--muted);">TKT-0981</p>
+                <p class="mono text-[10.5px] mt-0.5" style="color:var(--faint);">Mar 2</p>
+              </div>
+              <div class="flex-1 min-w-0">
+                <div class="flex items-center gap-2 flex-wrap">
+                  <span class="badge">Closed</span>
+                  <span class="text-[12.5px] font-semibold">NYC Bike Commuters</span>
+                  <span class="badge badge--danger">Removed message</span>
+                </div>
+                <p class="text-[13px] mt-1.5" style="color:var(--ink-2);">
+                  “Third time this week the same person has posted the same abuse.”
+                </p>
+                <p class="text-[11.5px] mt-1.5" style="color:var(--muted);">
+                  Closed by Priya Raghunathan · Tomás Ibarra banned
+                </p>
+              </div>
+              <span class="btn btn-sm" style="flex:none;">View</span>
+            </div>
+          </a>
+
+        </div>
+
+        <div id="noCases" class="empty" style="display:none;">
+          <div class="empty__mark">✓</div>
+          <p class="font-semibold text-[14px]">Nothing in this state</p>
+          <p class="mt-1 text-[13px]" style="color:var(--muted);">Pick another filter to see the rest of the queue.</p>
+        </div>
+      </section>
+    </div>
+
+    <!-- ============================================================== rail -->
+    <aside class="space-y-5" style="position:sticky; top:78px;">
+
+      <div class="card card-pad">
+        <p class="eyebrow mb-3">Lifecycle</p>
+        <div class="timeline space-y-3">
+          <div style="position:relative;">
+            <span class="timeline__dot on" style="top:4px;"></span>
+            <p class="text-[12.5px] font-semibold">Reported</p>
+            <p class="text-[11.5px]" style="color:var(--muted);">Ticket opens, message hides, thread pauses</p>
+          </div>
+          <div style="position:relative;">
+            <span class="timeline__dot on" style="top:4px;"></span>
+            <p class="text-[12.5px] font-semibold">Under review</p>
+            <p class="text-[11.5px]" style="color:var(--muted);">A moderator is working the case</p>
+          </div>
+          <div style="position:relative;">
+            <span class="timeline__dot on" style="top:4px;"></span>
+            <p class="text-[12.5px] font-semibold">Reviewed</p>
+            <p class="text-[11.5px]" style="color:var(--muted);">Decision made, not yet recorded</p>
+          </div>
+          <div style="position:relative;">
+            <span class="timeline__dot" style="top:4px;"></span>
+            <p class="text-[12.5px] font-semibold">Closed</p>
+            <p class="text-[11.5px]" style="color:var(--muted);">Keep or remove recorded. Terminal, no reopening.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="card card-pad">
+        <p class="eyebrow mb-2.5">Reporter privacy</p>
+        <p class="text-[12.5px]" style="color:var(--muted);">
+          TKT-1042 and TKT-1043 are two reports on one message. Each has its own confidential
+          discussion room, and neither reporter can learn that the other exists.
+        </p>
+        <hr class="rule my-3.5">
+        <p class="text-[12.5px]" style="color:var(--muted);">
+          The message stays hidden while <i>either</i> ticket is open. It only comes back if
+          every ticket closes with <b style="color:var(--ink-2);">keep message</b>.
+        </p>
+      </div>
+
+      <div class="card card-pad">
+        <p class="eyebrow mb-2.5">Your authority</p>
+        <ul class="space-y-1.5 text-[12.5px]" style="color:var(--live);">
+          <li>✓ Delete or restore a reported message</li>
+          <li>✓ Warn the reporter or the author</li>
+          <li>✓ Suspend posting for a set period</li>
+          <li>✓ Remove or ban a participant</li>
+          <li>✓ Close with keep or remove</li>
+        </ul>
+        <p class="hint">No moderation action is owner-only. Administrators have the full set.</p>
+      </div>
+
+    </aside>
+
+  </div>
+</div>
+
+<script src="../assets/tawk.js"></script>
+<script>
+  var filters = document.querySelectorAll('.filter');
+  Array.prototype.forEach.call(filters, function (f) {
+    f.addEventListener('click', function () {
+      Array.prototype.forEach.call(filters, function (x) { x.classList.remove('on'); });
+      f.classList.add('on');
+
+      var want = f.dataset.filter;
+      var shown = 0;
+      Array.prototype.forEach.call(document.querySelectorAll('.case'), function (c) {
+        var match = want === 'all' || c.dataset.status === want;
+        c.style.display = match ? '' : 'none';
+        if (match) shown++;
+      });
+      document.getElementById('noCases').style.display = shown ? 'none' : '';
+    });
+  });
+</script>
+</body>
+</html>

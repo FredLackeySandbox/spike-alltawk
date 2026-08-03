@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1080">
+<title>Tawk: conversations addressed by tags</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/tawk.css">
+</head>
+<body>
+
+<!-- Product Home. Layout pattern: product landing/home. No persistent navigation:
+     the MVP has no other public destinations, so authentication is the only transition. -->
+
+<div class="shell px-10">
+
+  <!-- masthead: brand + single entry action, deliberately not a nav bar -->
+  <header class="flex items-center justify-between pt-7 pb-2">
+    <div class="brand">
+      <span class="brand__mark">t</span>
+      <span>Tawk</span>
+    </div>
+    <a href="../login/login.html" class="btn btn-sm">Sign in</a>
+  </header>
+
+  <!-- ---------------------------------------------------------------- hero -->
+  <section class="pt-20 pb-24 grid grid-cols-[minmax(0,1fr)_396px] gap-16 items-start">
+    <div class="pt-3">
+      <p class="eyebrow mb-6">Tag-addressed messaging</p>
+      <h1 class="serif" style="font-size:62px; line-height:1.02; letter-spacing:-0.02em;">
+        Conversations don't have<br>
+        addresses. They have <em style="color:var(--pine)">tags</em>.
+      </h1>
+      <p class="mt-7 text-[17px] leading-relaxed" style="color:var(--ink-2); max-width:52ch;">
+        Describe what you want to talk about and Tawk finds the room. One to ten
+        lowercase tags identify every conversation, the same tags that let people
+        discover a public room also work as the combination to an unlisted one.
+      </p>
+
+      <div class="mt-9 flex items-center gap-3">
+        <a href="../login/login.html" class="btn btn-primary btn-lg">Sign in to start talking</a>
+        <a href="#how" class="btn btn-lg">How tags work</a>
+      </div>
+      <p class="mt-5 text-[12.5px]" style="color:var(--muted);">
+        Sign in with Google or a passwordless email link. No passwords, no anonymous accounts.
+      </p>
+    </div>
+
+    <!-- a real search interaction, frozen mid-thought -->
+    <div class="card" style="box-shadow:var(--shadow);">
+      <div class="panel-head">
+        <span class="panel-title">Find a conversation</span>
+        <span class="eyebrow">3 tags</span>
+      </div>
+      <div class="p-4">
+        <div class="taginput" style="cursor:text;">
+          <span class="tag tag--sel">homelab</span>
+          <span class="tag tag--sel">proxmox</span>
+          <span class="tag tag--sel"><b>help</b><i>:</i>wanted</span>
+          <span class="text-[12.5px]" style="color:var(--faint); font-family:var(--mono);">|</span>
+        </div>
+
+        <div class="mt-4 space-y-2">
+          <div class="rounded-lg border p-3" style="border-color:var(--line);">
+            <div class="flex items-center justify-between">
+              <span class="font-semibold text-[13.5px]">Homelab Ops</span>
+              <span class="badge badge--listed"><i class="dot"></i>Listed</span>
+            </div>
+            <p class="mt-1 text-[12px]" style="color:var(--muted);">312 members · matched 3 of 4 tags</p>
+          </div>
+          <div class="rounded-lg border p-3" style="border-color:var(--line);">
+            <div class="flex items-center justify-between">
+              <span class="font-semibold text-[13.5px]">Proxmox Cluster Rescue</span>
+              <span class="badge badge--listed"><i class="dot"></i>Listed</span>
+            </div>
+            <p class="mt-1 text-[12px]" style="color:var(--muted);">48 members · matched 2 of 2 tags</p>
+          </div>
+          <div class="notice notice--private" style="padding:11px 13px;">
+            <span class="notice__icon">◎</span>
+            <div>
+              <p class="font-semibold text-[12.5px]">1 unlisted conversation also matches</p>
+              <p class="text-[11.5px] mt-0.5" style="opacity:.85;">
+                Its name and tags stay hidden until you supply every tag it uses.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="rule">
+
+  <!-- ------------------------------------------------------------ concepts -->
+  <section id="how" class="py-24">
+    <h2 class="serif" style="font-size:38px;">Three ideas, and that's the whole product.</h2>
+
+    <div class="mt-12 grid grid-cols-3 gap-7">
+      <article>
+        <span class="eyebrow">01 · Tags</span>
+        <h3 class="mt-3 text-[19px]">A shared vocabulary, not a namespace</h3>
+        <p class="mt-2.5 text-[13.5px] leading-relaxed" style="color:var(--muted);">
+          A tag is a plain word like
+          <span class="tag" style="vertical-align:1px;">cycling</span>
+          or a key and value like
+          <span class="tag" style="vertical-align:1px;"><b>city</b><i>:</i>nyc</span>.
+          Lowercase letters, digits and hyphens, up to fifteen characters a side.
+          Nobody owns a tag. Reuse anything.
+        </p>
+      </article>
+
+      <article>
+        <span class="eyebrow">02 · Listed</span>
+        <h3 class="mt-3 text-[19px]">Public rooms found by matching</h3>
+        <p class="mt-2.5 text-[13.5px] leading-relaxed" style="color:var(--muted);">
+          A listed conversation shows up when your search touches any of its tags.
+          Add more tags to narrow the field, or ask for exact matches only. Owners
+          can flip a room to exclusive so it appears only for a complete match.
+        </p>
+      </article>
+
+      <article>
+        <span class="eyebrow">03 · Unlisted</span>
+        <h3 class="mt-3 text-[19px]">The tag set is the door key</h3>
+        <p class="mt-2.5 text-[13.5px] leading-relaxed" style="color:var(--muted);">
+          An unlisted conversation never appears by name. Search tells you only how
+          many hidden rooms match. Supply its exact tag set (every tag, nothing
+          extra) and the door opens. Its tags are never suggested to anyone else.
+        </p>
+      </article>
+    </div>
+  </section>
+
+  <!-- ------------------------------------------------- listed vs unlisted -->
+  <section class="pb-24">
+    <div class="grid grid-cols-2 gap-5">
+
+      <div class="card overflow-hidden">
+        <div class="panel-head" style="background:var(--live-soft); border-color:#bfded2;">
+          <span class="panel-title" style="color:var(--live);">Listed conversation</span>
+          <span class="badge badge--listed"><i class="dot"></i>Discoverable</span>
+        </div>
+        <div class="p-5">
+          <p class="text-[13px]" style="color:var(--muted);">You search</p>
+          <div class="flex flex-wrap gap-1.5 mt-2">
+            <span class="tag tag--sel">cycling</span>
+            <span class="tag tag--sel">nyc</span>
+          </div>
+          <div class="my-4 flex items-center gap-2 text-[11px]" style="color:var(--faint); font-family:var(--mono);">
+            <span style="flex:1; height:1px; background:var(--line);"></span>MATCHES<span style="flex:1; height:1px; background:var(--line);"></span>
+          </div>
+          <p class="font-semibold text-[14px]">NYC Bike Commuters</p>
+          <p class="text-[12.5px] mt-1" style="color:var(--muted);">
+            Route intel, bridge closures, and where the plow trucks are.
+          </p>
+          <div class="flex flex-wrap gap-1.5 mt-3">
+            <span class="tag tag--sel">cycling</span>
+            <span class="tag tag--sel">nyc</span>
+            <span class="tag">commute</span>
+          </div>
+          <p class="mt-4 text-[12.5px]" style="color:var(--live);">
+            ✓ Name, description and tags are all visible. Join immediately.
+          </p>
+        </div>
+      </div>
+
+      <div class="card overflow-hidden">
+        <div class="panel-head" style="background:var(--private-soft); border-color:var(--private-line);">
+          <span class="panel-title" style="color:var(--private);">Unlisted conversation</span>
+          <span class="badge badge--unlisted">◎ Hidden</span>
+        </div>
+        <div class="p-5">
+          <p class="text-[13px]" style="color:var(--muted);">You search</p>
+          <div class="flex flex-wrap gap-1.5 mt-2">
+            <span class="tag tag--sel"><b>team</b><i>:</i>atlas</span>
+            <span class="tag tag--sel">release</span>
+          </div>
+          <div class="my-4 flex items-center gap-2 text-[11px]" style="color:var(--faint); font-family:var(--mono);">
+            <span style="flex:1; height:1px; background:var(--line);"></span>MATCHES<span style="flex:1; height:1px; background:var(--line);"></span>
+          </div>
+          <p class="font-semibold text-[14px]" style="color:var(--faint);">████████ ████ ████</p>
+          <p class="text-[12.5px] mt-1" style="color:var(--faint);">
+            ████ ██████████ ███ ████████████ ██████.
+          </p>
+          <div class="flex flex-wrap gap-1.5 mt-3">
+            <span class="tag tag--ghost">?</span>
+            <span class="tag tag--ghost">?</span>
+            <span class="tag tag--ghost">?</span>
+          </div>
+          <p class="mt-4 text-[12.5px]" style="color:var(--private);">
+            ◎ 1 hidden match. Add the missing tag to unlock the join button.
+          </p>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <hr class="rule">
+
+  <!-- ------------------------------------------------------------- pillars -->
+  <section class="py-24 grid grid-cols-[300px_minmax(0,1fr)] gap-16">
+    <div>
+      <h2 class="serif" style="font-size:34px; line-height:1.1;">Built for rooms that outlive the argument.</h2>
+    </div>
+    <div class="grid grid-cols-2 gap-x-10 gap-y-9">
+
+      <div>
+        <h3 class="text-[15px]">Everyone has a name</h3>
+        <p class="mt-2 text-[13.5px] leading-relaxed" style="color:var(--muted);">
+          There is no anonymous mode. People sign in through Google or a passwordless
+          email link; bots authenticate with a revocable token. Both participate under
+          a display name and the same conversation roles.
+        </p>
+      </div>
+
+      <div>
+        <h3 class="text-[15px]">Bots are ordinary members</h3>
+        <p class="mt-2 text-[13.5px] leading-relaxed" style="color:var(--muted);">
+          A bot can own a conversation, administer it, or just post. It gets no special
+          powers for being automated: the same roles, bans and suspensions apply.
+        </p>
+      </div>
+
+      <div>
+        <h3 class="text-[15px]">Reports become cases</h3>
+        <p class="mt-2 text-[13.5px] leading-relaxed" style="color:var(--muted);">
+          Flagging a message opens a numbered ticket with its own confidential
+          discussion for the room's owners and administrators. The message stays
+          hidden and its thread stays paused until every ticket on it closes.
+        </p>
+      </div>
+
+      <div>
+        <h3 class="text-[15px]">Nothing is really deleted</h3>
+        <p class="mt-2 text-[13.5px] leading-relaxed" style="color:var(--muted);">
+          Deleted messages disappear from the room but stay in storage. Members who
+          leave keep their history. Ending a conversation means archiving it, and
+          archived rooms simply stop appearing in search.
+        </p>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ----------------------------------------------------------------- cta -->
+  <section class="pb-28">
+    <div class="card card-pad text-center" style="padding:56px 40px; background:var(--surface); box-shadow:var(--shadow);">
+      <h2 class="serif" style="font-size:40px;">Pick your tags. See who's already there.</h2>
+      <p class="mt-3 text-[15px]" style="color:var(--muted);">
+        Free while Tawk is in MVP. No plans, no billing, no upsell.
+      </p>
+      <div class="mt-8 flex items-center justify-center gap-3">
+        <a href="../login/login.html" class="btn btn-primary btn-lg">Continue with email or Google</a>
+      </div>
+      <div class="mt-8 flex items-center justify-center gap-1.5 flex-wrap">
+        <span class="tag">homelab</span>
+        <span class="tag">rust</span>
+        <span class="tag"><b>city</b><i>:</i>nyc</span>
+        <span class="tag">scifi</span>
+        <span class="tag">oncall</span>
+        <span class="tag"><b>team</b><i>:</i>atlas</span>
+        <span class="tag">stm32</span>
+        <span class="tag">bookclub</span>
+      </div>
+    </div>
+  </section>
+
+  <footer class="pb-14 flex items-center justify-between text-[12.5px]" style="color:var(--faint);">
+    <span>Tawk · MVP mockup · <span data-year></span></span>
+    <span class="flex gap-5">
+      <a href="../index.html" class="hover:text-[var(--ink)]">Mockup index</a>
+      <a href="../login/login.html" class="hover:text-[var(--ink)]">Sign in</a>
+    </span>
+  </footer>
+
+</div>
+
+<script src="../assets/tawk.js"></script>
+<script>
+  document.querySelector('a[href="#how"]').addEventListener('click', function (e) {
+    e.preventDefault();
+    document.getElementById('how').scrollIntoView({ behavior: 'smooth' });
+  });
+</script>
+</body>
+</html>

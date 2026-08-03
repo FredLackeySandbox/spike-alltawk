@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1080">
+<title>Your conversations · Tawk</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/tawk.css">
+</head>
+<body>
+
+<!-- Conversation Hub · shared app navigation · directory and discovery workspace -->
+
+<div class="appbar">
+  <div class="shell px-10">
+    <div class="appbar__inner">
+      <a href="hub.html" class="brand"><span class="brand__mark">t</span><span>Tawk</span></a>
+      <nav class="flex items-center gap-6 flex-1">
+        <a href="hub.html" class="navlink" aria-current="page">Conversations</a>
+        <a href="discover.html" class="navlink">Discover</a>
+        <a href="moderation.html" class="navlink">Moderation <span class="badge badge--hold ml-1">2</span></a>
+      </nav>
+      <a href="create.html" class="btn btn-sm btn-primary">＋ New conversation</a>
+      <a href="profile.html" class="avatar avatar--sm a-clay" title="Dana Okafor">DO</a>
+    </div>
+  </div>
+</div>
+
+<div class="shell px-10 py-9">
+
+  <!-- ------------------------------------------------------- discovery bar -->
+  <section class="mb-9">
+    <h1 class="serif" style="font-size:30px;">Where are we talking today, Dana?</h1>
+    <form class="mt-4 flex gap-2.5" action="discover.html">
+      <div class="taginput flex-1" style="min-height:44px;" onclick="this.querySelector('input').focus()">
+        <span class="tag" style="opacity:.6;">🔍</span>
+        <input type="text" placeholder="Type a tag: homelab, city:nyc, scifi…" aria-label="Search tags">
+      </div>
+      <button type="submit" class="btn btn-primary" style="height:44px;">Search tags</button>
+    </form>
+    <p class="hint" style="margin-top:8px;">
+      Listed conversations match on any tag. To reach an unlisted one you'll need its
+      exact, complete tag set, and <a href="discover.html" style="color:var(--pine); font-weight:600;">search handles both</a>.
+    </p>
+  </section>
+
+  <div class="grid grid-cols-[minmax(0,1fr)_296px] gap-7 items-start">
+
+    <!-- ============================================================ main -->
+    <div class="space-y-6">
+
+      <!-- ------------------------------------------------ active rooms -->
+      <section class="card overflow-hidden">
+        <div class="panel-head">
+          <span class="panel-title">Active conversations <span class="faint font-normal">· 5</span></span>
+          <span class="eyebrow">Sorted by recent activity</span>
+        </div>
+
+        <!-- Homelab Ops -->
+        <a href="conversation.html" class="block px-5 py-4 hover:bg-[var(--surface-2)]" style="border-bottom:1px solid var(--line);">
+          <div class="flex items-start gap-3.5">
+            <div class="avatar a-pine" style="border-radius:9px;">HO</div>
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center gap-2">
+                <span class="font-semibold text-[14.5px]">Homelab Ops</span>
+                <span class="badge badge--listed"><i class="dot"></i>Listed</span>
+                <span class="badge">Member</span>
+              </div>
+              <p class="text-[12.5px] mt-0.5 truncate" style="color:var(--muted);">
+                <span style="color:var(--ink-2); font-weight:550;">Marcus Feld:</span>
+                anyone else seeing the ZFS scrub take 9 hours after the 24.10 upgrade?
+              </p>
+              <div class="flex flex-wrap gap-1.5 mt-2.5">
+                <span class="tag">homelab</span>
+                <span class="tag">proxmox</span>
+                <span class="tag">truenas</span>
+                <span class="tag"><b>help</b><i>:</i>wanted</span>
+              </div>
+            </div>
+            <div class="text-right" style="flex:none;">
+              <p class="mono text-[10.5px]" style="color:var(--faint);">4 min ago</p>
+              <span class="badge mt-2" style="background:var(--pine); border-color:var(--pine); color:#fff;">3 new</span>
+              <p class="text-[11px] mt-2" style="color:var(--faint);">312 members</p>
+            </div>
+          </div>
+        </a>
+
+        <!-- Atlas Release War Room -->
+        <a href="conversation.html" class="block px-5 py-4 hover:bg-[var(--surface-2)]" style="border-bottom:1px solid var(--line);">
+          <div class="flex items-start gap-3.5">
+            <div class="avatar a-plum" style="border-radius:9px;">AR</div>
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center gap-2">
+                <span class="font-semibold text-[14.5px]">Atlas Release War Room</span>
+                <span class="badge badge--unlisted">◎ Unlisted</span>
+                <span class="badge badge--owner">Owner</span>
+              </div>
+              <p class="text-[12.5px] mt-0.5 truncate" style="color:var(--muted);">
+                <span style="color:var(--ink-2); font-weight:550;">Atlas Deploy Bot:</span>
+                <span class="mono text-[11.5px]">v4.19.2</span> promoted to production · 0 rollbacks
+              </p>
+              <div class="flex flex-wrap gap-1.5 mt-2.5">
+                <span class="tag tag--private"><b>team</b><i>:</i>atlas</span>
+                <span class="tag tag--private">release</span>
+                <span class="tag tag--private">oncall</span>
+                <span class="tag tag--private">deploy</span>
+              </div>
+            </div>
+            <div class="text-right" style="flex:none;">
+              <p class="mono text-[10.5px]" style="color:var(--faint);">26 min ago</p>
+              <p class="text-[11px] mt-2" style="color:var(--faint);">9 members</p>
+              <p class="text-[11px]" style="color:var(--faint);">1 bot</p>
+            </div>
+          </div>
+        </a>
+
+        <!-- NYC Bike Commuters -->
+        <a href="conversation.html" class="block px-5 py-4 hover:bg-[var(--surface-2)]" style="border-bottom:1px solid var(--line);">
+          <div class="flex items-start gap-3.5">
+            <div class="avatar a-rust" style="border-radius:9px;">NB</div>
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center gap-2">
+                <span class="font-semibold text-[14.5px]">NYC Bike Commuters</span>
+                <span class="badge badge--listed"><i class="dot"></i>Listed</span>
+                <span class="badge" style="background:#fff;">Exclusive match</span>
+                <span class="badge badge--admin">Administrator</span>
+              </div>
+              <p class="text-[12.5px] mt-0.5 truncate" style="color:var(--muted);">
+                <span style="color:var(--ink-2); font-weight:550;">Yuki Tanaka:</span>
+                Manhattan Bridge north path is closed until the 9th, use Williamsburg
+              </p>
+              <div class="flex flex-wrap gap-1.5 mt-2.5">
+                <span class="tag">cycling</span>
+                <span class="tag">nyc</span>
+                <span class="tag">commute</span>
+              </div>
+            </div>
+            <div class="text-right" style="flex:none;">
+              <p class="mono text-[10.5px]" style="color:var(--faint);">2 hr ago</p>
+              <span class="badge badge--hold mt-2">2 tickets</span>
+              <p class="text-[11px] mt-2" style="color:var(--faint);">1,204 members</p>
+            </div>
+          </div>
+        </a>
+
+        <!-- Rust on STM32 -->
+        <a href="conversation.html" class="block px-5 py-4 hover:bg-[var(--surface-2)]" style="border-bottom:1px solid var(--line);">
+          <div class="flex items-start gap-3.5">
+            <div class="avatar a-slate" style="border-radius:9px;">RS</div>
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center gap-2">
+                <span class="font-semibold text-[14.5px]">Rust on STM32</span>
+                <span class="badge badge--listed"><i class="dot"></i>Listed</span>
+                <span class="badge">Member</span>
+              </div>
+              <p class="text-[12.5px] mt-0.5 truncate" style="color:var(--muted);">
+                <span style="color:var(--ink-2); font-weight:550;">Priya Raghunathan:</span>
+                embassy-stm32 0.3 finally fixed the DMA ringbuffer overrun, changelog inside
+              </p>
+              <div class="flex flex-wrap gap-1.5 mt-2.5">
+                <span class="tag">rust</span>
+                <span class="tag">embedded</span>
+                <span class="tag">stm32</span>
+              </div>
+            </div>
+            <div class="text-right" style="flex:none;">
+              <p class="mono text-[10.5px]" style="color:var(--faint);">Yesterday</p>
+              <p class="text-[11px] mt-2" style="color:var(--faint);">87 members</p>
+            </div>
+          </div>
+        </a>
+
+        <!-- Sunday Sci-Fi · posting suspended -->
+        <a href="conversation.html" class="block px-5 py-4 hover:bg-[var(--surface-2)]">
+          <div class="flex items-start gap-3.5">
+            <div class="avatar a-sand" style="border-radius:9px;">SS</div>
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center gap-2">
+                <span class="font-semibold text-[14.5px]">Sunday Sci-Fi</span>
+                <span class="badge badge--listed"><i class="dot"></i>Listed</span>
+                <span class="badge badge--hold">Posting suspended</span>
+              </div>
+              <p class="text-[12.5px] mt-0.5 truncate" style="color:var(--muted);">
+                <span style="color:var(--ink-2); font-weight:550;">Sam Boateng:</span>
+                next week is Blindsight, and yes we are doing the vampire argument again
+              </p>
+              <div class="flex flex-wrap gap-1.5 mt-2.5">
+                <span class="tag">bookclub</span>
+                <span class="tag">scifi</span>
+              </div>
+            </div>
+            <div class="text-right" style="flex:none;">
+              <p class="mono text-[10.5px]" style="color:var(--faint);">2 days ago</p>
+              <p class="text-[11px] mt-2" style="color:var(--hold);">Read-only until Aug 5</p>
+              <p class="text-[11px] mt-1" style="color:var(--faint);">40 members</p>
+            </div>
+          </div>
+        </a>
+      </section>
+
+      <!-- ------------------------------ confidential moderation discussions -->
+      <section class="card overflow-hidden">
+        <div class="panel-head" style="background:var(--private-soft); border-color:var(--private-line);">
+          <span class="panel-title" style="color:var(--private);">◎ Moderation discussions</span>
+          <span class="text-[11.5px]" style="color:var(--private);">Visible only to owners and administrators</span>
+        </div>
+
+        <p class="px-5 pt-3.5 text-[12.5px]" style="color:var(--muted);">
+          Each ticket gets its own confidential room. They are never searchable and
+          cannot be joined with tags.
+        </p>
+
+        <div class="p-5 pt-3.5 space-y-2">
+          <a href="ticket.html" class="flex items-center gap-3.5 rounded-lg border p-3 hover:bg-[var(--surface-2)]" style="border-color:var(--line);">
+            <span class="mono text-[12px] font-semibold" style="color:var(--private); flex:none;">TKT-1042</span>
+            <span class="flex-1 min-w-0">
+              <span class="block font-semibold text-[13px] truncate">Reported message in NYC Bike Commuters</span>
+              <span class="block text-[11.5px]" style="color:var(--muted);">2 new replies from Priya Raghunathan · reported 2 hr ago</span>
+            </span>
+            <span class="badge badge--hold">Under review</span>
+          </a>
+
+          <a href="ticket.html" class="flex items-center gap-3.5 rounded-lg border p-3 hover:bg-[var(--surface-2)]" style="border-color:var(--line);">
+            <span class="mono text-[12px] font-semibold" style="color:var(--private); flex:none;">TKT-1043</span>
+            <span class="flex-1 min-w-0">
+              <span class="block font-semibold text-[13px] truncate">Reported message in NYC Bike Commuters</span>
+              <span class="block text-[11.5px]" style="color:var(--muted);">Second, independent report on the same message · 1 hr ago</span>
+            </span>
+            <span class="badge badge--danger">Reported</span>
+          </a>
+
+          <a href="ticket.html" class="flex items-center gap-3.5 rounded-lg border p-3 hover:bg-[var(--surface-2)]" style="border-color:var(--line); opacity:.62;">
+            <span class="mono text-[12px] font-semibold" style="color:var(--muted); flex:none;">TKT-1039</span>
+            <span class="flex-1 min-w-0">
+              <span class="block font-semibold text-[13px] truncate">Reported message in Atlas Release War Room</span>
+              <span class="block text-[11.5px]" style="color:var(--muted);">Closed · kept message · Jul 28</span>
+            </span>
+            <span class="badge">Closed</span>
+          </a>
+        </div>
+      </section>
+
+      <!-- ---------------------------------------------------- archived -->
+      <section class="card overflow-hidden">
+        <div class="panel-head">
+          <span class="panel-title">Archived</span>
+          <span class="text-[11.5px]" style="color:var(--muted);">Retained, but removed from search</span>
+        </div>
+        <a href="conversation-archived.html" class="flex items-center gap-3.5 px-5 py-4 hover:bg-[var(--surface-2)]">
+          <div class="avatar a-slate avatar--former" style="border-radius:9px;">QM</div>
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center gap-2">
+              <span class="font-semibold text-[14px]" style="color:var(--muted);">Q1 Migration Room</span>
+              <span class="badge badge--archived">Archived</span>
+              <span class="badge badge--owner">Owner</span>
+            </div>
+            <p class="text-[12px] mt-0.5" style="color:var(--faint);">
+              Archived by you on Apr 14, 2026 · 1,840 messages retained
+            </p>
+          </div>
+          <span class="text-[12px]" style="color:var(--faint);">View →</span>
+        </a>
+      </section>
+
+    </div>
+
+    <!-- ============================================================ rail -->
+    <aside class="space-y-5" style="position:sticky; top:80px;">
+
+      <!-- identity -->
+      <div class="card card-pad">
+        <div class="flex items-center gap-3">
+          <div class="avatar avatar--lg a-clay">DO</div>
+          <div class="min-w-0">
+            <p class="font-semibold text-[14px] truncate">Dana Okafor</p>
+            <p class="mono text-[11px] truncate" style="color:var(--muted);">dana.okafor@gmail.com</p>
+          </div>
+        </div>
+        <div class="mt-4 pt-4 grid grid-cols-3 gap-2 text-center" style="border-top:1px solid var(--line);">
+          <div>
+            <p class="text-[17px] font-semibold" style="letter-spacing:-.02em;">5</p>
+            <p class="text-[10.5px]" style="color:var(--faint);">Active</p>
+          </div>
+          <div>
+            <p class="text-[17px] font-semibold" style="letter-spacing:-.02em;">1</p>
+            <p class="text-[10.5px]" style="color:var(--faint);">Owned</p>
+          </div>
+          <div>
+            <p class="text-[17px] font-semibold" style="letter-spacing:-.02em;">2</p>
+            <p class="text-[10.5px]" style="color:var(--faint);">Open cases</p>
+          </div>
+        </div>
+        <a href="profile.html" class="btn btn-sm btn-block mt-4">Profile &amp; sign-in methods</a>
+      </div>
+
+      <!-- attention -->
+      <div class="card overflow-hidden">
+        <div class="panel-head"><span class="panel-title">Needs you</span></div>
+        <div class="p-4 space-y-3">
+          <a href="ticket.html" class="flex gap-2.5 items-start">
+            <span class="badge badge--danger" style="flex:none; margin-top:1px;">New</span>
+            <span class="text-[12.5px] leading-snug" style="color:var(--ink-2);">
+              <span class="mono font-semibold">TKT-1043</span> is unreviewed. The reported
+              message stays hidden and its thread stays paused until every ticket closes.
+            </span>
+          </a>
+          <hr class="rule">
+          <a href="admin-members.html" class="flex gap-2.5 items-start">
+            <span class="badge badge--hold" style="flex:none; margin-top:1px;">Hold</span>
+            <span class="text-[12.5px] leading-snug" style="color:var(--ink-2);">
+              Sam Boateng's posting suspension in NYC Bike Commuters lifts Aug 5, 6:00 PM.
+            </span>
+          </a>
+        </div>
+      </div>
+
+      <!-- recent tags -->
+      <div class="card card-pad">
+        <p class="eyebrow mb-3">Tags you use most</p>
+        <div class="flex flex-wrap gap-1.5">
+          <a href="discover.html" class="tag tag--btn">homelab</a>
+          <a href="discover.html" class="tag tag--btn">proxmox</a>
+          <a href="discover.html" class="tag tag--btn">cycling</a>
+          <a href="discover.html" class="tag tag--btn">nyc</a>
+          <a href="discover.html" class="tag tag--btn">rust</a>
+          <a href="discover.html" class="tag tag--btn">scifi</a>
+        </div>
+        <p class="hint">Tags from your unlisted rooms are never suggested here or to anyone else.</p>
+      </div>
+
+      <p class="text-[11.5px] text-center" style="color:var(--faint);">
+        <a href="../login/login.html" class="hover:underline">Sign out</a>
+        <span class="mx-2">·</span>
+        <a href="../index.html" class="hover:underline">Mockup index</a>
+      </p>
+
+    </aside>
+
+  </div>
+</div>
+
+<script src="../assets/tawk.js"></script>
+</body>
+</html>

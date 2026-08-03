@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1080">
+<title>TKT-1042 · Moderation Center · Tawk</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/tawk.css">
+<style>
+  .steps { display: flex; align-items: center; gap: 0; }
+  .step { display: flex; align-items: center; gap: 8px; flex: 1; }
+  .step__dot {
+    width: 22px; height: 22px; border-radius: 999px; flex: none;
+    display: grid; place-items: center; font-size: 11px; font-weight: 700;
+    background: var(--surface); border: 1.5px solid var(--line-2); color: var(--faint);
+  }
+  .step.done .step__dot { background: var(--pine); border-color: var(--pine); color: #fff; }
+  .step.now  .step__dot { background: var(--hold); border-color: var(--hold); color: #fff; }
+  .step__bar { flex: 1; height: 1.5px; background: var(--line); margin: 0 10px; }
+  .step.done .step__bar { background: var(--pine); }
+  .step__label { font-size: 12.5px; font-weight: 600; color: var(--faint); white-space: nowrap; }
+  .step.done .step__label, .step.now .step__label { color: var(--ink); }
+  .evidence {
+    border: 1px solid var(--hold-line); border-left: 3px solid var(--hold);
+    background: var(--hold-soft); border-radius: 0 var(--radius) var(--radius) 0;
+  }
+</style>
+</head>
+<body>
+
+<!-- Moderation Center · one confidential case. Each report is its own ticket with its
+     own discussion room; reporters of other tickets are never disclosed here. -->
+
+<div class="areabar">
+  <div class="shell px-10">
+    <div class="flex items-center gap-4" style="height:62px;">
+      <a href="moderation.html" class="backlink" style="flex:none;">← Ticket queue</a>
+      <span style="width:1px; height:22px; background:var(--line);"></span>
+      <div class="min-w-0 flex-1">
+        <div class="flex items-center gap-2">
+          <h1 class="mono text-[15.5px] font-semibold">TKT-1042</h1>
+          <span class="badge badge--hold" id="statusBadge"><i class="dot"></i>Under review</span>
+          <span class="badge badge--unlisted">◎ Confidential</span>
+        </div>
+        <p class="text-[11px]" style="color:var(--faint);">
+          NYC Bike Commuters · opened Aug 3, 8:12 AM
+        </p>
+      </div>
+      <div class="flex items-center gap-2" style="flex:none;">
+        <a href="conversation.html" class="btn btn-sm">Source conversation</a>
+        <a href="profile.html" class="avatar avatar--sm a-clay" title="Dana Okafor">DO</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="shell px-10 py-7">
+
+  <!-- ------------------------------------------------------------- status -->
+  <div class="card card-pad mb-6">
+    <div class="steps" id="steps">
+      <div class="step done"><span class="step__dot">✓</span><span class="step__label">Reported</span><span class="step__bar"></span></div>
+      <div class="step now" id="stepReview"><span class="step__dot">2</span><span class="step__label">Under review</span><span class="step__bar"></span></div>
+      <div class="step" id="stepReviewed"><span class="step__dot">3</span><span class="step__label">Reviewed</span><span class="step__bar"></span></div>
+      <div class="step" id="stepClosed" style="flex:none;"><span class="step__dot">4</span><span class="step__label">Closed</span></div>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-[minmax(0,1fr)_320px] gap-7 items-start">
+
+    <div class="space-y-5">
+
+      <!-- --------------------------------------------------- hold notice -->
+      <div class="notice notice--hold">
+        <span class="notice__icon">⏸</span>
+        <div>
+          <p class="font-semibold text-[13px]">The reported message is hidden and its thread is paused</p>
+          <p class="text-[12.5px] mt-1">
+            <b>2 tickets</b> currently reference this message: this one and one other. It stays
+            hidden while any of them is open, and comes back only if <i>every</i> ticket closes
+            with “keep message”. A single “remove message” decision is enough to keep it gone.
+          </p>
+          <p class="text-[12px] mt-1.5" style="opacity:.85;">
+            You can see that another ticket exists. You cannot see who filed it, and its
+            reporter cannot see that you filed this one.
+          </p>
+        </div>
+      </div>
+
+      <!-- ------------------------------------------------ reported message -->
+      <section class="card overflow-hidden">
+        <div class="panel-head">
+          <span class="panel-title">Reported message</span>
+          <span class="text-[11.5px]" style="color:var(--muted);">Visible to reviewers only</span>
+        </div>
+        <div class="p-5">
+          <div class="evidence p-4">
+            <div class="flex items-start gap-3">
+              <div class="avatar a-teal">GH</div>
+              <div class="flex-1">
+                <div class="flex items-center gap-2">
+                  <span class="msg__who">Grace Hollis</span>
+                  <span class="badge">Member since Apr 2026</span>
+                  <span class="msg__time">Aug 3 · 7:58 AM</span>
+                </div>
+                <p class="msg__text" style="color:var(--ink-2);">
+                  The north path closure is a total fabrication. DOT confirmed to me directly
+                  that both paths are open all week. Bridge counts are up 90% because of it.
+                  Don't reroute, they're wasting everyone's morning.
+                </p>
+                <p class="mono text-[10.5px] mt-2.5" style="color:var(--hold);">
+                  status: hiddenPendingReview · thread: paused · 4 replies withheld from the room
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-2 mt-4">
+            <a href="thread.html" class="btn btn-sm">View the paused thread</a>
+            <button class="btn btn-sm btn-danger" data-modal="deleteMsgModal">Delete message now</button>
+            <span class="text-[11.5px] ml-1" style="color:var(--muted);">
+              Deleting is a moderation action, recorded separately from the disposition.
+            </span>
+          </div>
+        </div>
+      </section>
+
+      <!-- ---------------------------------------------------- the report -->
+      <section class="card overflow-hidden">
+        <div class="panel-head">
+          <span class="panel-title">The report</span>
+          <span class="badge badge--unlisted">◎ This ticket only</span>
+        </div>
+        <div class="p-5">
+          <div class="flex items-start gap-3">
+            <div class="avatar a-pine">MF</div>
+            <div class="flex-1">
+              <div class="flex items-center gap-2">
+                <span class="msg__who">Marcus Feld</span>
+                <span class="badge">Reporter</span>
+                <span class="msg__time">Aug 3 · 8:12 AM</span>
+              </div>
+              <p class="msg__text" style="color:var(--ink-2);">
+                This is straight-up misinformation about the bridge closure and people are
+                planning their commutes around it. The DOT advisory is right there in the
+                room from six this morning.
+              </p>
+            </div>
+          </div>
+          <div class="notice mt-4">
+            <span class="notice__icon">ⓘ</span>
+            <span>
+              Only current owners and administrators of NYC Bike Commuters can read this
+              reporter's identity. It is not shown to the message's author, to other
+              reporters, or to any other ticket.
+            </span>
+          </div>
+        </div>
+      </section>
+
+      <!-- ------------------------------------------- confidential discussion -->
+      <section class="card overflow-hidden">
+        <div class="panel-head" style="background:var(--private-soft); border-color:var(--private-line);">
+          <span class="panel-title" style="color:var(--private);">◎ Confidential discussion</span>
+          <span class="text-[11.5px]" style="color:var(--private);">Linked one-to-one with TKT-1042</span>
+        </div>
+
+        <p class="px-5 pt-3.5 text-[12.5px]" style="color:var(--muted);">
+          Every ticket gets its own private conversation. It appears in your conversation list,
+          is never searchable, and cannot be joined with tags.
+        </p>
+
+        <div class="py-2" id="discussion">
+          <div class="msg">
+            <div class="avatar a-plum">PR</div>
+            <div class="msg__body">
+              <div class="flex items-center gap-2">
+                <span class="msg__who">Priya Raghunathan</span>
+                <span class="badge badge--owner">Owner</span>
+                <span class="msg__time">8:31 AM</span>
+              </div>
+              <p class="msg__text">
+                I pulled the DOT feed. Advisory 2026-08-03-014 is real and the north path is
+                definitely closed. The "confirmed to me directly" line is doing a lot of work here.
+              </p>
+            </div>
+          </div>
+
+          <div class="msg">
+            <div class="avatar a-clay">DO</div>
+            <div class="msg__body">
+              <div class="flex items-center gap-2">
+                <span class="msg__who">Dana Okafor</span>
+                <span class="badge badge--admin">Administrator</span>
+                <span class="msg__time">8:39 AM</span>
+              </div>
+              <p class="msg__text">
+                Agreed it's wrong. My read is it's a confident mistake rather than deliberate;
+                first flag against this account. Leaning toward removing the message and a
+                warning, not a suspension.
+              </p>
+            </div>
+          </div>
+
+          <div class="msg">
+            <div class="avatar a-plum">PR</div>
+            <div class="msg__body">
+              <div class="flex items-center gap-2">
+                <span class="msg__who">Priya Raghunathan</span>
+                <span class="badge badge--owner">Owner</span>
+                <span class="msg__time">9:14 AM</span>
+              </div>
+              <p class="msg__text">
+                Works for me. Note that there's a second ticket on the same message, so even if
+                we keep it here it stays hidden until that one closes too.
+              </p>
+            </div>
+          </div>
+          <div id="discussionEnd"></div>
+        </div>
+
+        <div class="p-3.5" style="border-top:1px solid var(--line); background:var(--surface-2);">
+          <form class="composer" id="discussForm">
+            <textarea id="discussInput" data-autogrow rows="1" placeholder="Reply in this ticket's discussion…"></textarea>
+            <div class="composer__bar">
+              <span class="text-[11.5px] pl-1" style="color:var(--private);">
+                ◎ Visible only to current owners and administrators of NYC Bike Commuters
+              </span>
+              <button type="submit" class="btn btn-sm btn-primary">Send</button>
+            </div>
+          </form>
+        </div>
+      </section>
+
+      <!-- --------------------------------------------------- moderator notes -->
+      <section class="card overflow-hidden">
+        <div class="panel-head">
+          <span class="panel-title">Moderator notes</span>
+          <button class="btn btn-sm" data-modal="noteModal">＋ Add note</button>
+        </div>
+        <div class="p-5 space-y-3" id="modNotes">
+          <div class="rounded-lg border p-3.5" style="border-color:var(--line); border-left:3px solid var(--private);">
+            <div class="flex items-center gap-2">
+              <span class="avatar avatar--sm a-clay">DO</span>
+              <span class="text-[12.5px] font-semibold">Dana Okafor</span>
+              <span class="badge badge--unlisted">Moderators only</span>
+              <span class="mono text-[10.5px] ml-auto" style="color:var(--faint);">Aug 3, 8:44 AM</span>
+            </div>
+            <p class="text-[13px] mt-2" style="color:var(--ink-2);">
+              Checked this account's history: no prior tickets, no prior warnings. Treating as
+              a first offence.
+            </p>
+          </div>
+        </div>
+      </section>
+
+    </div>
+
+    <!-- ============================================================== rail -->
+    <aside class="space-y-5" style="position:sticky; top:78px;">
+
+      <!-- facts -->
+      <div class="card card-pad">
+        <p class="eyebrow mb-3">Case</p>
+        <dl class="space-y-2.5 text-[12.5px]">
+          <div class="flex justify-between gap-3"><dt style="color:var(--muted);">Ticket</dt><dd class="mono font-semibold">TKT-1042</dd></div>
+          <div class="flex justify-between gap-3"><dt style="color:var(--muted);">Conversation</dt><dd class="font-semibold text-right">NYC Bike Commuters</dd></div>
+          <div class="flex justify-between gap-3"><dt style="color:var(--muted);">Reporter</dt><dd class="font-semibold">Marcus Feld</dd></div>
+          <div class="flex justify-between gap-3"><dt style="color:var(--muted);">Author</dt><dd class="font-semibold">Grace Hollis</dd></div>
+          <div class="flex justify-between gap-3"><dt style="color:var(--muted);">Opened</dt><dd class="mono">Aug 3, 8:12 AM</dd></div>
+          <div class="flex justify-between gap-3"><dt style="color:var(--muted);">Discussion</dt><dd class="mono text-[11px]">conv_9f31c…</dd></div>
+          <div class="flex justify-between gap-3"><dt style="color:var(--muted);">Other tickets</dt><dd class="font-semibold" style="color:var(--hold);">1 (identity withheld)</dd></div>
+        </dl>
+      </div>
+
+      <!-- actions -->
+      <div class="card overflow-hidden">
+        <div class="panel-head"><span class="panel-title">Actions</span></div>
+        <div class="p-4 space-y-2">
+          <button class="btn btn-sm btn-block" data-warn="Grace Hollis" data-warnrole="the message's author">Warn the author</button>
+          <button class="btn btn-sm btn-block" data-warn="Marcus Feld" data-warnrole="the reporter">Warn the reporter</button>
+          <button class="btn btn-sm btn-block" data-modal="suspendModal">Suspend the author's posting</button>
+          <button class="btn btn-sm btn-block btn-danger" data-modal="banModal">Remove or ban the author</button>
+          <p class="hint" style="margin-top:8px;">
+            A warning is kept as a moderation record. Tawk has no karma or warning-point score.
+          </p>
+        </div>
+      </div>
+
+      <!-- close -->
+      <div class="card overflow-hidden" style="border-color:var(--pine-line);">
+        <div class="panel-head" style="background:var(--pine-soft); border-color:var(--pine-line);">
+          <span class="panel-title" style="color:var(--pine-hi);">Close this ticket</span>
+        </div>
+        <div class="p-4">
+          <p class="text-[12.5px]" style="color:var(--muted);">
+            Closing requires a disposition and is <b style="color:var(--danger);">terminal</b>:
+            a closed ticket can never be reopened or edited.
+          </p>
+          <div class="mt-3.5 space-y-2">
+            <button class="btn btn-sm btn-block" data-close-ticket="keep">Close · keep message</button>
+            <button class="btn btn-sm btn-block btn-danger" data-close-ticket="remove">Close · remove message</button>
+          </div>
+          <p class="hint">
+            “Keep” only restores the message once every other ticket on it has closed and none
+            of them chose remove.
+          </p>
+        </div>
+      </div>
+
+      <!-- log -->
+      <div class="card card-pad">
+        <p class="eyebrow mb-3">Actions taken</p>
+        <div class="timeline space-y-3.5" id="actionLog">
+          <div style="position:relative;">
+            <span class="timeline__dot hold" style="top:4px;"></span>
+            <p class="text-[12.5px] font-semibold">Status → under review</p>
+            <p class="mono text-[10.5px]" style="color:var(--faint);">Priya Raghunathan · 8:29 AM</p>
+          </div>
+          <div style="position:relative;">
+            <span class="timeline__dot on" style="top:4px;"></span>
+            <p class="text-[12.5px] font-semibold">Ticket opened</p>
+            <p class="text-[11.5px]" style="color:var(--muted);">Message hidden, thread paused, discussion room created</p>
+            <p class="mono text-[10.5px]" style="color:var(--faint);">Marcus Feld · 8:12 AM</p>
+          </div>
+        </div>
+      </div>
+
+    </aside>
+
+  </div>
+</div>
+
+<!-- =============================== warn ================================ -->
+<div class="overlay" id="warnModal">
+  <div class="modal">
+    <div class="panel-head">
+      <span class="panel-title">Warn <span id="warnWho"></span></span>
+      <button class="btn btn-ghost btn-sm" data-close="warnModal">✕</button>
+    </div>
+    <div class="p-5">
+      <p class="text-[13px]" style="color:var(--muted);">
+        Warning <span id="warnRole" class="font-semibold" style="color:var(--ink-2);"></span>.
+        A warning may only target the reporter of this ticket or the author of the reported
+        message, nobody else.
+      </p>
+      <label class="label mt-4" for="warnWhy">Rationale <span style="color:var(--danger);">*</span></label>
+      <textarea class="textarea" id="warnWhy" placeholder="Required. Retained with the moderation action."></textarea>
+      <p class="hint">Retained as a record only. There is no reputation score attached to it.</p>
+      <div class="mt-5 flex justify-end gap-2.5">
+        <button class="btn" data-close="warnModal">Cancel</button>
+        <button class="btn btn-primary" id="warnGo">Record warning</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================== suspend ============================== -->
+<div class="overlay" id="suspendModal">
+  <div class="modal">
+    <div class="panel-head">
+      <span class="panel-title">Suspend posting: Grace Hollis</span>
+      <button class="btn btn-ghost btn-sm" data-close="suspendModal">✕</button>
+    </div>
+    <div class="p-5">
+      <p class="text-[13px]" style="color:var(--muted);">
+        Grace stays a member and can keep reading. She just can't post until the suspension ends.
+      </p>
+      <label class="label mt-4" for="suspendUntil">Ends at <span style="color:var(--danger);">*</span></label>
+      <input class="input" id="suspendUntil" type="datetime-local" value="2026-08-10T09:00">
+      <p class="hint">A posting suspension must carry an end date and time.</p>
+      <div class="mt-5 flex justify-end gap-2.5">
+        <button class="btn" data-close="suspendModal">Cancel</button>
+        <button class="btn btn-primary" id="suspendGo">Apply suspension</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- =============================== ban ================================= -->
+<div class="overlay" id="banModal">
+  <div class="modal" style="max-width:470px;">
+    <div class="p-5">
+      <h3 class="text-[16px]">Remove or ban Grace Hollis</h3>
+      <p class="mt-2 text-[13px]" style="color:var(--muted);">
+        Removing ends the membership; she can rejoin later. Banning sets her role to
+        <span class="mono">none</span> and blocks rejoining permanently, tags or no tags.
+        Either way her existing messages stay in the conversation.
+      </p>
+      <div class="mt-4 space-y-2.5">
+        <label class="radio-card">
+          <input type="radio" name="sev" value="remove" checked>
+          <span><b class="text-[13.5px]">Remove from conversation</b>
+            <span class="block text-[12.5px] mt-0.5" style="color:var(--muted);">Reversible; she may rejoin.</span></span>
+        </label>
+        <label class="radio-card">
+          <input type="radio" name="sev" value="ban">
+          <span><b class="text-[13.5px]">Ban</b>
+            <span class="block text-[12.5px] mt-0.5" style="color:var(--muted);">Cannot rejoin. An owner or administrator can restore access later.</span></span>
+        </label>
+      </div>
+      <div class="mt-5 flex justify-end gap-2.5">
+        <button class="btn" data-close="banModal">Cancel</button>
+        <button class="btn btn-danger" id="banGo">Apply</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================ delete msg ============================= -->
+<div class="overlay" id="deleteMsgModal">
+  <div class="modal" style="max-width:460px;">
+    <div class="p-5">
+      <h3 class="text-[16px]">Delete the reported message?</h3>
+      <p class="mt-2 text-[13px]" style="color:var(--muted);">
+        Soft-deletes it. It disappears from the conversation with no placeholder left behind
+        and is never physically removed from storage. This is recorded as a moderation action
+        against this ticket.
+      </p>
+      <div class="mt-5 flex justify-end gap-2.5">
+        <button class="btn" data-close="deleteMsgModal">Cancel</button>
+        <button class="btn btn-danger" id="deleteMsgGo">Delete message</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================== note ================================= -->
+<div class="overlay" id="noteModal">
+  <div class="modal">
+    <div class="panel-head">
+      <span class="panel-title">Add a moderator note</span>
+      <button class="btn btn-ghost btn-sm" data-close="noteModal">✕</button>
+    </div>
+    <div class="p-5">
+      <div class="notice notice--private mb-4">
+        <span class="notice__icon">◎</span>
+        <span>Ticket notes are always moderator-only. There's no other audience to pick.</span>
+      </div>
+      <textarea class="textarea" id="noteBody" placeholder="Context worth keeping with this case."></textarea>
+      <div class="mt-5 flex justify-end gap-2.5">
+        <button class="btn" data-close="noteModal">Cancel</button>
+        <button class="btn btn-primary" id="noteGo">Save note</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================== close ================================ -->
+<div class="overlay" id="closeModal">
+  <div class="modal" style="max-width:480px;">
+    <div class="p-5">
+      <h3 class="text-[16px]">Close TKT-1042 · <span id="closeKind"></span></h3>
+      <p class="mt-2 text-[13px]" id="closeBody" style="color:var(--muted);"></p>
+      <div class="notice notice--danger mt-4">
+        <span class="notice__icon">⛔</span>
+        <span>
+          Closing is terminal. This ticket can never be reopened, and its status and
+          disposition can never be changed.
+        </span>
+      </div>
+      <div class="mt-5 flex justify-end gap-2.5">
+        <button class="btn" data-close="closeModal">Cancel</button>
+        <button class="btn btn-primary" id="closeGo">Close ticket</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="../assets/tawk.js"></script>
+<script>
+  var closed = false;
+
+  /* --- action log helper -------------------------------------------------- */
+  function logAction(title, detail, tone) {
+    var now = new Date(), h = now.getHours(), m = now.getMinutes();
+    var stamp = ((h % 12) || 12) + ':' + (m < 10 ? '0' : '') + m + ' ' + (h < 12 ? 'AM' : 'PM');
+
+    var el = document.createElement('div');
+    el.style.position = 'relative';
+    el.innerHTML =
+      '<span class="timeline__dot ' + (tone || 'on') + '" style="top:4px;"></span>' +
+      '<p class="text-[12.5px] font-semibold">' + title + '</p>' +
+      (detail ? '<p class="text-[11.5px]" style="color:var(--muted);">' + detail + '</p>' : '') +
+      '<p class="mono text-[10.5px]" style="color:var(--faint);">Dana Okafor · ' + stamp + '</p>';
+
+    var log = document.getElementById('actionLog');
+    log.insertBefore(el, log.firstChild);
+  }
+
+  function blockIfClosed() {
+    if (closed) { tawkToast('This ticket is closed. Closed tickets are terminal.'); return true; }
+    return false;
+  }
+
+  /* --- warn --------------------------------------------------------------- */
+  var warnTarget = '';
+  document.addEventListener('click', function (e) {
+    var el = e.target.closest('[data-warn]');
+    if (!el || blockIfClosed()) return;
+    warnTarget = el.dataset.warn;
+    document.getElementById('warnWho').textContent = warnTarget;
+    document.getElementById('warnRole').textContent = el.dataset.warnrole;
+    tawkOpen('warnModal');
+  });
+
+  document.getElementById('warnGo').addEventListener('click', function () {
+    var why = document.getElementById('warnWhy');
+    if (!why.value.trim()) { why.focus(); tawkToast('A warning needs a rationale.'); return; }
+    tawkPending(this, 'Recording', function () {
+      tawkClose('warnModal');
+      why.value = '';
+      logAction('Warning recorded · ' + warnTarget, 'Retained as a moderation action');
+      tawkToast('Warning recorded against ' + warnTarget + '.');
+    });
+  });
+
+  /* --- suspend ------------------------------------------------------------ */
+  document.getElementById('suspendGo').addEventListener('click', function () {
+    var until = document.getElementById('suspendUntil');
+    if (!until.value) { until.focus(); tawkToast('A suspension needs an end time.'); return; }
+    tawkPending(this, 'Applying', function () {
+      tawkClose('suspendModal');
+      logAction('Posting suspension applied · Grace Hollis',
+                'Ends ' + until.value.replace('T', ', ') + ' · membership retained', 'hold');
+      tawkToast('Grace Hollis suspended from posting.');
+    });
+  });
+
+  /* --- ban / remove ------------------------------------------------------- */
+  document.getElementById('banGo').addEventListener('click', function () {
+    var sev = document.querySelector('input[name=sev]:checked').value;
+    tawkPending(this, 'Applying', function () {
+      tawkClose('banModal');
+      if (sev === 'ban') {
+        logAction('Grace Hollis banned', 'Role set to “none” · cannot rejoin', 'hold');
+        tawkToast('Grace Hollis banned from NYC Bike Commuters.');
+      } else {
+        logAction('Grace Hollis removed', 'Membership ended · may rejoin', 'hold');
+        tawkToast('Grace Hollis removed from the conversation.');
+      }
+    });
+  });
+
+  /* --- delete message ----------------------------------------------------- */
+  document.getElementById('deleteMsgGo').addEventListener('click', function () {
+    tawkPending(this, 'Deleting', function () {
+      tawkClose('deleteMsgModal');
+      logAction('Reported message deleted', 'Soft-deleted · no placeholder shown in the room', 'hold');
+      tawkToast('Message soft-deleted and retained in storage.');
+    });
+  });
+
+  /* --- moderator note ----------------------------------------------------- */
+  document.getElementById('noteGo').addEventListener('click', function () {
+    var body = document.getElementById('noteBody');
+    if (!body.value.trim()) { body.focus(); tawkToast('Write the note first.'); return; }
+
+    tawkPending(this, 'Saving', function () {
+      var now = new Date(), h = now.getHours(), m = now.getMinutes();
+      var stamp = 'Aug 3, ' + ((h % 12) || 12) + ':' + (m < 10 ? '0' : '') + m + ' ' + (h < 12 ? 'AM' : 'PM');
+
+      var el = document.createElement('div');
+      el.className = 'rounded-lg border p-3.5';
+      el.style.borderColor = 'var(--line)';
+      el.style.borderLeft = '3px solid var(--private)';
+      el.innerHTML =
+        '<div class="flex items-center gap-2">' +
+          '<span class="avatar avatar--sm a-clay">DO</span>' +
+          '<span class="text-[12.5px] font-semibold">Dana Okafor</span>' +
+          '<span class="badge badge--unlisted">Moderators only</span>' +
+          '<span class="mono text-[10.5px] ml-auto" style="color:var(--faint);">' + stamp + '</span>' +
+        '</div><p class="text-[13px] mt-2" style="color:var(--ink-2);"></p>';
+      el.querySelector('p').textContent = body.value.trim();
+      document.getElementById('modNotes').appendChild(el);
+
+      tawkClose('noteModal');
+      body.value = '';
+      tawkToast('Moderator note saved.');
+    });
+  });
+
+  /* --- discussion --------------------------------------------------------- */
+  var discussInput = document.getElementById('discussInput');
+  document.getElementById('discussForm').addEventListener('submit', function (e) {
+    e.preventDefault();
+    sendDiscussion();
+  });
+  discussInput.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendDiscussion(); }
+  });
+
+  function sendDiscussion() {
+    var text = discussInput.value.trim();
+    if (!text) return;
+    if (blockIfClosed()) return;
+
+    var now = new Date(), h = now.getHours(), m = now.getMinutes();
+    var stamp = ((h % 12) || 12) + ':' + (m < 10 ? '0' : '') + m + ' ' + (h < 12 ? 'AM' : 'PM');
+
+    var el = document.createElement('div');
+    el.className = 'msg';
+    el.innerHTML =
+      '<div class="avatar a-clay">DO</div>' +
+      '<div class="msg__body">' +
+        '<div class="flex items-center gap-2">' +
+          '<span class="msg__who">Dana Okafor</span>' +
+          '<span class="badge badge--admin">Administrator</span>' +
+          '<span class="msg__time">' + stamp + '</span>' +
+        '</div><p class="msg__text"></p>' +
+      '</div>';
+    el.querySelector('.msg__text').textContent = text;
+
+    document.getElementById('discussionEnd').before(el);
+    discussInput.value = '';
+    discussInput.style.height = 'auto';
+    el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  /* --- close the ticket --------------------------------------------------- */
+  var disposition = 'keep';
+
+  document.addEventListener('click', function (e) {
+    var el = e.target.closest('[data-close-ticket]');
+    if (!el || blockIfClosed()) return;
+
+    disposition = el.dataset.closeTicket;
+    document.getElementById('closeKind').textContent =
+      disposition === 'keep' ? 'keep message' : 'remove message';
+    document.getElementById('closeBody').textContent = disposition === 'keep'
+      ? 'You are recording that this message should stay. It will only reappear in the conversation once every other ticket on it has also closed, and only if none of them chose to remove it. One other ticket is still open.'
+      : 'You are recording that this message must go. It will be soft-deleted, and no later “keep” decision on any other ticket can bring it back.';
+    tawkOpen('closeModal');
+  });
+
+  document.getElementById('closeGo').addEventListener('click', function () {
+    tawkPending(this, 'Closing', function () {
+      tawkClose('closeModal');
+      closed = true;
+
+      /* status stepper -> closed */
+      document.getElementById('stepReview').className = 'step done';
+      document.getElementById('stepReview').querySelector('.step__dot').textContent = '✓';
+      document.getElementById('stepReviewed').className = 'step done';
+      document.getElementById('stepReviewed').querySelector('.step__dot').textContent = '✓';
+      document.getElementById('stepClosed').className = 'step done';
+      document.getElementById('stepClosed').querySelector('.step__dot').textContent = '✓';
+      document.getElementById('stepClosed').style.flex = 'none';
+
+      var badge = document.getElementById('statusBadge');
+      badge.className = 'badge';
+      badge.textContent = 'Closed · ' + (disposition === 'keep' ? 'kept message' : 'removed message');
+
+      logAction('Ticket closed · ' + (disposition === 'keep' ? 'keep message' : 'remove message'),
+                disposition === 'keep'
+                  ? 'Message stays hidden, 1 other ticket is still open'
+                  : 'Message soft-deleted · decision cannot be undone',
+                disposition === 'keep' ? 'on' : 'hold');
+
+      /* the case is now read-only */
+      Array.prototype.forEach.call(
+        document.querySelectorAll('[data-warn], [data-modal="suspendModal"], [data-modal="banModal"], [data-modal="deleteMsgModal"], [data-close-ticket]'),
+        function (b) { b.setAttribute('aria-disabled', 'true'); }
+      );
+      discussInput.disabled = true;
+      discussInput.placeholder = 'This ticket is closed. Its discussion is read-only.';
+
+      tawkToast('TKT-1042 closed. Terminal, it cannot be reopened.');
+    });
+  });
+</script>
+</body>
+</html>

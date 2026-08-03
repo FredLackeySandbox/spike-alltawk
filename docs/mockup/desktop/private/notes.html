@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1080">
+<title>Notes · NYC Bike Commuters · Tawk</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/tawk.css">
+<style>
+  .note { border: 1px solid var(--line); border-radius: var(--radius-lg); background: var(--surface); padding: 15px 17px; }
+  .note--mine { border-left: 3px solid var(--pine); }
+  .ctx {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-family: var(--mono); font-size: 10.5px; letter-spacing: .04em; text-transform: uppercase;
+    color: var(--faint);
+  }
+</style>
+</head>
+<body>
+
+<!-- Conversation Space · notes. Visibility choices are constrained by the note's
+     context, and every change is retained in append-only audit history. -->
+
+<div class="areabar">
+  <div class="shell px-10">
+    <div class="flex items-center gap-4" style="height:62px;">
+      <a href="conversation.html" class="backlink" style="flex:none;">← NYC Bike Commuters</a>
+      <span style="width:1px; height:22px; background:var(--line);"></span>
+      <div class="min-w-0 flex-1">
+        <h1 class="text-[15.5px] font-semibold">Notes</h1>
+        <p class="text-[11px]" style="color:var(--faint);">Context-bound annotations on the room, its threads and its messages</p>
+      </div>
+      <nav class="flex items-center gap-2" style="flex:none;">
+        <a href="thread.html" class="btn btn-sm">Threads</a>
+        <a href="admin-members.html" class="btn btn-sm">Members</a>
+        <button class="btn btn-sm btn-primary" data-modal="newNote">＋ New note</button>
+      </nav>
+    </div>
+  </div>
+</div>
+
+<div class="shell px-10 py-7">
+  <div class="grid grid-cols-[minmax(0,1fr)_296px] gap-7 items-start">
+
+    <div class="space-y-7">
+
+      <!-- ------------------------------------------------ conversation -->
+      <section>
+        <div class="flex items-baseline justify-between mb-3">
+          <h2 class="text-[15px]">On the conversation</h2>
+          <span class="eyebrow">Owner allows top-level notes</span>
+        </div>
+
+        <div class="space-y-2.5">
+
+          <article class="note note--mine">
+            <div class="flex items-start justify-between gap-4">
+              <div class="flex items-center gap-2.5">
+                <span class="avatar avatar--sm a-clay">DO</span>
+                <div>
+                  <p class="text-[13px] font-semibold">Dana Okafor <span class="faint font-normal">(you)</span></p>
+                  <p class="ctx">Conversation · Aug 3, 9:46 AM</p>
+                </div>
+              </div>
+              <select class="select" style="width:auto; font-size:12.5px; padding:5px 9px;"
+                      data-note="n1" data-current="conversationParticipants">
+                <option value="private">Private to me</option>
+                <option value="conversationParticipants" selected>All participants</option>
+              </select>
+            </div>
+            <p class="mt-3 text-[13.5px] leading-relaxed" style="color:var(--ink-2);">
+              DOT advisory 2026-08-03-014: Manhattan Bridge north path closed through
+              Aug 9. Pinning here so it stops getting buried under the studded-tire argument.
+            </p>
+          </article>
+
+          <article class="note note--mine">
+            <div class="flex items-start justify-between gap-4">
+              <div class="flex items-center gap-2.5">
+                <span class="avatar avatar--sm a-clay">DO</span>
+                <div>
+                  <p class="text-[13px] font-semibold">Dana Okafor <span class="faint font-normal">(you)</span></p>
+                  <p class="ctx">Conversation · Jul 29, 4:12 PM · <span style="color:var(--pine);">changed once</span></p>
+                </div>
+              </div>
+              <select class="select" style="width:auto; font-size:12.5px; padding:5px 9px;"
+                      data-note="n2" data-current="private">
+                <option value="private" selected>Private to me</option>
+                <option value="conversationParticipants">All participants</option>
+              </select>
+            </div>
+            <p class="mt-3 text-[13.5px] leading-relaxed" style="color:var(--ink-2);">
+              Keep an eye on the exclusive-match setting. Since we turned it on, joins have
+              dropped roughly a third, worth raising with Priya before the fall.
+            </p>
+            <p class="mt-2.5 text-[11.5px]" style="color:var(--faint);">
+              🔒 Only you can read this. Changing the audience is recorded in the audit history.
+            </p>
+          </article>
+
+          <article class="note">
+            <div class="flex items-start justify-between gap-4">
+              <div class="flex items-center gap-2.5">
+                <span class="avatar avatar--sm a-plum">PR</span>
+                <div>
+                  <p class="text-[13px] font-semibold">Priya Raghunathan</p>
+                  <p class="ctx">Conversation · Jul 22, 11:03 AM</p>
+                </div>
+              </div>
+              <span class="badge">All participants</span>
+            </div>
+            <p class="mt-3 text-[13.5px] leading-relaxed" style="color:var(--ink-2);">
+              House rule: name the cross streets. "Uptown is bad" helps nobody.
+            </p>
+            <p class="mt-2.5 text-[11.5px]" style="color:var(--faint);">
+              Only the author can change a note's audience.
+            </p>
+          </article>
+
+        </div>
+      </section>
+
+      <!-- ------------------------------------------------------ thread -->
+      <section>
+        <h2 class="text-[15px] mb-3">On a thread</h2>
+        <article class="note note--mine">
+          <div class="flex items-start justify-between gap-4">
+            <div class="flex items-center gap-2.5">
+              <span class="avatar avatar--sm a-clay">DO</span>
+              <div>
+                <p class="text-[13px] font-semibold">Dana Okafor <span class="faint font-normal">(you)</span></p>
+                <p class="ctx">Thread · “Bridge closure fallout” · Aug 3, 8:05 AM</p>
+              </div>
+            </div>
+            <select class="select" style="width:auto; font-size:12.5px; padding:5px 9px;"
+                    data-note="n3" data-current="threadParticipants">
+              <option value="private">Private to me</option>
+              <option value="threadParticipants" selected>Thread participants</option>
+            </select>
+          </div>
+          <p class="mt-3 text-[13.5px] leading-relaxed" style="color:var(--ink-2);">
+            Wythe → N 12th is the consensus detour. If this holds up through the week it
+            should go in the room description.
+          </p>
+          <p class="mt-2.5 text-[11.5px]" style="color:var(--faint);">
+            A thread note can only be private or visible to that thread, never to the whole room.
+          </p>
+        </article>
+      </section>
+
+      <!-- ----------------------------------------------------- message -->
+      <section>
+        <h2 class="text-[15px] mb-3">On individual messages</h2>
+        <div class="space-y-2.5">
+
+          <article class="note note--mine">
+            <div class="flex items-start justify-between gap-4">
+              <div class="flex items-center gap-2.5">
+                <span class="avatar avatar--sm a-clay">DO</span>
+                <div>
+                  <p class="text-[13px] font-semibold">Dana Okafor <span class="faint font-normal">(you)</span></p>
+                  <p class="ctx">Message · Route Alert Bot, 6:02 AM · outside a thread</p>
+                </div>
+              </div>
+              <select class="select" style="width:auto; font-size:12.5px; padding:5px 9px;"
+                      data-note="n4" data-current="conversationParticipants">
+                <option value="private">Private to me</option>
+                <option value="conversationParticipants" selected>All participants</option>
+              </select>
+            </div>
+            <p class="mt-3 text-[13.5px] leading-relaxed" style="color:var(--ink-2);">
+              Bot posts advisories at 6am daily. If it goes quiet, the DOT feed changed
+              shape again.
+            </p>
+            <p class="mt-2.5 text-[11.5px]" style="color:var(--faint);">
+              This message isn't in a thread, so the note takes the conversation audience.
+            </p>
+          </article>
+
+          <article class="note note--mine">
+            <div class="flex items-start justify-between gap-4">
+              <div class="flex items-center gap-2.5">
+                <span class="avatar avatar--sm a-clay">DO</span>
+                <div>
+                  <p class="text-[13px] font-semibold">Dana Okafor <span class="faint font-normal">(you)</span></p>
+                  <p class="ctx">Message · Marcus Feld, 7:52 AM · inside a thread</p>
+                </div>
+              </div>
+              <select class="select" style="width:auto; font-size:12.5px; padding:5px 9px;"
+                      data-note="n5" data-current="private">
+                <option value="private" selected>Private to me</option>
+                <option value="threadParticipants">Thread participants</option>
+              </select>
+            </div>
+            <p class="mt-3 text-[13.5px] leading-relaxed" style="color:var(--ink-2);">
+              Check whether the N 12th signal timing actually changed or Marcus just got lucky.
+            </p>
+            <p class="mt-2.5 text-[11.5px]" style="color:var(--faint);">
+              This message belongs to a thread, so the note offers the thread audience,
+              not the conversation.
+            </p>
+          </article>
+
+        </div>
+      </section>
+
+    </div>
+
+    <!-- ============================================================== rail -->
+    <aside class="space-y-5" style="position:sticky; top:78px;">
+
+      <!-- audit -->
+      <div class="card overflow-hidden">
+        <div class="panel-head"><span class="panel-title">Visibility audit history</span></div>
+        <div class="p-4">
+          <p class="text-[12px] mb-3.5" style="color:var(--muted);">
+            Append-only. Every audience change keeps who made it, when, and both audiences.
+          </p>
+          <div class="timeline space-y-4" id="auditList">
+            <div style="position:relative;">
+              <span class="timeline__dot on" style="top:4px;"></span>
+              <p class="text-[12.5px] font-semibold">Note n2 · audience changed</p>
+              <p class="text-[11.5px]" style="color:var(--muted);">
+                All participants → Private to me
+              </p>
+              <p class="mono text-[10.5px] mt-0.5" style="color:var(--faint);">Dana Okafor · Jul 30, 9:18 AM</p>
+            </div>
+            <div style="position:relative;">
+              <span class="timeline__dot" style="top:4px;"></span>
+              <p class="text-[12.5px] font-semibold">Note n2 · created</p>
+              <p class="text-[11.5px]" style="color:var(--muted);">Audience: All participants</p>
+              <p class="mono text-[10.5px] mt-0.5" style="color:var(--faint);">Dana Okafor · Jul 29, 4:12 PM</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- rules -->
+      <div class="card card-pad">
+        <p class="eyebrow mb-2.5">Audience rules</p>
+        <ul class="space-y-2 text-[12.5px]" style="color:var(--muted);">
+          <li><b style="color:var(--ink-2);">Conversation note</b><br>private, or all participants, and only if the owner allows top-level notes</li>
+          <li><b style="color:var(--ink-2);">Thread note</b><br>private, or thread participants</li>
+          <li><b style="color:var(--ink-2);">Message note</b><br>follows the thread if the message is in one, otherwise the conversation</li>
+          <li><b style="color:var(--ink-2);">Ticket note</b><br>moderators only, kept inside the ticket, never here</li>
+        </ul>
+      </div>
+
+    </aside>
+
+  </div>
+</div>
+
+<!-- ===================================================================== -->
+<div class="overlay" id="newNote">
+  <div class="modal">
+    <div class="panel-head">
+      <span class="panel-title">New note</span>
+      <button class="btn btn-ghost btn-sm" data-close="newNote">✕</button>
+    </div>
+    <div class="p-5">
+      <label class="label" for="noteCtx">Attach to</label>
+      <select class="select" id="noteCtx">
+        <option value="conversation">This conversation</option>
+        <option value="thread">Thread · “Bridge closure fallout”</option>
+        <option value="messageThread">Message in a thread · Marcus Feld, 7:52 AM</option>
+        <option value="messagePlain">Message outside a thread · Route Alert Bot, 6:02 AM</option>
+      </select>
+
+      <label class="label mt-4" for="noteVis">Who can see it</label>
+      <select class="select" id="noteVis"></select>
+      <p class="hint" id="noteVisHint"></p>
+
+      <label class="label mt-4" for="noteBody">Note</label>
+      <textarea class="textarea" id="noteBody" placeholder="Something worth remembering later."></textarea>
+
+      <div class="mt-5 flex justify-end gap-2.5">
+        <button class="btn" data-close="newNote">Cancel</button>
+        <button class="btn btn-primary" id="noteSave">Save note</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="../assets/tawk.js"></script>
+<script>
+  var LABELS = {
+    private: 'Private to me',
+    conversationParticipants: 'All participants',
+    threadParticipants: 'Thread participants'
+  };
+
+  /* --- audience options are constrained by the note's context ------------- */
+  var OPTIONS = {
+    conversation:  ['private', 'conversationParticipants'],
+    thread:        ['private', 'threadParticipants'],
+    messageThread: ['private', 'threadParticipants'],
+    messagePlain:  ['private', 'conversationParticipants']
+  };
+  var HINTS = {
+    conversation:  'Top-level notes are available because the owner allows them in this room.',
+    thread:        'A thread note can never be shown to the whole conversation.',
+    messageThread: 'This message belongs to a thread, so the thread audience applies.',
+    messagePlain:  'This message is not in a thread, so the conversation audience applies.'
+  };
+
+  var ctx = document.getElementById('noteCtx');
+  var vis = document.getElementById('noteVis');
+  var visHint = document.getElementById('noteVisHint');
+
+  function syncOptions() {
+    vis.innerHTML = OPTIONS[ctx.value].map(function (v) {
+      return '<option value="' + v + '">' + LABELS[v] + '</option>';
+    }).join('');
+    visHint.textContent = HINTS[ctx.value];
+  }
+  ctx.addEventListener('change', syncOptions);
+  syncOptions();
+
+  document.getElementById('noteSave').addEventListener('click', function () {
+    var body = document.getElementById('noteBody');
+    if (!body.value.trim()) { body.focus(); tawkToast('Write something first.'); return; }
+    tawkPending(this, 'Saving', function () {
+      tawkClose('newNote');
+      body.value = '';
+      tawkToast('Note saved · ' + LABELS[vis.value]);
+    });
+  });
+
+  /* --- changing an existing note's audience writes an audit entry --------- */
+  Array.prototype.forEach.call(document.querySelectorAll('select[data-note]'), function (sel) {
+    sel.addEventListener('change', function () {
+      var from = LABELS[sel.dataset.current];
+      var to   = LABELS[sel.value];
+      sel.dataset.current = sel.value;
+
+      var now = new Date();
+      var h = now.getHours(), m = now.getMinutes();
+      var stamp = 'Aug 3, ' + ((h % 12) || 12) + ':' + (m < 10 ? '0' : '') + m + ' ' + (h < 12 ? 'AM' : 'PM');
+
+      var entry = document.createElement('div');
+      entry.style.position = 'relative';
+      entry.innerHTML =
+        '<span class="timeline__dot on" style="top:4px;"></span>' +
+        '<p class="text-[12.5px] font-semibold">Note ' + sel.dataset.note + ' · audience changed</p>' +
+        '<p class="text-[11.5px]" style="color:var(--muted);">' + from + ' → ' + to + '</p>' +
+        '<p class="mono text-[10.5px] mt-0.5" style="color:var(--faint);">Dana Okafor · ' + stamp + '</p>';
+
+      var list = document.getElementById('auditList');
+      list.insertBefore(entry, list.firstChild);
+      tawkToast('Audience changed to “' + to + '” · recorded in audit history');
+    });
+  });
+</script>
+</body>
+</html>

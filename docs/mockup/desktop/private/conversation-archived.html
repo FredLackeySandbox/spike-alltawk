@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1080">
+<title>Q1 Migration Room (archived) · Tawk</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/tawk.css">
+<style>
+  .withheld {
+    background:
+      repeating-linear-gradient(135deg, var(--sunk) 0 10px, var(--surface-2) 10px 20px);
+    border: 1px dashed var(--line-2); border-radius: var(--radius);
+  }
+</style>
+</head>
+<body>
+
+<!-- Conversation Space · archived state. Archival replaces deletion: everything is
+     retained, nothing is readable, and the room is gone from search. -->
+
+<div class="areabar">
+  <div class="shell px-10">
+    <div class="flex items-center gap-4" style="height:62px;">
+      <a href="hub.html" class="backlink" style="flex:none;">← All conversations</a>
+      <span style="width:1px; height:22px; background:var(--line);"></span>
+      <div class="min-w-0 flex-1">
+        <div class="flex items-center gap-2">
+          <h1 class="text-[15.5px] font-semibold truncate" style="color:var(--muted);">Q1 Migration Room</h1>
+          <span class="badge badge--archived">Archived</span>
+          <span class="badge badge--owner">You were the owner</span>
+        </div>
+        <div class="flex items-center gap-1.5 mt-0.5">
+          <span class="tag" style="padding:2px 6px; font-size:10.5px; opacity:.65;"><b>team</b><i>:</i>atlas</span>
+          <span class="tag" style="padding:2px 6px; font-size:10.5px; opacity:.65;">migration</span>
+          <span class="tag" style="padding:2px 6px; font-size:10.5px; opacity:.65;">q1</span>
+          <span class="text-[11px] ml-1" style="color:var(--faint);">· archived Apr 14, 2026</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="shell px-10 py-8">
+  <div class="grid grid-cols-[minmax(0,1fr)_296px] gap-7 items-start">
+
+    <div class="space-y-5">
+
+      <div class="notice notice--danger">
+        <span class="notice__icon">⛔</span>
+        <div>
+          <p class="font-semibold text-[13px]">This conversation is archived</p>
+          <p class="text-[12.5px] mt-1">
+            Archiving is how a conversation ends in Tawk; there is no delete. Every message,
+            membership, tag, note and ticket is still stored, but the room's contents are no
+            longer readable, nobody can post, and nobody can join. It has also been removed
+            from tag search entirely.
+          </p>
+        </div>
+      </div>
+
+      <!-- withheld contents -->
+      <div class="card overflow-hidden">
+        <div class="panel-head">
+          <span class="panel-title">Conversation contents</span>
+          <span class="badge badge--archived">Withheld</span>
+        </div>
+
+        <div class="p-5">
+          <div class="withheld" style="padding:38px 24px; text-align:center;">
+            <div class="empty__mark" style="margin:0 auto 14px;">🗄</div>
+            <p class="font-semibold text-[14px]">1,840 messages retained, none readable</p>
+            <p class="mt-1.5 text-[13px] mx-auto" style="color:var(--muted); max-width:56ch;">
+              Once a conversation is archived, its messages, threads, reactions and notes stop
+              being served to anyone, including its former owner. The records are kept intact
+              in storage rather than deleted.
+            </p>
+          </div>
+
+          <div class="grid grid-cols-4 gap-3 mt-5">
+            <div class="rounded-lg border p-3 text-center" style="border-color:var(--line);">
+              <p class="text-[19px] font-semibold" style="letter-spacing:-.02em;">1,840</p>
+              <p class="text-[11px]" style="color:var(--faint);">Messages</p>
+            </div>
+            <div class="rounded-lg border p-3 text-center" style="border-color:var(--line);">
+              <p class="text-[19px] font-semibold" style="letter-spacing:-.02em;">23</p>
+              <p class="text-[11px]" style="color:var(--faint);">Memberships</p>
+            </div>
+            <div class="rounded-lg border p-3 text-center" style="border-color:var(--line);">
+              <p class="text-[19px] font-semibold" style="letter-spacing:-.02em;">3</p>
+              <p class="text-[11px]" style="color:var(--faint);">Tags</p>
+            </div>
+            <div class="rounded-lg border p-3 text-center" style="border-color:var(--line);">
+              <p class="text-[19px] font-semibold" style="letter-spacing:-.02em;">4</p>
+              <p class="text-[11px]" style="color:var(--faint);">Closed tickets</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- composer, permanently unavailable -->
+      <div class="card" style="padding:14px 16px; background:var(--sunk);">
+        <div class="flex items-center gap-3">
+          <span class="text-[15px]" style="color:var(--faint);">🔒</span>
+          <p class="text-[13px] flex-1" style="color:var(--muted);">
+            Posting is closed. An archived conversation is read-only in the strictest sense;
+            not even its owner can add to it.
+          </p>
+          <button class="btn btn-sm" aria-disabled="true">Send</button>
+        </div>
+      </div>
+
+      <!-- lifecycle -->
+      <div class="card overflow-hidden">
+        <div class="panel-head"><span class="panel-title">Lifecycle</span></div>
+        <div class="p-5">
+          <div class="timeline space-y-5">
+            <div style="position:relative;">
+              <span class="timeline__dot on" style="top:4px;"></span>
+              <p class="text-[13px] font-semibold">Archived by Dana Okafor</p>
+              <p class="text-[12px]" style="color:var(--muted);">
+                Reason recorded: migration finished, room superseded by Atlas Release War Room.
+              </p>
+              <p class="mono text-[10.5px] mt-0.5" style="color:var(--faint);">Apr 14, 2026 · 5:31 PM</p>
+            </div>
+            <div style="position:relative;">
+              <span class="timeline__dot" style="top:4px;"></span>
+              <p class="text-[13px] font-semibold">Removed from tag search</p>
+              <p class="text-[12px]" style="color:var(--muted);">
+                <span class="mono">team:atlas</span>, <span class="mono">migration</span> and
+                <span class="mono">q1</span> no longer resolve to this room.
+              </p>
+              <p class="mono text-[10.5px] mt-0.5" style="color:var(--faint);">Apr 14, 2026 · 5:31 PM</p>
+            </div>
+            <div style="position:relative;">
+              <span class="timeline__dot" style="top:4px;"></span>
+              <p class="text-[13px] font-semibold">Created by Dana Okafor</p>
+              <p class="text-[12px]" style="color:var(--muted);">Unlisted, 3 tags, exact-match joining.</p>
+              <p class="mono text-[10.5px] mt-0.5" style="color:var(--faint);">Jan 6, 2026 · 10:02 AM</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ============================================================== rail -->
+    <aside class="space-y-5" style="position:sticky; top:78px;">
+
+      <div class="card card-pad">
+        <p class="eyebrow mb-2">What archival keeps</p>
+        <ul class="space-y-1.5 text-[12.5px]" style="color:var(--muted);">
+          <li>✓ Every message, including soft-deleted ones</li>
+          <li>✓ Membership and role history</li>
+          <li>✓ Tag assignments and their effective dates</li>
+          <li>✓ Moderation tickets and their discussions</li>
+          <li>✓ Notes and audit events</li>
+        </ul>
+        <hr class="rule my-3.5">
+        <p class="eyebrow mb-2">What it stops</p>
+        <ul class="space-y-1.5 text-[12.5px]" style="color:var(--muted);">
+          <li>✕ Reading the conversation's contents</li>
+          <li>✕ Posting, reacting and replying</li>
+          <li>✕ Joining, including by exact tags</li>
+          <li>✕ Appearing anywhere in search</li>
+        </ul>
+      </div>
+
+      <div class="card card-pad">
+        <p class="eyebrow mb-2">Why it was archived, not deleted</p>
+        <p class="text-[12.5px]" style="color:var(--muted);">
+          Tawk has no hard delete. The last owner of a room can archive it instead of finding
+          a successor, and that is the only way a conversation ends.
+        </p>
+        <a href="hub.html" class="btn btn-sm btn-block mt-3.5">Back to your conversations</a>
+      </div>
+
+    </aside>
+
+  </div>
+</div>
+
+<script src="../assets/tawk.js"></script>
+</body>
+</html>

@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1080">
+<title>Set up your identity · Tawk</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/tawk.css">
+</head>
+<body>
+
+<!-- First sign-in for a new identity. A display name is the only hard requirement;
+     everything else was imported from the OIDC provider and is editable. -->
+
+<div class="shell px-10 min-h-screen flex flex-col">
+
+  <header class="pt-7">
+    <a href="../public/index.html" class="brand" style="display:inline-flex;">
+      <span class="brand__mark">t</span>
+      <span>Tawk</span>
+    </a>
+  </header>
+
+  <main class="flex-1 grid place-items-center" style="padding:48px 0 90px;">
+    <div style="width:520px;">
+
+      <h1 class="serif text-center" style="font-size:34px;">One last thing</h1>
+      <p class="mt-2.5 text-center text-[13.5px]" style="color:var(--muted);">
+        This is how you'll appear in every conversation you join.
+      </p>
+
+      <div class="notice notice--pine mt-7">
+        <span class="notice__icon">✓</span>
+        <div>
+          <p class="font-semibold text-[13px]">Verified through Google</p>
+          <p class="text-[12.5px] mt-0.5" style="opacity:.9;">
+            <span class="mono">dana.okafor@gmail.com</span>. We imported your name and
+            photo. Edit anything below; it won't change your Google account.
+          </p>
+        </div>
+      </div>
+
+      <form class="card mt-5" style="padding:26px 24px; box-shadow:var(--shadow);" id="setupForm">
+
+        <div class="flex gap-5 items-start">
+          <div class="text-center" style="width:96px; flex:none;">
+            <div class="avatar avatar--lg a-clay mx-auto" style="width:76px; height:76px; border-radius:16px; font-size:26px;" id="avatarPreview">DO</div>
+            <button type="button" class="btn btn-sm mt-2.5" style="width:100%;"
+                    data-toast="Profile image replaced (mockup, no upload)">Replace</button>
+            <p class="text-[10.5px] mt-1.5" style="color:var(--faint);">PNG or JPEG</p>
+          </div>
+
+          <div class="flex-1">
+            <label class="label" for="display">Display name <span style="color:var(--danger);">*</span></label>
+            <input class="input" id="display" value="Dana Okafor" maxlength="40">
+            <p class="hint" id="displayHint">Shown next to every message you post and every conversation you own.</p>
+          </div>
+        </div>
+
+        <hr class="rule my-6">
+
+        <p class="eyebrow mb-4">Imported from Google · optional</p>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="label" for="first">First name</label>
+            <input class="input" id="first" value="Dana">
+          </div>
+          <div>
+            <label class="label" for="last">Last name</label>
+            <input class="input" id="last" value="Okafor">
+          </div>
+        </div>
+
+        <div class="mt-4">
+          <label class="label" for="full">Full name</label>
+          <input class="input" id="full" value="Dana Chinaza Okafor">
+          <p class="hint">Never shown to other participants. Kept only on your profile.</p>
+        </div>
+
+        <hr class="rule my-6">
+
+        <label class="check">
+          <input type="checkbox" checked>
+          <span class="text-[13px]" style="color:var(--ink-2);">
+            Keep this Google connection linked to my identity.
+            <span class="block text-[12px] mt-0.5" style="color:var(--muted);">
+              You can link more verified email addresses later. Any of them will sign you
+              into this same identity and the same conversation history.
+            </span>
+          </span>
+        </label>
+
+        <button type="submit" class="btn btn-primary btn-block mt-6" style="height:42px;">
+          Create my identity
+        </button>
+
+      </form>
+
+      <p class="mt-5 text-center text-[12px]" style="color:var(--faint);">
+        Already have an identity?
+        <a href="login.html" style="color:var(--pine); font-weight:600;">Sign in instead</a>
+      </p>
+
+    </div>
+  </main>
+
+</div>
+
+<script src="../assets/tawk.js"></script>
+<script>
+  var display = document.getElementById('display');
+  var preview = document.getElementById('avatarPreview');
+
+  // keep the fallback monogram honest as the name is edited
+  display.addEventListener('input', function () {
+    var parts = display.value.trim().split(/\s+/).filter(Boolean);
+    var initials = parts.slice(0, 2).map(function (p) { return p[0]; }).join('').toUpperCase();
+    preview.textContent = initials || '?';
+  });
+
+  document.getElementById('setupForm').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var hint = document.getElementById('displayHint');
+
+    if (!display.value.trim()) {
+      hint.textContent = 'A display name is required. Tawk has no anonymous participation.';
+      hint.style.color = 'var(--danger)';
+      display.focus();
+      return;
+    }
+    hint.textContent = 'Shown next to every message you post and every conversation you own.';
+    hint.style.color = '';
+
+    tawkPending(e.target.querySelector('button[type=submit]'), 'Creating identity', function () {
+      window.location.href = '../private/hub.html';
+    });
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1080">
+<title>Thread · NYC Bike Commuters · Tawk</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/tawk.css">
+<style>
+  .threadtab {
+    display: block; width: 100%; text-align: left; cursor: pointer;
+    padding: 11px 13px; border: 1px solid var(--line); border-radius: var(--radius);
+    background: var(--surface); transition: border-color .12s, background .12s;
+  }
+  .threadtab:hover { border-color: var(--line-2); }
+  .threadtab.on { border-color: var(--pine); background: var(--pine-soft); box-shadow: 0 0 0 1px var(--pine); }
+  .threadtab.on.paused { border-color: var(--hold); background: var(--hold-soft); box-shadow: 0 0 0 1px var(--hold); }
+  .root {
+    border-left: 3px solid var(--pine); background: var(--surface-2);
+    border-radius: 0 var(--radius) var(--radius) 0;
+  }
+  .root.paused { border-left-color: var(--hold); background: var(--hold-soft); }
+</style>
+</head>
+<body>
+
+<!-- Conversation Space · thread view. Threads pause while any ticket on any of
+     their messages is unresolved. -->
+
+<div class="areabar">
+  <div class="shell px-10">
+    <div class="flex items-center gap-4" style="height:62px;">
+      <a href="conversation.html" class="backlink" style="flex:none;">← NYC Bike Commuters</a>
+      <span style="width:1px; height:22px; background:var(--line);"></span>
+      <div class="min-w-0 flex-1">
+        <h1 class="text-[15.5px] font-semibold">Threads</h1>
+        <p class="text-[11px]" style="color:var(--faint);">Replies grouped under a root message</p>
+      </div>
+      <nav class="flex items-center gap-2" style="flex:none;">
+        <a href="notes.html" class="btn btn-sm">Notes</a>
+        <a href="admin-members.html" class="btn btn-sm">Members</a>
+        <a href="hub.html" class="btn btn-sm btn-ghost">All conversations</a>
+      </nav>
+    </div>
+  </div>
+</div>
+
+<div class="shell px-10 py-6">
+  <div class="grid grid-cols-[248px_minmax(0,1fr)] gap-6 items-start">
+
+    <!-- ========================================================== switcher -->
+    <aside class="space-y-2.5" style="position:sticky; top:78px;">
+      <p class="eyebrow mb-1">2 threads</p>
+
+      <button class="threadtab on" data-thread="active">
+        <span class="flex items-center justify-between gap-2">
+          <span class="text-[12.5px] font-semibold">Bridge closure fallout</span>
+          <span class="badge badge--listed"><i class="dot"></i>Active</span>
+        </span>
+        <span class="block text-[11.5px] mt-1" style="color:var(--muted);">
+          Started by Yuki Tanaka · 8 replies
+        </span>
+      </button>
+
+      <button class="threadtab paused" data-thread="paused">
+        <span class="flex items-center justify-between gap-2">
+          <span class="text-[12.5px] font-semibold">Thread on hidden message</span>
+          <span class="badge badge--hold">⏸ Paused</span>
+        </span>
+        <span class="block text-[11.5px] mt-1" style="color:var(--muted);">
+          Root is under review · 4 replies
+        </span>
+      </button>
+
+      <div class="card card-pad mt-4">
+        <p class="eyebrow mb-2">Why threads pause</p>
+        <p class="text-[12.5px]" style="color:var(--muted);">
+          If any message in a thread has an open moderation ticket, nobody can reply to
+          the thread. It resumes automatically once the last ticket on that message closes.
+        </p>
+      </div>
+    </aside>
+
+    <!-- ============================================================ ACTIVE -->
+    <div id="threadActive">
+      <div class="card overflow-hidden">
+
+        <div class="panel-head">
+          <span class="panel-title">Bridge closure fallout</span>
+          <span class="badge badge--listed"><i class="dot"></i>Active · replies open</span>
+        </div>
+
+        <!-- root -->
+        <div class="root m-4 p-4">
+          <div class="flex items-start gap-3">
+            <div class="avatar a-teal">YT</div>
+            <div class="flex-1">
+              <div class="flex items-center gap-2">
+                <span class="msg__who">Yuki Tanaka</span>
+                <span class="badge" style="font-size:10px;">Root message</span>
+                <span class="msg__time">Today · 7:41 AM</span>
+              </div>
+              <p class="msg__text">
+                Williamsburg is going to be a zoo all week then. I left 20 minutes early and
+                still got stuck behind the delivery pack at Kent &amp; N 7th.
+              </p>
+              <div class="reactions">
+                <span class="reaction on" data-count="9">💯 <span class="reaction__n">9</span></span>
+                <span class="reaction reaction--add" data-toast="Reaction added">＋</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <hr class="rule">
+
+        <!-- replies -->
+        <div id="replies">
+
+          <div class="msg">
+            <div class="avatar a-pine">MF</div>
+            <div class="msg__body">
+              <div class="flex items-center gap-2">
+                <span class="msg__who">Marcus Feld</span>
+                <span class="msg__time">7:52 AM</span>
+              </div>
+              <p class="msg__text">
+                Kent is unrideable between 7:30 and 8:15, full stop. Cut over to Wythe and
+                take N 12th down; adds four blocks, saves ten minutes.
+              </p>
+              <div class="reactions">
+                <span class="reaction" data-count="14">🙏 <span class="reaction__n">14</span></span>
+              </div>
+            </div>
+          </div>
+
+          <div class="msg">
+            <div class="avatar a-clay">DO</div>
+            <div class="msg__body">
+              <div class="flex items-center gap-2">
+                <span class="msg__who">Dana Okafor</span>
+                <span class="badge badge--admin">Administrator</span>
+                <span class="msg__time">8:03 AM</span>
+              </div>
+              <p class="msg__text">
+                Can confirm on Wythe. Also the light at N 12th and Wythe is on a long cycle
+                so you actually get a gap in traffic instead of merging into it.
+              </p>
+            </div>
+          </div>
+
+          <div class="msg">
+            <div class="avatar a-sand">SB</div>
+            <div class="msg__body">
+              <div class="flex items-center gap-2">
+                <span class="msg__who">Sam Boateng</span>
+                <span class="badge badge--hold">Posting suspended until Aug 5</span>
+                <span class="msg__time">8:20 AM</span>
+              </div>
+              <p class="msg__text">
+                The DOT counter at the Williamsburg entrance was reading 4,100 by 9am
+                yesterday. It's normally about 2,600.
+              </p>
+              <div class="reactions">
+                <span class="reaction" data-count="3">👀 <span class="reaction__n">3</span></span>
+              </div>
+            </div>
+          </div>
+
+          <div class="msg msg--former">
+            <div class="avatar avatar--former a-moss">EV</div>
+            <div class="msg__body">
+              <div class="flex items-center gap-2">
+                <span class="msg__who">Elena Vargas</span>
+                <span class="badge" style="font-size:10px;">Former member</span>
+                <span class="msg__time">8:41 AM</span>
+              </div>
+              <p class="msg__text">
+                Worth remembering the Pulaski exists. It's ugly but it's empty.
+              </p>
+            </div>
+          </div>
+
+          <div class="msg">
+            <div class="avatar a-teal">YT</div>
+            <div class="msg__body">
+              <div class="flex items-center gap-2">
+                <span class="msg__who">Yuki Tanaka</span>
+                <span class="msg__time">9:12 AM</span>
+              </div>
+              <p class="msg__text">
+                Pulaski is genuinely fine if you're going to LIC anyway. Not much help if
+                you're headed to midtown.
+              </p>
+            </div>
+          </div>
+
+          <div class="msg">
+            <div class="avatar avatar--bot a-slate">RA</div>
+            <div class="msg__body">
+              <div class="flex items-center gap-2">
+                <span class="msg__who">Route Alert Bot</span>
+                <span class="badge badge--bot">BOT</span>
+                <span class="msg__time">9:30 AM</span>
+              </div>
+              <p class="msg__text">
+                Williamsburg Bridge cyclist count, 6–10 AM: <code>4,118</code>
+                (7-day average <code>2,640</code>). Source: NYC DOT open data feed.
+              </p>
+              <div class="reactions">
+                <span class="reaction" data-count="8">📈 <span class="reaction__n">8</span></span>
+              </div>
+            </div>
+          </div>
+
+          <div id="repliesEnd"></div>
+        </div>
+
+        <!-- reply composer -->
+        <div class="p-3.5" style="border-top:1px solid var(--line); background:var(--surface-2);">
+          <form class="composer" id="replyForm">
+            <textarea id="replyInput" data-autogrow rows="1" placeholder="Reply in this thread…"></textarea>
+            <div class="composer__bar">
+              <span class="text-[11.5px] pl-1" style="color:var(--faint);">
+                Replies stay in the thread and don't repeat in the main room
+              </span>
+              <button type="submit" class="btn btn-sm btn-primary">Reply</button>
+            </div>
+          </form>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ============================================================ PAUSED -->
+    <div id="threadPaused" style="display:none;">
+      <div class="card overflow-hidden">
+
+        <div class="panel-head" style="background:var(--hold-soft); border-color:var(--hold-line);">
+          <span class="panel-title" style="color:var(--hold);">Thread on hidden message</span>
+          <span class="badge badge--hold">⏸ Paused · replies closed</span>
+        </div>
+
+        <div class="notice notice--hold" style="border-radius:0; border-width:0 0 1px 0;">
+          <span class="notice__icon">⏸</span>
+          <div>
+            <p class="font-semibold text-[12.5px]">This thread is paused</p>
+            <p class="text-[12px] mt-0.5">
+              Its root message has two open moderation tickets, TKT-1042 and TKT-1043,
+              filed independently by two different participants. Nobody can reply until
+              both close. Existing replies stay readable.
+            </p>
+          </div>
+        </div>
+
+        <!-- withheld root -->
+        <div class="root paused m-4 p-4">
+          <div class="flex items-start gap-3">
+            <div class="avatar" style="background:var(--hold); border-radius:8px;">⏸</div>
+            <div class="flex-1">
+              <div class="flex items-center gap-2">
+                <span class="msg__who" style="color:var(--hold);">Message hidden pending review</span>
+                <span class="badge badge--hold">2 open tickets</span>
+              </div>
+              <p class="msg__text" style="color:#6b4509;">
+                The contents are withheld from everyone, including administrators, in the
+                conversation view. Reviewers see the reported text inside each ticket.
+              </p>
+              <div class="mt-2.5 flex gap-2">
+                <a href="ticket.html" class="btn btn-sm">Open TKT-1042</a>
+                <a href="ticket.html" class="btn btn-sm">Open TKT-1043</a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <hr class="rule">
+
+        <div class="msg">
+          <div class="avatar a-pine">MF</div>
+          <div class="msg__body">
+            <div class="flex items-center gap-2">
+              <span class="msg__who">Marcus Feld</span>
+              <span class="msg__time">8:15 AM</span>
+            </div>
+            <p class="msg__text">
+              I don't think that's what the study said, but I'd have to dig up the actual PDF.
+            </p>
+          </div>
+        </div>
+
+        <div class="msg">
+          <div class="avatar a-teal">YT</div>
+          <div class="msg__body">
+            <div class="flex items-center gap-2">
+              <span class="msg__who">Yuki Tanaka</span>
+              <span class="msg__time">8:22 AM</span>
+            </div>
+            <p class="msg__text">
+              Same. The number quoted here doesn't match anything I can find.
+            </p>
+          </div>
+        </div>
+
+        <div class="msg msg--former">
+          <div class="avatar avatar--former a-moss">EV</div>
+          <div class="msg__body">
+            <div class="flex items-center gap-2">
+              <span class="msg__who">Elena Vargas</span>
+              <span class="badge" style="font-size:10px;">Former member</span>
+              <span class="msg__time">8:44 AM</span>
+            </div>
+            <p class="msg__text">
+              Leaving this one alone, but for the record it's been posted three times now.
+            </p>
+          </div>
+        </div>
+
+        <div class="msg">
+          <div class="avatar a-clay">DO</div>
+          <div class="msg__body">
+            <div class="flex items-center gap-2">
+              <span class="msg__who">Dana Okafor</span>
+              <span class="badge badge--admin">Administrator</span>
+              <span class="msg__time">8:58 AM</span>
+            </div>
+            <p class="msg__text">
+              Picking this up in review. Nobody needs to relitigate it here.
+            </p>
+          </div>
+        </div>
+
+        <!-- disabled composer -->
+        <div class="p-3.5" style="border-top:1px solid var(--line); background:var(--surface-2);">
+          <div class="composer" style="opacity:.62; background:var(--sunk);">
+            <textarea rows="1" disabled placeholder="Replies are closed while this thread is paused"
+                      style="cursor:not-allowed;"></textarea>
+            <div class="composer__bar">
+              <span class="text-[11.5px] pl-1" style="color:var(--hold);">
+                ⏸ Resumes automatically when the last ticket closes
+              </span>
+              <button class="btn btn-sm" aria-disabled="true">Reply</button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script src="../assets/tawk.js"></script>
+<script>
+  /* thread switcher */
+  Array.prototype.forEach.call(document.querySelectorAll('.threadtab'), function (tab) {
+    tab.addEventListener('click', function () {
+      Array.prototype.forEach.call(document.querySelectorAll('.threadtab'), function (t) {
+        t.classList.remove('on');
+      });
+      tab.classList.add('on');
+      var paused = tab.dataset.thread === 'paused';
+      document.getElementById('threadActive').style.display = paused ? 'none' : '';
+      document.getElementById('threadPaused').style.display = paused ? '' : 'none';
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+  });
+
+  /* post a reply */
+  var replyInput = document.getElementById('replyInput');
+
+  document.getElementById('replyForm').addEventListener('submit', function (e) {
+    e.preventDefault();
+    postReply();
+  });
+  replyInput.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); postReply(); }
+  });
+
+  function postReply() {
+    var text = replyInput.value.trim();
+    if (!text) return;
+
+    var now = new Date(), h = now.getHours(), m = now.getMinutes();
+    var stamp = ((h % 12) || 12) + ':' + (m < 10 ? '0' : '') + m + ' ' + (h < 12 ? 'AM' : 'PM');
+
+    var el = document.createElement('div');
+    el.className = 'msg';
+    el.innerHTML =
+      '<div class="avatar a-clay">DO</div>' +
+      '<div class="msg__body">' +
+        '<div class="flex items-center gap-2">' +
+          '<span class="msg__who">Dana Okafor</span>' +
+          '<span class="badge badge--admin">Administrator</span>' +
+          '<span class="msg__time">' + stamp + '</span>' +
+        '</div><p class="msg__text"></p>' +
+      '</div>';
+    el.querySelector('.msg__text').textContent = text;
+
+    document.getElementById('repliesEnd').before(el);
+    replyInput.value = '';
+    replyInput.style.height = 'auto';
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+</script>
+</body>
+</html>

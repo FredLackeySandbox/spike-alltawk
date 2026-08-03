@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1080">
+<title>Your identity · Tawk</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/tawk.css">
+</head>
+<body>
+
+<!-- Conversation Hub · identity context. One identity, many verified sign-in
+     connections; the canonical profile email is deliberately undefined for the MVP. -->
+
+<div class="appbar">
+  <div class="shell px-10">
+    <div class="appbar__inner">
+      <a href="hub.html" class="brand"><span class="brand__mark">t</span><span>Tawk</span></a>
+      <nav class="flex items-center gap-6 flex-1">
+        <a href="hub.html" class="navlink">Conversations</a>
+        <a href="discover.html" class="navlink">Discover</a>
+        <a href="moderation.html" class="navlink">Moderation <span class="badge badge--hold ml-1">2</span></a>
+      </nav>
+      <a href="create.html" class="btn btn-sm btn-primary">＋ New conversation</a>
+      <a href="profile.html" class="avatar avatar--sm a-clay" title="Dana Okafor" style="box-shadow:0 0 0 2px var(--pine);">DO</a>
+    </div>
+  </div>
+</div>
+
+<div class="shell px-10 py-8">
+
+  <a href="hub.html" class="backlink">← Conversations</a>
+  <h1 class="serif mt-3" style="font-size:30px;">Your identity</h1>
+  <p class="mt-1.5 text-[13.5px]" style="color:var(--muted); max-width:66ch;">
+    One identity carries your entire history across Tawk. Sign-in methods can come and go
+    beneath it without disturbing a single membership or message.
+  </p>
+
+  <div class="grid grid-cols-[minmax(0,1fr)_300px] gap-7 items-start mt-6">
+
+    <div class="space-y-5">
+
+      <!-- --------------------------------------------------------- profile -->
+      <section class="card">
+        <div class="panel-head"><span class="panel-title">Profile</span></div>
+        <div class="p-5">
+          <div class="flex gap-6 items-start">
+            <div class="text-center" style="width:104px; flex:none;">
+              <div class="avatar a-clay mx-auto" style="width:84px; height:84px; border-radius:18px; font-size:28px;" id="preview">DO</div>
+              <button class="btn btn-sm mt-2.5" style="width:100%;" data-toast="Profile image replaced (mockup, no upload)">Replace</button>
+              <p class="text-[10.5px] mt-1.5" style="color:var(--faint);">Imported from Google</p>
+            </div>
+
+            <div class="flex-1">
+              <label class="label" for="display">Display name <span style="color:var(--danger);">*</span></label>
+              <input class="input" id="display" value="Dana Okafor" maxlength="40">
+              <p class="hint" id="displayHint">
+                The only required field. Shown beside every message you post and every
+                conversation you own, including to bots.
+              </p>
+
+              <div class="grid grid-cols-2 gap-4 mt-4">
+                <div>
+                  <label class="label" for="first">First name</label>
+                  <input class="input" id="first" value="Dana">
+                </div>
+                <div>
+                  <label class="label" for="last">Last name</label>
+                  <input class="input" id="last" value="Okafor">
+                </div>
+              </div>
+
+              <div class="mt-4">
+                <label class="label" for="full">Full name</label>
+                <input class="input" id="full" value="Dana Chinaza Okafor">
+                <p class="hint">Kept on your identity record. Never shown to other participants.</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="mt-5 pt-5 flex items-center gap-3" style="border-top:1px solid var(--line);">
+            <button class="btn btn-primary" id="saveProfile">Save profile</button>
+            <span class="text-[12px]" style="color:var(--faint);">
+              Changes apply everywhere immediately, including on messages you posted years ago.
+            </span>
+          </div>
+        </div>
+      </section>
+
+      <!-- ------------------------------------------------------ sign-in -->
+      <section class="card overflow-hidden">
+        <div class="panel-head">
+          <span class="panel-title">Sign-in connections</span>
+          <button class="btn btn-sm" data-modal="linkModal">＋ Link another</button>
+        </div>
+
+        <p class="px-5 pt-3.5 text-[12.5px]" style="color:var(--muted);">
+          Any of these signs you into this same identity. Every one of them resolves to a
+          verified email address. That's what makes anonymous participation impossible.
+        </p>
+
+        <table class="tbl mt-3.5">
+          <thead>
+            <tr><th>Method</th><th>Email</th><th>Added</th><th>Last used</th><th style="text-align:right;"></th></tr>
+          </thead>
+          <tbody id="authBody">
+            <tr data-conn="google">
+              <td>
+                <div class="flex items-center gap-2.5">
+                  <svg width="16" height="16" viewBox="0 0 18 18" aria-hidden="true">
+                    <path fill="#4285F4" d="M17.6 9.2c0-.6-.05-1.2-.16-1.8H9v3.4h4.8a4.1 4.1 0 0 1-1.8 2.7v2.2h2.9c1.7-1.6 2.7-3.9 2.7-6.5Z"/>
+                    <path fill="#34A853" d="M9 18c2.4 0 4.5-.8 6-2.2l-2.9-2.2c-.8.5-1.8.9-3.1.9-2.4 0-4.4-1.6-5.1-3.8H.9v2.3A9 9 0 0 0 9 18Z"/>
+                    <path fill="#FBBC05" d="M3.9 10.7a5.4 5.4 0 0 1 0-3.4V5H.9a9 9 0 0 0 0 8l3-2.3Z"/>
+                    <path fill="#EA4335" d="M9 3.6c1.3 0 2.5.5 3.4 1.3L15 2.3A9 9 0 0 0 .9 5l3 2.3C4.6 5.2 6.6 3.6 9 3.6Z"/>
+                  </svg>
+                  <span class="font-semibold text-[13px]">Google · OIDC</span>
+                </div>
+              </td>
+              <td class="mono text-[12px]">dana.okafor@gmail.com <span class="badge badge--listed ml-1">Verified</span></td>
+              <td class="mono text-[11.5px]" style="color:var(--muted);">Nov 12, 2025</td>
+              <td class="mono text-[11.5px]" style="color:var(--muted);">Today, 7:20 AM</td>
+              <td style="text-align:right;">
+                <button class="btn btn-sm btn-danger" data-unlink="google">Unlink</button>
+              </td>
+            </tr>
+            <tr data-conn="work">
+              <td>
+                <div class="flex items-center gap-2.5">
+                  <span style="width:16px; text-align:center;">✉️</span>
+                  <span class="font-semibold text-[13px]">Passwordless email</span>
+                </div>
+              </td>
+              <td class="mono text-[12px]">d.okafor@atlas-systems.io <span class="badge badge--listed ml-1">Verified</span></td>
+              <td class="mono text-[11.5px]" style="color:var(--muted);">Feb 2, 2026</td>
+              <td class="mono text-[11.5px]" style="color:var(--muted);">Jul 30, 4:11 PM</td>
+              <td style="text-align:right;">
+                <button class="btn btn-sm btn-danger" data-unlink="work">Unlink</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="notice m-5" style="margin-top:0;">
+          <span class="notice__icon">ⓘ</span>
+          <span>
+            Tawk hasn't decided which of these is your “canonical” profile address; the MVP
+            treats every verified connection as equally able to reach this identity.
+          </span>
+        </div>
+      </section>
+
+      <!-- ---------------------------------------------------- memberships -->
+      <section class="card overflow-hidden">
+        <div class="panel-head">
+          <span class="panel-title">Your standing across conversations</span>
+          <a href="hub.html" class="text-[11.5px]" style="color:var(--pine); font-weight:600;">Open hub</a>
+        </div>
+        <table class="tbl">
+          <tbody>
+            <tr>
+              <td><a href="conversation.html" class="font-semibold text-[13px]">Atlas Release War Room</a>
+                  <p class="text-[11.5px]" style="color:var(--faint);">Unlisted · 4 tags</p></td>
+              <td><span class="badge badge--owner">Owner</span></td>
+              <td class="text-[12px]" style="color:var(--muted);">Sole owner, can't leave without promoting a successor</td>
+            </tr>
+            <tr>
+              <td><a href="conversation.html" class="font-semibold text-[13px]">NYC Bike Commuters</a>
+                  <p class="text-[11.5px]" style="color:var(--faint);">Listed · exclusive match</p></td>
+              <td><span class="badge badge--admin">Administrator</span></td>
+              <td class="text-[12px]" style="color:var(--muted);">2 open tickets awaiting review</td>
+            </tr>
+            <tr>
+              <td><a href="conversation.html" class="font-semibold text-[13px]">Sunday Sci-Fi</a>
+                  <p class="text-[11.5px]" style="color:var(--faint);">Listed</p></td>
+              <td><span class="badge">Member</span></td>
+              <td class="text-[12px]" style="color:var(--hold);">Posting suspended until Aug 5, 6:00 PM</td>
+            </tr>
+            <tr>
+              <td><span class="font-semibold text-[13px]" style="color:var(--muted);">Winter Cycling</span>
+                  <p class="text-[11.5px]" style="color:var(--faint);">Listed</p></td>
+              <td><span class="badge badge--danger">Banned</span></td>
+              <td class="text-[12px]" style="color:var(--muted);">Since Mar 2, 2026 · can't rejoin, tags or no tags</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+    </div>
+
+    <!-- ============================================================== rail -->
+    <aside class="space-y-5" style="position:sticky; top:80px;">
+
+      <div class="card card-pad">
+        <p class="eyebrow mb-2.5">Identity</p>
+        <dl class="space-y-2.5 text-[12.5px]">
+          <div class="flex justify-between gap-3"><dt style="color:var(--muted);">Type</dt><dd class="font-semibold">Person</dd></div>
+          <div class="flex justify-between gap-3"><dt style="color:var(--muted);">Created</dt><dd class="mono">Nov 12, 2025</dd></div>
+          <div class="flex justify-between gap-3"><dt style="color:var(--muted);">Connections</dt><dd class="font-semibold">2 verified</dd></div>
+          <div class="flex justify-between gap-3"><dt style="color:var(--muted);">Conversations</dt><dd class="font-semibold">5 active · 1 archived</dd></div>
+        </dl>
+      </div>
+
+      <div class="card card-pad">
+        <p class="eyebrow mb-2.5">Why there's no delete button</p>
+        <p class="text-[12.5px]" style="color:var(--muted);">
+          Tawk doesn't hard-delete. Memberships end with a timestamp, messages are
+          soft-deleted, and conversations are archived. Account erasure isn't part of the MVP,
+          so nothing here pretends to offer it.
+        </p>
+      </div>
+
+      <div class="card card-pad">
+        <p class="eyebrow mb-2.5">Bots</p>
+        <p class="text-[12.5px]" style="color:var(--muted);">
+          Bot identities live outside this page; they authenticate with tokens rather than
+          email, and the MVP has no human-facing console for issuing them.
+        </p>
+      </div>
+
+      <a href="../login/login.html" class="btn btn-block">Sign out</a>
+      <p class="text-[11.5px] text-center"><a href="../index.html" style="color:var(--faint);" class="hover:underline">Mockup index</a></p>
+
+    </aside>
+
+  </div>
+</div>
+
+<!-- ============================== link ================================ -->
+<div class="overlay" id="linkModal">
+  <div class="modal">
+    <div class="panel-head">
+      <span class="panel-title">Link another sign-in</span>
+      <button class="btn btn-ghost btn-sm" data-close="linkModal">✕</button>
+    </div>
+    <div class="p-5">
+      <p class="text-[13px]" style="color:var(--muted);">
+        Adding a connection doesn't create a second identity. Whichever you use, you land in
+        the same conversations with the same history.
+      </p>
+
+      <button class="btn btn-block mt-4" style="height:42px;" id="linkGoogle">
+        <svg width="16" height="16" viewBox="0 0 18 18" aria-hidden="true">
+          <path fill="#4285F4" d="M17.6 9.2c0-.6-.05-1.2-.16-1.8H9v3.4h4.8a4.1 4.1 0 0 1-1.8 2.7v2.2h2.9c1.7-1.6 2.7-3.9 2.7-6.5Z"/>
+          <path fill="#34A853" d="M9 18c2.4 0 4.5-.8 6-2.2l-2.9-2.2c-.8.5-1.8.9-3.1.9-2.4 0-4.4-1.6-5.1-3.8H.9v2.3A9 9 0 0 0 9 18Z"/>
+          <path fill="#FBBC05" d="M3.9 10.7a5.4 5.4 0 0 1 0-3.4V5H.9a9 9 0 0 0 0 8l3-2.3Z"/>
+          <path fill="#EA4335" d="M9 3.6c1.3 0 2.5.5 3.4 1.3L15 2.3A9 9 0 0 0 .9 5l3 2.3C4.6 5.2 6.6 3.6 9 3.6Z"/>
+        </svg>
+        Link a Google account
+      </button>
+
+      <div class="flex items-center gap-3 my-4">
+        <span style="flex:1; height:1px; background:var(--line);"></span>
+        <span class="eyebrow">or</span>
+        <span style="flex:1; height:1px; background:var(--line);"></span>
+      </div>
+
+      <label class="label" for="newEmail">Email address</label>
+      <input class="input" id="newEmail" type="email" placeholder="you@somewhere-else.com">
+      <p class="hint">We'll send a six-digit code to confirm you own it.</p>
+
+      <div class="mt-5 flex justify-end gap-2.5">
+        <button class="btn" data-close="linkModal">Cancel</button>
+        <button class="btn btn-primary" id="linkGo">Send verification code</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="../assets/tawk.js"></script>
+<script>
+  /* monogram follows the display name */
+  var display = document.getElementById('display');
+  display.addEventListener('input', function () {
+    var parts = display.value.trim().split(/\s+/).filter(Boolean);
+    document.getElementById('preview').textContent =
+      parts.slice(0, 2).map(function (p) { return p[0]; }).join('').toUpperCase() || '?';
+  });
+
+  document.getElementById('saveProfile').addEventListener('click', function () {
+    var hint = document.getElementById('displayHint');
+    if (!display.value.trim()) {
+      hint.textContent = 'A display name is required. Tawk has no anonymous participation.';
+      hint.style.color = 'var(--danger)';
+      display.focus();
+      return;
+    }
+    hint.textContent = 'The only required field. Shown beside every message you post and every conversation you own, including to bots.';
+    hint.style.color = '';
+    tawkPending(this, 'Saving', function () { tawkToast('Profile saved.'); });
+  });
+
+  /* unlinking: never leave an identity without a way back in */
+  document.getElementById('authBody').addEventListener('click', function (e) {
+    var btn = e.target.closest('[data-unlink]');
+    if (!btn) return;
+
+    if (document.querySelectorAll('#authBody tr').length <= 1) {
+      tawkToast('You can’t remove your last sign-in method.');
+      return;
+    }
+    tawkPending(btn, 'Unlinking', function () {
+      document.querySelector('[data-conn="' + btn.dataset.unlink + '"]').remove();
+      tawkToast('Connection unlinked. Your identity, memberships and messages are untouched.');
+    });
+  });
+
+  document.getElementById('linkGoogle').addEventListener('click', function () {
+    tawkPending(this, 'Contacting Google', function () {
+      tawkClose('linkModal');
+      tawkToast('Google account linked to this identity.');
+    });
+  });
+
+  document.getElementById('linkGo').addEventListener('click', function () {
+    var email = document.getElementById('newEmail');
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email.value.trim())) {
+      email.focus();
+      tawkToast('Enter a valid email address.');
+      return;
+    }
+    tawkPending(this, 'Sending', function () {
+      tawkClose('linkModal');
+      email.value = '';
+      tawkToast('Verification code sent. Confirm it to finish linking.');
+    });
+  });
+</script>
+</body>
+</html>

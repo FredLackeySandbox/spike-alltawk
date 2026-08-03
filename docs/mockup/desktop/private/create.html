@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1080">
+<title>New conversation · Tawk</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/tawk.css">
+</head>
+<body>
+
+<!-- Conversation Hub · creation. Creator becomes the first owner. -->
+
+<div class="appbar">
+  <div class="shell px-10">
+    <div class="appbar__inner">
+      <a href="hub.html" class="brand"><span class="brand__mark">t</span><span>Tawk</span></a>
+      <nav class="flex items-center gap-6 flex-1">
+        <a href="hub.html" class="navlink">Conversations</a>
+        <a href="discover.html" class="navlink">Discover</a>
+        <a href="moderation.html" class="navlink">Moderation <span class="badge badge--hold ml-1">2</span></a>
+      </nav>
+      <a href="profile.html" class="avatar avatar--sm a-clay" title="Dana Okafor">DO</a>
+    </div>
+  </div>
+</div>
+
+<div class="shell px-10 py-9">
+
+  <a href="hub.html" class="backlink">← Conversations</a>
+
+  <div class="grid grid-cols-[minmax(0,1fr)_318px] gap-8 items-start mt-4">
+
+    <!-- ============================================================== form -->
+    <form id="createForm">
+      <h1 class="serif" style="font-size:30px;">Start a conversation</h1>
+      <p class="mt-2 text-[13.5px]" style="color:var(--muted);">
+        You'll be its first owner. Every active conversation must keep at least one.
+      </p>
+
+      <!-- identity -->
+      <section class="card card-pad mt-6">
+        <div>
+          <label class="label" for="title">Title <span style="color:var(--danger);">*</span></label>
+          <input class="input" id="title" maxlength="60" placeholder="Homelab Ops" value="Winter Bike Maintenance">
+          <p class="hint" id="titleHint">Shown in search results and at the top of the room.</p>
+        </div>
+
+        <div class="mt-5">
+          <label class="label" for="desc">Description <span style="color:var(--danger);">*</span></label>
+          <textarea class="textarea" id="desc" maxlength="240" placeholder="What is this room for?">Drivetrain salt damage, bearing rebuilds, and which grease actually survives February.</textarea>
+          <p class="hint"><span id="descCount">0</span>/240 characters</p>
+        </div>
+      </section>
+
+      <!-- tags -->
+      <section class="card card-pad mt-5">
+        <div class="flex items-baseline justify-between">
+          <label class="label" style="margin:0;" for="tagInput">Tags <span style="color:var(--danger);">*</span></label>
+          <span class="mono text-[11px]" id="tagCount" style="color:var(--muted);">0 / 10</span>
+        </div>
+
+        <div class="taginput mt-2" id="tagbox" onclick="document.getElementById('tagInput').focus()">
+          <span id="chips" style="display:contents;"></span>
+          <input id="tagInput" type="text" placeholder="cycling, winter, city:nyc…" autocomplete="off">
+        </div>
+
+        <p class="hint" id="tagHint">
+          Between one and ten. Lowercase a–z, digits and internal hyphens; up to 15
+          characters a side, and at most one colon.
+        </p>
+
+        <div class="mt-3.5 flex flex-wrap gap-1.5 items-center">
+          <span class="text-[11.5px] mr-1" style="color:var(--faint);">Reuse a common tag:</span>
+          <span class="tag tag--btn" data-add="cycling">cycling</span>
+          <span class="tag tag--btn" data-add="winter">winter</span>
+          <span class="tag tag--btn" data-add="maintenance">maintenance</span>
+          <span class="tag tag--btn" data-add="nyc">nyc</span>
+        </div>
+      </section>
+
+      <!-- discovery -->
+      <section class="card card-pad mt-5">
+        <p class="label" style="margin-bottom:12px;">Who can find it</p>
+
+        <div class="space-y-2.5">
+          <label class="radio-card">
+            <input type="radio" name="visibility" value="listed" checked>
+            <span>
+              <span class="flex items-center gap-2">
+                <b class="text-[13.5px]">Listed</b>
+                <span class="badge badge--listed"><i class="dot"></i>Discoverable</span>
+              </span>
+              <span class="block text-[12.5px] mt-1" style="color:var(--muted);">
+                Appears by name in tag search. Anyone who isn't banned can join right away;
+                there's no approval queue.
+              </span>
+            </span>
+          </label>
+
+          <label class="radio-card">
+            <input type="radio" name="visibility" value="unlisted">
+            <span>
+              <span class="flex items-center gap-2">
+                <b class="text-[13.5px]">Unlisted</b>
+                <span class="badge badge--unlisted">◎ Hidden</span>
+              </span>
+              <span class="block text-[12.5px] mt-1" style="color:var(--muted);">
+                Never named in search. Someone can only join by supplying this exact tag set,
+                with nothing extra. These tags will never be offered as suggestions to anyone.
+              </span>
+            </span>
+          </label>
+        </div>
+
+        <!-- exclusive matching: listed only -->
+        <div id="exclusiveWrap" class="mt-4 pt-4" style="border-top:1px solid var(--line);">
+          <label class="check">
+            <input type="checkbox" id="exclusive">
+            <span class="text-[13px]" style="color:var(--ink-2);">
+              <b>Require an exclusive match</b>
+              <span class="block text-[12.5px] mt-0.5" style="color:var(--muted);">
+                The room appears only for searchers who have selected <i>all</i> of its tags.
+                Off by default: any single matching tag surfaces it.
+              </span>
+            </span>
+          </label>
+          <p id="exclusiveLocked" class="notice notice--private mt-3" style="display:none;">
+            <span class="notice__icon">◎</span>
+            <span>Unlisted conversations always require every tag to match, so this
+            setting isn't configurable here.</span>
+          </p>
+        </div>
+      </section>
+
+      <!-- notes policy -->
+      <section class="card card-pad mt-5">
+        <p class="label" style="margin-bottom:10px;">Conversation-level notes</p>
+        <label class="check">
+          <input type="checkbox" id="notesOn" checked>
+          <span class="text-[13px]" style="color:var(--ink-2);">
+            <b>Allow top-level notes on this conversation</b>
+            <span class="block text-[12.5px] mt-0.5" style="color:var(--muted);">
+              Owners decide whether members may attach notes to the room itself. Notes on
+              threads and individual messages are always available. You can change this later.
+            </span>
+          </span>
+        </label>
+      </section>
+
+      <div class="mt-6 flex items-center gap-3">
+        <button type="submit" class="btn btn-primary btn-lg">Create conversation</button>
+        <a href="hub.html" class="btn btn-lg">Cancel</a>
+      </div>
+    </form>
+
+    <!-- ============================================================== rail -->
+    <aside class="space-y-5" style="position:sticky; top:80px;">
+
+      <div class="card overflow-hidden">
+        <div class="panel-head"><span class="panel-title">Search preview</span></div>
+        <div class="p-4">
+          <p class="text-[11.5px] mb-2.5" style="color:var(--faint);" id="previewNote">How your room will appear to searchers</p>
+          <div id="preview"></div>
+        </div>
+      </div>
+
+      <div class="card card-pad">
+        <p class="eyebrow mb-2.5">Tag rules</p>
+        <ul class="space-y-1.5 text-[12.5px]" style="color:var(--muted);">
+          <li>· 1–10 tags per conversation</li>
+          <li>· Lowercase only; capitals are normalized away</li>
+          <li>· <span class="mono">a–z</span>, <span class="mono">0–9</span> and hyphens; no spaces or Unicode</li>
+          <li>· 1–15 characters per side of the colon</li>
+          <li>· Exactly one colon, or none at all</li>
+          <li>· A side can't start or end with a hyphen</li>
+        </ul>
+        <hr class="rule my-3.5">
+        <p class="text-[12px]" style="color:var(--faint);">
+          Tags aren't owned. If someone already uses <span class="mono">cycling</span>,
+          you can use it too; you're not joining their room by doing so.
+        </p>
+      </div>
+
+    </aside>
+
+  </div>
+</div>
+
+<script src="../assets/tawk.js"></script>
+<script>
+var tags = ['cycling', 'winter'];
+
+var chips     = document.getElementById('chips');
+var input     = document.getElementById('tagInput');
+var hint      = document.getElementById('tagHint');
+var counter   = document.getElementById('tagCount');
+var exclusive = document.getElementById('exclusive');
+
+var DEFAULT_HINT = 'Between one and ten. Lowercase a–z, digits and internal hyphens; up to 15 characters a side, and at most one colon.';
+
+function fmtTag(v) {
+  if (v.indexOf(':') > -1) { var p = v.split(':'); return '<b>' + p[0] + '</b><i>:</i>' + p[1]; }
+  return v;
+}
+function visibility() {
+  return document.querySelector('input[name=visibility]:checked').value;
+}
+
+function setHint(msg, bad) {
+  hint.textContent = msg || DEFAULT_HINT;
+  hint.style.color = bad ? 'var(--danger)' : '';
+}
+
+function addTag(raw) {
+  if (tags.length >= 10) { setHint('Ten tags is the maximum. Remove one first.', true); return false; }
+  var check = tawkValidateTag(raw);
+  if (!check.ok) { setHint(check.error, true); return false; }
+  if (tags.indexOf(check.value) > -1) { setHint('“' + check.value + '” is already on this conversation.', true); return false; }
+
+  var normalized = String(raw).trim() !== check.value;
+  tags.push(check.value);
+  setHint(normalized ? 'Normalized to “' + check.value + '” · tags are always stored lowercase.' : '', false);
+  render();
+  return true;
+}
+
+function removeTag(v) {
+  tags = tags.filter(function (t) { return t !== v; });
+  setHint('');
+  render();
+}
+
+function renderChips() {
+  chips.innerHTML = '';
+  tags.forEach(function (t) {
+    var el = document.createElement('span');
+    el.className = 'tag tag--sel';
+    el.innerHTML = fmtTag(t) + '<span class="tag__x" role="button" aria-label="Remove ' + t + '">×</span>';
+    el.querySelector('.tag__x').addEventListener('click', function (e) { e.stopPropagation(); removeTag(t); });
+    chips.appendChild(el);
+  });
+  counter.textContent = tags.length + ' / 10';
+  counter.style.color = tags.length === 0 ? 'var(--danger)' : (tags.length === 10 ? 'var(--hold)' : 'var(--muted)');
+}
+
+function renderPreview() {
+  var unlisted = visibility() === 'unlisted';
+  var title = document.getElementById('title').value.trim() || 'Untitled conversation';
+  var desc  = document.getElementById('desc').value.trim()  || 'No description yet.';
+  var box   = document.getElementById('preview');
+  var note  = document.getElementById('previewNote');
+
+  if (unlisted) {
+    note.textContent = 'What a searcher sees before matching every tag';
+    box.innerHTML =
+      '<div class="rounded-lg border p-3.5" style="border-color:var(--private-line); background:var(--private-soft);">' +
+        '<p class="font-semibold text-[13px]" style="color:var(--private);">1 hidden conversation matches</p>' +
+        '<p class="text-[12px] mt-1" style="color:#46396d;">Name, description and tags stay hidden. ' +
+          'The searcher must supply all ' + (tags.length || '–') + ' tags exactly.</p>' +
+        '<div class="flex gap-1.5 mt-2.5">' +
+          tags.map(function () { return '<span class="tag tag--ghost">?</span>'; }).join('') +
+        '</div>' +
+      '</div>';
+    return;
+  }
+
+  note.textContent = 'How your room will appear to searchers';
+  box.innerHTML =
+    '<div class="rounded-lg border p-3.5" style="border-color:var(--line);">' +
+      '<div class="flex items-center gap-2 flex-wrap">' +
+        '<span class="font-semibold text-[13.5px]">' + title.replace(/</g, '&lt;') + '</span>' +
+        '<span class="badge badge--listed"><i class="dot"></i>Listed</span>' +
+        (exclusive.checked ? '<span class="badge" style="background:#fff;">Exclusive</span>' : '') +
+      '</div>' +
+      '<p class="text-[12px] mt-1" style="color:var(--muted);">' + desc.replace(/</g, '&lt;') + '</p>' +
+      '<div class="flex flex-wrap gap-1.5 mt-2.5">' +
+        (tags.length
+          ? tags.map(function (t) { return '<span class="tag">' + fmtTag(t) + '</span>'; }).join('')
+          : '<span class="tag tag--ghost">no tags yet</span>') +
+      '</div>' +
+      '<p class="text-[11.5px] mt-3" style="color:var(--muted);">' +
+        (exclusive.checked
+          ? 'Surfaces only when a searcher has selected all ' + (tags.length || 0) + ' tags.'
+          : 'Surfaces when a searcher selects any one of these tags.') +
+      '</p>' +
+    '</div>';
+}
+
+function renderVisibility() {
+  var unlisted = visibility() === 'unlisted';
+  exclusive.disabled = unlisted;
+  if (unlisted) exclusive.checked = false;
+  document.getElementById('exclusiveLocked').style.display = unlisted ? 'flex' : 'none';
+  document.getElementById('exclusiveWrap').style.opacity = unlisted ? '.6' : '1';
+}
+
+function render() {
+  renderChips();
+  renderVisibility();
+  renderPreview();
+}
+
+/* events */
+input.addEventListener('keydown', function (e) {
+  if (e.key === 'Enter' || e.key === ',' || e.key === ' ') {
+    e.preventDefault();
+    if (input.value.trim() && addTag(input.value)) input.value = '';
+  }
+  if (e.key === 'Backspace' && !input.value && tags.length) removeTag(tags[tags.length - 1]);
+});
+
+Array.prototype.forEach.call(document.querySelectorAll('[data-add]'), function (el) {
+  el.addEventListener('click', function () { addTag(el.dataset.add); });
+});
+
+Array.prototype.forEach.call(document.querySelectorAll('input[name=visibility]'), function (r) {
+  r.addEventListener('change', render);
+});
+exclusive.addEventListener('change', renderPreview);
+document.getElementById('title').addEventListener('input', renderPreview);
+
+var desc = document.getElementById('desc');
+var descCount = document.getElementById('descCount');
+function countDesc() { descCount.textContent = desc.value.length; }
+desc.addEventListener('input', function () { countDesc(); renderPreview(); });
+
+document.getElementById('createForm').addEventListener('submit', function (e) {
+  e.preventDefault();
+  var title = document.getElementById('title');
+  var titleHint = document.getElementById('titleHint');
+
+  if (!title.value.trim()) {
+    titleHint.textContent = 'Every conversation needs a title.';
+    titleHint.style.color = 'var(--danger)';
+    title.focus();
+    return;
+  }
+  titleHint.textContent = 'Shown in search results and at the top of the room.';
+  titleHint.style.color = '';
+
+  if (!desc.value.trim()) {
+    desc.focus();
+    tawkToast('A description is required.');
+    return;
+  }
+  if (!tags.length) {
+    setHint('Add at least one tag. Tags are how anyone reaches this conversation.', true);
+    input.focus();
+    return;
+  }
+
+  tawkPending(e.target.querySelector('button[type=submit]'), 'Creating', function () {
+    window.location.href = 'conversation.html';
+  });
+});
+
+countDesc();
+render();
+</script>
+</body>
+</html>

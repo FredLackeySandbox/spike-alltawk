@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1080">
+<title>Members &amp; roles · NYC Bike Commuters · Tawk</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/tawk.css">
+<style>
+  .subnav { display: flex; gap: 4px; }
+  .subnav a { padding: 6px 12px; border-radius: 7px; font-size: 13px; font-weight: 550; color: var(--muted); }
+  .subnav a:hover { background: var(--sunk); color: var(--ink); }
+  .subnav a[aria-current] { background: var(--ink); color: #fff; }
+  .who { display: flex; align-items: center; gap: 10px; }
+  .rowmenu { display: flex; flex-wrap: wrap; gap: 5px; justify-content: flex-end; }
+  .rolestate { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; }
+  .col-when { width: 96px; }
+  .col-act  { width: 188px; }
+</style>
+</head>
+<body>
+
+<!-- Conversation Administration · membership, roles, bans and posting restrictions.
+     Dana Okafor is an ADMINISTRATOR: she cannot touch owner assignments. -->
+
+<div class="appbar">
+  <div class="shell px-10">
+    <div class="appbar__inner">
+      <a href="hub.html" class="brand"><span class="brand__mark">t</span><span>Tawk</span></a>
+      <nav class="flex items-center gap-6 flex-1">
+        <a href="hub.html" class="navlink" aria-current="page">Conversations</a>
+        <a href="discover.html" class="navlink">Discover</a>
+        <a href="moderation.html" class="navlink">Moderation <span class="badge badge--hold ml-1">2</span></a>
+      </nav>
+      <a href="create.html" class="btn btn-sm btn-primary">＋ New conversation</a>
+      <a href="profile.html" class="avatar avatar--sm a-clay" title="Dana Okafor">DO</a>
+    </div>
+  </div>
+</div>
+
+<div class="shell px-10 py-7">
+
+  <div class="flex items-center justify-between gap-6 mb-5">
+    <div>
+      <a href="conversation.html" class="backlink">← Back to the conversation</a>
+      <div class="flex items-center gap-2.5 mt-1.5">
+        <div class="avatar a-rust" style="border-radius:9px;">NB</div>
+        <div>
+          <h1 class="text-[19px] font-semibold" style="letter-spacing:-.02em;">NYC Bike Commuters</h1>
+          <p class="text-[12px]" style="color:var(--muted);">1,204 active · 1 banned · 38 former</p>
+        </div>
+      </div>
+    </div>
+    <span class="badge badge--admin" style="font-size:12px; padding:5px 11px;">Your role: Administrator</span>
+  </div>
+
+  <nav class="subnav mb-6">
+    <a href="admin.html">Settings</a>
+    <a href="admin-members.html" aria-current="page">Members &amp; roles</a>
+    <a href="admin-emoji.html">Custom emoji</a>
+    <a href="moderation.html">Moderation</a>
+  </nav>
+
+  <div class="grid grid-cols-[minmax(0,1fr)_252px] gap-6 items-start">
+
+    <div class="space-y-5">
+
+      <!-- ------------------------------------------------------- active -->
+      <section class="card overflow-hidden">
+        <div class="panel-head">
+          <span class="panel-title">Active participants</span>
+          <input class="input" id="filter" placeholder="Filter by name…" style="width:170px; padding:6px 10px; font-size:12.5px;">
+        </div>
+
+        <table class="tbl">
+          <thead>
+            <tr>
+              <th>Identity</th>
+              <th>Role &amp; state</th>
+              <th class="col-when">Since</th>
+              <th class="col-act" style="text-align:right;">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="activeBody">
+
+            <tr data-name="Priya Raghunathan">
+              <td>
+                <div class="who">
+                  <span class="avatar avatar--sm a-plum">PR</span>
+                  <div>
+                    <p class="font-semibold text-[13px]">Priya Raghunathan</p>
+                    <p class="mono text-[10.5px]" style="color:var(--faint);">priya@raghunathan.dev</p>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div class="rolestate">
+                  <span class="badge badge--owner">Owner</span>
+                  <span class="statewrap"><span class="badge badge--listed"><i class="dot"></i>Active</span></span>
+                </div>
+              </td>
+              <td class="mono text-[11.5px]" style="color:var(--muted);">Nov 12, 2025</td>
+              <td>
+                <div class="rowmenu">
+                  <button class="btn btn-sm" aria-disabled="true" title="Administrators cannot alter owners">Role</button>
+                  <button class="btn btn-sm btn-danger" aria-disabled="true" title="Administrators cannot alter owners">Remove</button>
+                </div>
+              </td>
+            </tr>
+
+            <tr data-name="Dana Okafor">
+              <td>
+                <div class="who">
+                  <span class="avatar avatar--sm a-clay">DO</span>
+                  <div>
+                    <p class="font-semibold text-[13px]">Dana Okafor <span class="faint font-normal">(you)</span></p>
+                    <p class="mono text-[10.5px]" style="color:var(--faint);">dana.okafor@gmail.com</p>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div class="rolestate">
+                  <span class="badge badge--admin">Administrator</span>
+                  <span class="statewrap"><span class="badge badge--listed"><i class="dot"></i>Active</span></span>
+                </div>
+              </td>
+              <td class="mono text-[11.5px]" style="color:var(--muted);">Feb 2, 2026</td>
+              <td>
+                <div class="rowmenu">
+                  <a href="conversation.html" class="btn btn-sm">Leave</a>
+                </div>
+              </td>
+            </tr>
+
+            <tr data-name="Yuki Tanaka">
+              <td>
+                <div class="who">
+                  <span class="avatar avatar--sm a-teal">YT</span>
+                  <div>
+                    <p class="font-semibold text-[13px]">Yuki Tanaka</p>
+                    <p class="mono text-[10.5px]" style="color:var(--faint);">y.tanaka@fastmail.com</p>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div class="rolestate">
+                  <span class="badge">Member</span>
+                  <span class="statewrap"><span class="badge badge--listed"><i class="dot"></i>Active</span></span>
+                </div>
+              </td>
+              <td class="mono text-[11.5px]" style="color:var(--muted);">Jan 8, 2026</td>
+              <td>
+                <div class="rowmenu">
+                  <button class="btn btn-sm" data-promote="Yuki Tanaka">Admin</button>
+                  <button class="btn btn-sm" data-suspend="Yuki Tanaka">Suspend</button>
+                  <button class="btn btn-sm btn-danger" data-ban="Yuki Tanaka">Ban</button>
+                </div>
+              </td>
+            </tr>
+
+            <tr data-name="Marcus Feld">
+              <td>
+                <div class="who">
+                  <span class="avatar avatar--sm a-pine">MF</span>
+                  <div>
+                    <p class="font-semibold text-[13px]">Marcus Feld</p>
+                    <p class="mono text-[10.5px]" style="color:var(--faint);">marcus.feld@hey.com</p>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div class="rolestate">
+                  <span class="badge">Member</span>
+                  <span class="statewrap">
+                    <span class="badge badge--listed"><i class="dot"></i>Active</span>
+                    <span class="badge" style="font-size:10px;">3rd join</span>
+                  </span>
+                </div>
+              </td>
+              <td class="mono text-[11.5px]" style="color:var(--muted);">Dec 1, 2025</td>
+              <td>
+                <div class="rowmenu">
+                  <button class="btn btn-sm" data-promote="Marcus Feld">Admin</button>
+                  <button class="btn btn-sm" data-suspend="Marcus Feld">Suspend</button>
+                  <button class="btn btn-sm btn-danger" data-ban="Marcus Feld">Ban</button>
+                </div>
+              </td>
+            </tr>
+
+            <tr data-name="Sam Boateng">
+              <td>
+                <div class="who">
+                  <span class="avatar avatar--sm a-sand">SB</span>
+                  <div>
+                    <p class="font-semibold text-[13px]">Sam Boateng</p>
+                    <p class="mono text-[10.5px]" style="color:var(--faint);">sboateng@proton.me</p>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div class="rolestate">
+                  <span class="badge">Member</span>
+                  <span class="statewrap">
+                    <span class="badge badge--hold">⏸ Posting suspended</span>
+                    <span class="block text-[10.5px] mt-1" style="color:var(--hold);">Until Aug 5, 6:00 PM · still a member, can read</span>
+                  </span>
+                </div>
+              </td>
+              <td class="mono text-[11.5px]" style="color:var(--muted);">Mar 15, 2026</td>
+              <td>
+                <div class="rowmenu">
+                  <button class="btn btn-sm" data-lift="Sam Boateng">Lift</button>
+                  <button class="btn btn-sm btn-danger" data-ban="Sam Boateng">Ban</button>
+                </div>
+              </td>
+            </tr>
+
+            <tr data-name="Route Alert Bot">
+              <td>
+                <div class="who">
+                  <span class="avatar avatar--sm avatar--bot a-slate">RA</span>
+                  <div>
+                    <p class="font-semibold text-[13px]">Route Alert Bot</p>
+                    <p class="mono text-[10.5px]" style="color:var(--faint);">token · last used 41 min ago</p>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div class="rolestate">
+                  <span><span class="badge">Member</span> <span class="badge badge--bot">BOT</span></span>
+                  <span class="statewrap"><span class="badge badge--listed"><i class="dot"></i>Active</span></span>
+                </div>
+              </td>
+              <td class="mono text-[11.5px]" style="color:var(--muted);">Nov 20, 2025</td>
+              <td>
+                <div class="rowmenu">
+                  <button class="btn btn-sm" data-promote="Route Alert Bot">Admin</button>
+                  <button class="btn btn-sm" data-suspend="Route Alert Bot">Suspend</button>
+                  <button class="btn btn-sm btn-danger" data-ban="Route Alert Bot">Ban</button>
+                </div>
+              </td>
+            </tr>
+
+          </tbody>
+        </table>
+        <p class="px-4 py-3 text-[12px]" style="color:var(--faint); border-top:1px solid var(--line);">
+          Showing 6 of 1,204 active participants. Bots hold the same roles as people and get
+          no special treatment here.
+        </p>
+      </section>
+
+      <!-- -------------------------------------------------------- banned -->
+      <section class="card overflow-hidden">
+        <div class="panel-head" style="background:var(--danger-soft); border-color:var(--danger-line);">
+          <span class="panel-title" style="color:var(--danger);">Banned</span>
+          <span class="text-[11.5px]" style="color:var(--danger);">Membership retained with a role of “none”</span>
+        </div>
+        <table class="tbl">
+          <tbody>
+            <tr id="bannedRow">
+              <td>
+                <div class="who">
+                  <span class="avatar avatar--sm a-rust avatar--former">TI</span>
+                  <div>
+                    <p class="font-semibold text-[13px]" style="color:var(--muted);">Tomás Ibarra</p>
+                    <p class="mono text-[10.5px]" style="color:var(--faint);">t.ibarra@gmail.com</p>
+                  </div>
+                </div>
+              </td>
+              <td><span class="badge badge--danger">Banned</span></td>
+              <td class="text-[12px]" style="color:var(--muted);">
+                By Priya Raghunathan · Mar 2, 2026<br>
+                <span class="text-[11px]" style="color:var(--faint);">Following TKT-0981</span>
+              </td>
+              <td class="col-act" style="text-align:right;">
+                <button class="btn btn-sm" data-unban="Tomás Ibarra">Restore</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <p class="px-4 py-3 text-[12px]" style="color:var(--faint); border-top:1px solid var(--line);">
+          A banned identity can't rejoin even with the correct tags. The membership record
+          stays so the ban survives any attempt to leave and come back.
+        </p>
+      </section>
+
+      <!-- -------------------------------------------------------- former -->
+      <section class="card overflow-hidden">
+        <div class="panel-head">
+          <span class="panel-title">Former participants</span>
+          <span class="text-[11.5px]" style="color:var(--muted);">Owners and administrators only</span>
+        </div>
+        <table class="tbl">
+          <tbody>
+            <tr class="is-former">
+              <td>
+                <div class="who">
+                  <span class="avatar avatar--sm a-moss avatar--former">EV</span>
+                  <div>
+                    <p class="font-semibold text-[13px]">Elena Vargas</p>
+                    <p class="mono text-[10.5px]">e.vargas@icloud.com</p>
+                  </div>
+                </div>
+              </td>
+              <td><span class="badge">Left voluntarily</span></td>
+              <td class="text-[12px]">Aug 1, 2026 · was a Member for 7 months</td>
+              <td class="text-[12px]" style="text-align:right;">Free to rejoin, not banned</td>
+            </tr>
+            <tr class="is-former">
+              <td>
+                <div class="who">
+                  <span class="avatar avatar--sm a-slate avatar--former">JK</span>
+                  <div>
+                    <p class="font-semibold text-[13px]">Jonah Kessler</p>
+                    <p class="mono text-[10.5px]">jonah@kessler.io</p>
+                  </div>
+                </div>
+              </td>
+              <td><span class="badge">Removed</span></td>
+              <td class="text-[12px]">Jun 9, 2026 · removed by Priya Raghunathan</td>
+              <td class="text-[12px]" style="text-align:right;">Removal isn't a ban, may rejoin</td>
+            </tr>
+          </tbody>
+        </table>
+        <p class="px-4 py-3 text-[12px]" style="color:var(--faint); border-top:1px solid var(--line);">
+          Their messages stay in the conversation with their names greyed out. Ordinary
+          members never see this list.
+        </p>
+      </section>
+
+    </div>
+
+    <!-- ============================================================== rail -->
+    <aside class="space-y-5" style="position:sticky; top:80px;">
+
+      <div class="card card-pad">
+        <p class="eyebrow mb-2.5">Owner invariant</p>
+        <div class="notice notice--pine" style="padding:11px 13px;">
+          <span class="notice__icon">🔑</span>
+          <span class="text-[12.5px]">
+            This room has <b>1 owner</b>. Priya can't leave or step down until someone else
+            is promoted to owner; archiving is the only alternative.
+          </span>
+        </div>
+        <p class="hint">
+          As an administrator you can't promote anyone to owner, so this is Priya's call.
+        </p>
+      </div>
+
+      <div class="card card-pad">
+        <p class="eyebrow mb-2.5">Action reference</p>
+        <ul class="space-y-2.5 text-[12.5px]" style="color:var(--muted);">
+          <li><b style="color:var(--ink-2);">Suspend</b>: blocks posting until a set time. Membership and read access continue.</li>
+          <li><b style="color:var(--ink-2);">Remove</b>: ends the membership cycle. They may rejoin.</li>
+          <li><b style="color:var(--ink-2);">Ban</b>: role becomes “none”. Cannot rejoin, ever, tags or no tags.</li>
+          <li><b style="color:var(--ink-2);">Restore</b>: lifts a ban and puts them back at member.</li>
+        </ul>
+      </div>
+
+      <div class="card card-pad">
+        <p class="eyebrow mb-2.5">Recent role history</p>
+        <div class="timeline space-y-3.5">
+          <div style="position:relative;">
+            <span class="timeline__dot on" style="top:4px;"></span>
+            <p class="text-[12.5px]">Dana Okafor · member → administrator</p>
+            <p class="mono text-[10.5px]" style="color:var(--faint);">Feb 2, 2026 · by Priya Raghunathan</p>
+          </div>
+          <div style="position:relative;">
+            <span class="timeline__dot hold" style="top:4px;"></span>
+            <p class="text-[12.5px]">Tomás Ibarra · member → none (ban)</p>
+            <p class="mono text-[10.5px]" style="color:var(--faint);">Mar 2, 2026 · by Priya Raghunathan</p>
+          </div>
+          <div style="position:relative;">
+            <span class="timeline__dot" style="top:4px;"></span>
+            <p class="text-[12.5px]">Marcus Feld · rejoined as member</p>
+            <p class="mono text-[10.5px]" style="color:var(--faint);">Dec 1, 2025 · 3rd cycle</p>
+          </div>
+        </div>
+      </div>
+
+    </aside>
+
+  </div>
+</div>
+
+<!-- ============================== suspend ============================== -->
+<div class="overlay" id="suspendModal">
+  <div class="modal">
+    <div class="panel-head">
+      <span class="panel-title">Suspend posting: <span id="suspendWho"></span></span>
+      <button class="btn btn-ghost btn-sm" data-close="suspendModal">✕</button>
+    </div>
+    <div class="p-5">
+      <p class="text-[13px]" style="color:var(--muted);">
+        They stay a member and keep reading the conversation. They just can't post,
+        reply or react until the suspension ends.
+      </p>
+
+      <label class="label mt-4" for="suspendUntil">Ends at</label>
+      <input class="input" id="suspendUntil" type="datetime-local" value="2026-08-10T18:00">
+      <p class="hint">A posting suspension must have an end date and time.</p>
+
+      <label class="label mt-4" for="suspendWhy">Reason (kept with the moderation record)</label>
+      <textarea class="textarea" id="suspendWhy" style="min-height:64px;"
+                placeholder="Why this restriction is being applied."></textarea>
+
+      <div class="mt-5 flex justify-end gap-2.5">
+        <button class="btn" data-close="suspendModal">Cancel</button>
+        <button class="btn btn-primary" id="suspendGo">Apply suspension</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ================================ ban ================================ -->
+<div class="overlay" id="banModal">
+  <div class="modal" style="max-width:470px;">
+    <div class="p-5">
+      <h3 class="text-[16px]">Ban <span id="banWho"></span>?</h3>
+      <p class="mt-2 text-[13px]" style="color:var(--muted);">
+        Their role becomes <span class="mono">none</span>. The membership record stays, which
+        is what makes the ban stick; they can't rejoin even with the exact tag set.
+        Their existing messages remain in the conversation.
+      </p>
+      <label class="label mt-4" for="banWhy">Reason</label>
+      <textarea class="textarea" id="banWhy" style="min-height:64px;" placeholder="Recorded as a moderation action."></textarea>
+      <div class="mt-5 flex justify-end gap-2.5">
+        <button class="btn" data-close="banModal">Cancel</button>
+        <button class="btn btn-danger" id="banGo">Ban participant</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- =============================== promote ============================== -->
+<div class="overlay" id="promoteModal">
+  <div class="modal" style="max-width:470px;">
+    <div class="p-5">
+      <h3 class="text-[16px]">Promote <span id="promoteWho"></span></h3>
+      <p class="mt-2 text-[13px]" style="color:var(--muted);">
+        Choose the new role. A new role period starts now; the previous one is closed with
+        an end timestamp rather than overwritten.
+      </p>
+      <div class="space-y-2.5 mt-4">
+        <label class="radio-card">
+          <input type="radio" name="newrole" value="administrator" checked>
+          <span>
+            <b class="text-[13.5px]">Administrator</b>
+            <span class="block text-[12.5px] mt-0.5" style="color:var(--muted);">
+              Full moderation authority, tags, participants and custom emoji. Cannot touch owners.
+            </span>
+          </span>
+        </label>
+        <label class="radio-card" style="opacity:.55;">
+          <input type="radio" name="newrole" value="owner" disabled>
+          <span>
+            <span class="flex items-center gap-2"><b class="text-[13.5px]">Owner</b>
+              <span class="badge badge--owner">Owner only</span></span>
+            <span class="block text-[12.5px] mt-0.5" style="color:var(--muted);">
+              Only an existing owner can create another owner. You're an administrator.
+            </span>
+          </span>
+        </label>
+      </div>
+      <div class="mt-5 flex justify-end gap-2.5">
+        <button class="btn" data-close="promoteModal">Cancel</button>
+        <button class="btn btn-primary" id="promoteGo">Change role</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="../assets/tawk.js"></script>
+<script>
+  /* --- filter ------------------------------------------------------------ */
+  document.getElementById('filter').addEventListener('input', function () {
+    var q = this.value.trim().toLowerCase();
+    Array.prototype.forEach.call(document.querySelectorAll('#activeBody tr'), function (row) {
+      row.style.display = row.dataset.name.toLowerCase().indexOf(q) > -1 ? '' : 'none';
+    });
+  });
+
+  /* cells are addressed by class, never by column index */
+  function rowFor(name)   { return document.querySelector('tr[data-name="' + name + '"]'); }
+  function stateOf(row)   { return row.querySelector('.statewrap'); }
+  function menuOf(row)    { return row.querySelector('.rowmenu'); }
+
+  var ACTIVE_STATE = '<span class="badge badge--listed"><i class="dot"></i>Active</span>';
+
+  function fullMenu(who) {
+    return '<button class="btn btn-sm" data-promote="' + who + '">Admin</button>' +
+           '<button class="btn btn-sm" data-suspend="' + who + '">Suspend</button>' +
+           '<button class="btn btn-sm btn-danger" data-ban="' + who + '">Ban</button>';
+  }
+  function suspendedMenu(who) {
+    return '<button class="btn btn-sm" data-lift="' + who + '">Lift</button>' +
+           '<button class="btn btn-sm btn-danger" data-ban="' + who + '">Ban</button>';
+  }
+
+  /* --- open the right modal for the clicked row -------------------------- */
+  var target = null;
+
+  document.addEventListener('click', function (e) {
+    var el;
+
+    if ((el = e.target.closest('[data-suspend]'))) {
+      target = el.dataset.suspend;
+      document.getElementById('suspendWho').textContent = target;
+      tawkOpen('suspendModal');
+    }
+    if ((el = e.target.closest('[data-ban]'))) {
+      target = el.dataset.ban;
+      document.getElementById('banWho').textContent = target;
+      tawkOpen('banModal');
+    }
+    if ((el = e.target.closest('[data-promote]'))) {
+      target = el.dataset.promote;
+      document.getElementById('promoteWho').textContent = target;
+      tawkOpen('promoteModal');
+    }
+    if ((el = e.target.closest('[data-lift]'))) {
+      var who = el.dataset.lift;
+      tawkPending(el, 'Lifting', function () {
+        var row = rowFor(who);
+        stateOf(row).innerHTML = ACTIVE_STATE;
+        menuOf(row).innerHTML = fullMenu(who);
+        tawkToast('Suspension lifted early. ' + who + ' can post again.');
+      });
+    }
+    if ((el = e.target.closest('[data-unban]'))) {
+      var name = el.dataset.unban;
+      tawkPending(el, 'Restoring', function () {
+        var row = document.getElementById('bannedRow');
+        if (row) row.remove();
+        tawkToast(name + ' restored as an ordinary member.');
+      });
+    }
+  });
+
+  /* --- commit actions ---------------------------------------------------- */
+  document.getElementById('suspendGo').addEventListener('click', function () {
+    var until = document.getElementById('suspendUntil');
+    if (!until.value) { until.focus(); tawkToast('A suspension needs an end time.'); return; }
+
+    tawkPending(this, 'Applying', function () {
+      tawkClose('suspendModal');
+      var row = rowFor(target);
+      if (row) {
+        stateOf(row).innerHTML =
+          '<span class="badge badge--hold">⏸ Posting suspended</span>' +
+          '<span class="block text-[10.5px] mt-1" style="color:var(--hold);">Until ' +
+          until.value.replace('T', ', ') + ' · still a member, can read</span>';
+        menuOf(row).innerHTML = suspendedMenu(target);
+      }
+      tawkToast(target + ' suspended from posting.');
+    });
+  });
+
+  document.getElementById('banGo').addEventListener('click', function () {
+    tawkPending(this, 'Banning', function () {
+      tawkClose('banModal');
+      var row = rowFor(target);
+      if (row) row.remove();
+      tawkToast(target + ' banned. Role set to “none”. They cannot rejoin.');
+    });
+  });
+
+  document.getElementById('promoteGo').addEventListener('click', function () {
+    tawkPending(this, 'Updating', function () {
+      tawkClose('promoteModal');
+      var row = rowFor(target);
+      if (row) {
+        var rolestate = row.querySelector('.rolestate');
+        rolestate.firstElementChild.outerHTML = '<span class="badge badge--admin">Administrator</span>';
+      }
+      tawkToast(target + ' is now an administrator. Previous role period closed, not overwritten.');
+    });
+  });
+</script>
+</body>
+</html>

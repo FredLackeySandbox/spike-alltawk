@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1080">
+<title>Custom emoji · NYC Bike Commuters · Tawk</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/tawk.css">
+<style>
+  .subnav { display: flex; gap: 4px; }
+  .subnav a { padding: 6px 12px; border-radius: 7px; font-size: 13px; font-weight: 550; color: var(--muted); }
+  .subnav a:hover { background: var(--sunk); color: var(--ink); }
+  .subnav a[aria-current] { background: var(--ink); color: #fff; }
+  .swatch {
+    width: 38px; height: 38px; border-radius: 8px; flex: none;
+    display: grid; place-items: center; font-size: 18px;
+    background: var(--sunk); border: 1px solid var(--line);
+  }
+  .dropzone {
+    border: 1.5px dashed var(--line-2); border-radius: var(--radius-lg);
+    background: var(--surface-2); padding: 26px; text-align: center;
+    transition: border-color .12s, background .12s;
+  }
+  .dropzone:hover { border-color: var(--pine); background: var(--pine-soft); }
+</style>
+</head>
+<body>
+
+<!-- Conversation Administration · conversation-scoped custom emoji.
+     Only current owners and administrators may create these. -->
+
+<div class="appbar">
+  <div class="shell px-10">
+    <div class="appbar__inner">
+      <a href="hub.html" class="brand"><span class="brand__mark">t</span><span>Tawk</span></a>
+      <nav class="flex items-center gap-6 flex-1">
+        <a href="hub.html" class="navlink" aria-current="page">Conversations</a>
+        <a href="discover.html" class="navlink">Discover</a>
+        <a href="moderation.html" class="navlink">Moderation <span class="badge badge--hold ml-1">2</span></a>
+      </nav>
+      <a href="create.html" class="btn btn-sm btn-primary">＋ New conversation</a>
+      <a href="profile.html" class="avatar avatar--sm a-clay" title="Dana Okafor">DO</a>
+    </div>
+  </div>
+</div>
+
+<div class="shell px-10 py-7">
+
+  <div class="flex items-center justify-between gap-6 mb-5">
+    <div>
+      <a href="conversation.html" class="backlink">← Back to the conversation</a>
+      <div class="flex items-center gap-2.5 mt-1.5">
+        <div class="avatar a-rust" style="border-radius:9px;">NB</div>
+        <div>
+          <h1 class="text-[19px] font-semibold" style="letter-spacing:-.02em;">NYC Bike Commuters</h1>
+          <p class="text-[12px]" style="color:var(--muted);">3 custom emoji · scoped to this conversation only</p>
+        </div>
+      </div>
+    </div>
+    <span class="badge badge--admin" style="font-size:12px; padding:5px 11px;">Your role: Administrator</span>
+  </div>
+
+  <nav class="subnav mb-6">
+    <a href="admin.html">Settings</a>
+    <a href="admin-members.html">Members &amp; roles</a>
+    <a href="admin-emoji.html" aria-current="page">Custom emoji</a>
+    <a href="moderation.html">Moderation</a>
+  </nav>
+
+  <div class="grid grid-cols-[minmax(0,1fr)_296px] gap-7 items-start">
+
+    <div class="space-y-5">
+
+      <!-- ---------------------------------------------------------- list -->
+      <section class="card overflow-hidden">
+        <div class="panel-head">
+          <span class="panel-title">Conversation emoji</span>
+          <button class="btn btn-sm btn-primary" data-modal="uploadModal">＋ Add emoji</button>
+        </div>
+
+        <table class="tbl">
+          <thead>
+            <tr><th></th><th>Name</th><th>Format</th><th>Added by</th><th>Uses</th><th style="text-align:right;"></th></tr>
+          </thead>
+          <tbody id="emojiBody">
+
+            <tr data-emoji=":pothole:">
+              <td style="width:64px;"><span class="swatch">🕳️</span></td>
+              <td>
+                <p class="mono text-[12.5px] font-semibold">:pothole:</p>
+                <p class="text-[11.5px]" style="color:var(--faint);">The 3rd Ave crater, immortalised</p>
+              </td>
+              <td><span class="badge">PNG · 128×128</span></td>
+              <td class="text-[12px]" style="color:var(--muted);">Priya Raghunathan<br><span class="mono text-[10.5px]" style="color:var(--faint);">Jan 4, 2026</span></td>
+              <td class="mono text-[12px]">412</td>
+              <td style="text-align:right;"><button class="btn btn-sm btn-danger" data-remove=":pothole:">Remove</button></td>
+            </tr>
+
+            <tr data-emoji=":salt-crust:">
+              <td><span class="swatch">🧂</span></td>
+              <td>
+                <p class="mono text-[12.5px] font-semibold">:salt-crust:</p>
+                <p class="text-[11.5px]" style="color:var(--faint);">What February does to a drivetrain</p>
+              </td>
+              <td><span class="badge">GIF · animated</span></td>
+              <td class="text-[12px]" style="color:var(--muted);">Dana Okafor<br><span class="mono text-[10.5px]" style="color:var(--faint);">Feb 11, 2026</span></td>
+              <td class="mono text-[12px]">89</td>
+              <td style="text-align:right;"><button class="btn btn-sm btn-danger" data-remove=":salt-crust:">Remove</button></td>
+            </tr>
+
+            <tr data-emoji=":bridge-closed:">
+              <td><span class="swatch">🚧</span></td>
+              <td>
+                <p class="mono text-[12.5px] font-semibold">:bridge-closed:</p>
+                <p class="text-[11.5px]" style="color:var(--faint);">Used more often than anyone would like</p>
+              </td>
+              <td><span class="badge">JPEG · 96×96</span></td>
+              <td class="text-[12px]" style="color:var(--muted);">Dana Okafor<br><span class="mono text-[10.5px]" style="color:var(--faint);">Mar 30, 2026</span></td>
+              <td class="mono text-[12px]">1,207</td>
+              <td style="text-align:right;"><button class="btn btn-sm btn-danger" data-remove=":bridge-closed:">Remove</button></td>
+            </tr>
+
+          </tbody>
+        </table>
+      </section>
+
+      <!-- -------------------------------------------------------- upload -->
+      <section class="card card-pad">
+        <p class="label" style="margin-bottom:10px;">Add another</p>
+        <div class="dropzone" data-modal="uploadModal" style="cursor:pointer;">
+          <div class="empty__mark" style="margin:0 auto 10px;">⬆</div>
+          <p class="text-[13.5px] font-semibold">Drop a PNG, JPEG or animated GIF</p>
+          <p class="text-[12.5px] mt-1" style="color:var(--muted);">
+            Square images work best. Everyone in this conversation can then react with it.
+          </p>
+        </div>
+      </section>
+
+      <!-- ------------------------------------------------------- standard -->
+      <section class="card card-pad">
+        <div class="flex items-center justify-between">
+          <p class="label" style="margin:0;">Standard set</p>
+          <span class="badge">Always available</span>
+        </div>
+        <p class="text-[12.5px] mt-2" style="color:var(--muted);">
+          Every conversation gets the familiar default emoji set, the same one people expect
+          from Slack and similar clients. It can't be edited or removed.
+        </p>
+        <div class="flex flex-wrap gap-1.5 mt-3">
+          <span class="swatch" style="width:32px; height:32px; font-size:15px;">👍</span>
+          <span class="swatch" style="width:32px; height:32px; font-size:15px;">🎉</span>
+          <span class="swatch" style="width:32px; height:32px; font-size:15px;">😂</span>
+          <span class="swatch" style="width:32px; height:32px; font-size:15px;">😤</span>
+          <span class="swatch" style="width:32px; height:32px; font-size:15px;">🙏</span>
+          <span class="swatch" style="width:32px; height:32px; font-size:15px;">💯</span>
+          <span class="swatch" style="width:32px; height:32px; font-size:15px;">❤️</span>
+          <span class="swatch" style="width:32px; height:32px; font-size:15px;">👀</span>
+          <span class="swatch" style="width:32px; height:32px; font-size:15px;">🔥</span>
+          <span class="swatch" style="width:32px; height:32px; font-size:15px;">🤔</span>
+          <span class="swatch" style="width:32px; height:32px; font-size:15px;">✅</span>
+          <span class="swatch" style="width:32px; height:32px; font-size:15px;">❄️</span>
+        </div>
+      </section>
+
+    </div>
+
+    <!-- ============================================================== rail -->
+    <aside class="space-y-5" style="position:sticky; top:80px;">
+
+      <div class="card card-pad">
+        <p class="eyebrow mb-2.5">Who can add these</p>
+        <p class="text-[12.5px]" style="color:var(--muted);">
+          Only an identity holding a current <b style="color:var(--ink-2);">owner</b> or
+          <b style="color:var(--ink-2);">administrator</b> role in this conversation can
+          create a conversation-scoped emoji. Ordinary members can react with them but
+          can't add new ones.
+        </p>
+        <hr class="rule my-3.5">
+        <p class="text-[12px]" style="color:var(--faint);">
+          If your role changes, emoji you added stay; the check happens at creation time.
+        </p>
+      </div>
+
+      <div class="card card-pad">
+        <p class="eyebrow mb-2.5">Reaction behaviour</p>
+        <ul class="space-y-1.5 text-[12.5px]" style="color:var(--muted);">
+          <li>· Reactions work like Slack's: click to add, click again to remove</li>
+          <li>· Each reaction links one identity, one emoji and one message</li>
+          <li>· Removing a reaction keeps the history rather than erasing it</li>
+          <li>· Only active participants who can see a message can react to it</li>
+        </ul>
+      </div>
+
+    </aside>
+
+  </div>
+</div>
+
+<!-- ============================== upload ============================== -->
+<div class="overlay" id="uploadModal">
+  <div class="modal">
+    <div class="panel-head">
+      <span class="panel-title">Add a custom emoji</span>
+      <button class="btn btn-ghost btn-sm" data-close="uploadModal">✕</button>
+    </div>
+    <div class="p-5">
+
+      <div class="dropzone" id="fakeDrop" style="cursor:pointer;">
+        <p class="text-[13px] font-semibold" id="dropLabel">Choose a file</p>
+        <p class="text-[12px] mt-1" style="color:var(--muted);">PNG, JPEG or animated GIF</p>
+      </div>
+
+      <label class="label mt-4" for="emojiName">Name</label>
+      <div class="flex items-center gap-1.5">
+        <span class="mono text-[15px]" style="color:var(--faint);">:</span>
+        <input class="input input--mono" id="emojiName" placeholder="black-ice" autocomplete="off">
+        <span class="mono text-[15px]" style="color:var(--faint);">:</span>
+      </div>
+      <p class="hint" id="emojiHint">Lowercase letters, digits and hyphens. This is how people will type it.</p>
+
+      <label class="label mt-4" for="emojiDesc">Description <span class="faint font-normal">(optional)</span></label>
+      <input class="input" id="emojiDesc" placeholder="What it's for.">
+
+      <div class="notice mt-4">
+        <span class="notice__icon">ⓘ</span>
+        <span>Scoped to <b>NYC Bike Commuters</b>. It won't appear in any other conversation.</span>
+      </div>
+
+      <div class="mt-5 flex justify-end gap-2.5">
+        <button class="btn" data-close="uploadModal">Cancel</button>
+        <button class="btn btn-primary" id="uploadGo">Add emoji</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="../assets/tawk.js"></script>
+<script>
+  /* --- remove ------------------------------------------------------------ */
+  document.getElementById('emojiBody').addEventListener('click', function (e) {
+    var btn = e.target.closest('[data-remove]');
+    if (!btn) return;
+    var name = btn.dataset.remove;
+    tawkPending(btn, 'Removing', function () {
+      document.querySelector('[data-emoji="' + name + '"]').remove();
+      tawkToast(name + ' removed. Existing reactions keep their history.');
+    });
+  });
+
+  /* --- fake file picker -------------------------------------------------- */
+  document.getElementById('fakeDrop').addEventListener('click', function () {
+    document.getElementById('dropLabel').textContent = 'black-ice.png · 128×128 · 6 KB';
+    document.getElementById('dropLabel').style.color = 'var(--pine)';
+  });
+
+  /* --- create ------------------------------------------------------------ */
+  document.getElementById('uploadGo').addEventListener('click', function () {
+    var name = document.getElementById('emojiName');
+    var hint = document.getElementById('emojiHint');
+    var value = name.value.trim().toLowerCase();
+
+    if (!/^[a-z0-9][a-z0-9-]*[a-z0-9]$|^[a-z0-9]$/.test(value)) {
+      hint.textContent = 'Use lowercase letters, digits and internal hyphens.';
+      hint.style.color = 'var(--danger)';
+      name.focus();
+      return;
+    }
+    hint.textContent = 'Lowercase letters, digits and hyphens. This is how people will type it.';
+    hint.style.color = '';
+
+    tawkPending(this, 'Uploading', function () {
+      var row = document.createElement('tr');
+      row.dataset.emoji = ':' + value + ':';
+      row.innerHTML =
+        '<td style="width:64px;"><span class="swatch">🧊</span></td>' +
+        '<td><p class="mono text-[12.5px] font-semibold">:' + value + ':</p>' +
+            '<p class="text-[11.5px]" style="color:var(--faint);">' +
+              (document.getElementById('emojiDesc').value.trim() || 'No description') + '</p></td>' +
+        '<td><span class="badge">PNG · 128×128</span></td>' +
+        '<td class="text-[12px]" style="color:var(--muted);">Dana Okafor<br>' +
+            '<span class="mono text-[10.5px]" style="color:var(--faint);">Just now</span></td>' +
+        '<td class="mono text-[12px]">0</td>' +
+        '<td style="text-align:right;"><button class="btn btn-sm btn-danger" data-remove=":' + value + ':">Remove</button></td>';
+      document.getElementById('emojiBody').appendChild(row);
+
+      tawkClose('uploadModal');
+      name.value = '';
+      document.getElementById('emojiDesc').value = '';
+      document.getElementById('dropLabel').textContent = 'Choose a file';
+      document.getElementById('dropLabel').style.color = '';
+      tawkToast(':' + value + ': is now available in this conversation.');
+    });
+  });
+</script>
+</body>
+</html>

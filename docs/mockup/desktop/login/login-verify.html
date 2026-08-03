@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1080">
+<title>Enter your code · Tawk</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/tawk.css">
+</head>
+<body>
+
+<div class="shell px-10 min-h-screen flex flex-col">
+
+  <header class="pt-7">
+    <a href="../public/index.html" class="brand" style="display:inline-flex;">
+      <span class="brand__mark">t</span>
+      <span>Tawk</span>
+    </a>
+  </header>
+
+  <main class="flex-1 grid place-items-center" style="padding:60px 0 100px;">
+    <div style="width:440px;">
+
+      <h1 class="serif text-center" style="font-size:34px;">Check your email</h1>
+      <p class="mt-2.5 text-center text-[13.5px]" style="color:var(--muted);">
+        We sent a six-digit code to<br>
+        <span class="mono font-medium" style="color:var(--ink);">dana.okafor@gmail.com</span>
+      </p>
+
+      <div class="card mt-8" style="padding:30px 26px; box-shadow:var(--shadow);">
+
+        <label class="label text-center" style="margin-bottom:14px;">Sign-in code</label>
+
+        <div class="flex justify-center gap-2.5" id="codeRow">
+          <input class="codebox" inputmode="numeric" maxlength="1" aria-label="Digit 1">
+          <input class="codebox" inputmode="numeric" maxlength="1" aria-label="Digit 2">
+          <input class="codebox" inputmode="numeric" maxlength="1" aria-label="Digit 3">
+          <input class="codebox" inputmode="numeric" maxlength="1" aria-label="Digit 4">
+          <input class="codebox" inputmode="numeric" maxlength="1" aria-label="Digit 5">
+          <input class="codebox" inputmode="numeric" maxlength="1" aria-label="Digit 6">
+        </div>
+
+        <p id="codeMsg" class="mt-4 text-center text-[12.5px]" style="color:var(--muted);">
+          Code expires in <span class="mono font-medium" id="clock" style="color:var(--ink-2);">10:00</span>
+        </p>
+
+        <button id="verify" class="btn btn-primary btn-block mt-5" style="height:42px;" aria-disabled="true">
+          Verify and continue
+        </button>
+
+        <div class="mt-5 pt-5 flex items-center justify-between" style="border-top:1px solid var(--line);">
+          <a href="login.html" class="backlink">← Use a different address</a>
+          <button id="resend" class="btn btn-ghost btn-sm">Resend code</button>
+        </div>
+
+      </div>
+
+      <p class="mt-6 text-center text-[12px] leading-relaxed" style="color:var(--faint);">
+        Codes are single-use. If one arrives after you've already signed in, ignore it.
+        Nothing in the email identifies which conversations you belong to.
+      </p>
+
+    </div>
+  </main>
+
+</div>
+
+<script src="../assets/tawk.js"></script>
+<script>
+  var verifyBtn = document.getElementById('verify');
+  var msg = document.getElementById('codeMsg');
+
+  tawkCodeInputs('#codeRow .codebox', function () {
+    verifyBtn.removeAttribute('aria-disabled');
+    verifyBtn.focus();
+  });
+
+  verifyBtn.addEventListener('click', function () {
+    var digits = Array.prototype.map.call(
+      document.querySelectorAll('#codeRow .codebox'), function (b) { return b.value; }
+    ).join('');
+
+    if (digits.length < 6) {
+      msg.textContent = 'Enter all six digits.';
+      msg.style.color = 'var(--danger)';
+      return;
+    }
+    tawkPending(verifyBtn, 'Verifying', function () {
+      window.location.href = '../private/hub.html';
+    });
+  });
+
+  document.getElementById('resend').addEventListener('click', function () {
+    var btn = this;
+    tawkPending(btn, 'Sending', function () {
+      tawkToast('New code sent to dana.okafor@gmail.com');
+      msg.innerHTML = 'Code expires in <span class="mono font-medium" id="clock" style="color:var(--ink-2);">10:00</span>';
+      msg.style.color = '';
+      tawkCountdown(document.getElementById('clock'), 600, expire);
+    });
+  });
+
+  function expire() {
+    msg.textContent = 'That code has expired. Request a new one.';
+    msg.style.color = 'var(--hold)';
+    verifyBtn.setAttribute('aria-disabled', 'true');
+  }
+
+  tawkCountdown(document.getElementById('clock'), 600, expire);
+</script>
+</body>
+</html>

@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1080">
+<title>Manage · NYC Bike Commuters · Tawk</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/tawk.css">
+<style>
+  .locked { opacity: .58; pointer-events: none; }
+  .subnav { display: flex; gap: 4px; }
+  .subnav a {
+    padding: 6px 12px; border-radius: 7px; font-size: 13px; font-weight: 550; color: var(--muted);
+  }
+  .subnav a:hover { background: var(--sunk); color: var(--ink); }
+  .subnav a[aria-current] { background: var(--ink); color: #fff; }
+</style>
+</head>
+<body>
+
+<!-- Conversation Administration · shared app navigation · admin operations workspace.
+     Signed in as Dana Okafor, an ADMINISTRATOR, so owner-only controls are visibly locked. -->
+
+<div class="appbar">
+  <div class="shell px-10">
+    <div class="appbar__inner">
+      <a href="hub.html" class="brand"><span class="brand__mark">t</span><span>Tawk</span></a>
+      <nav class="flex items-center gap-6 flex-1">
+        <a href="hub.html" class="navlink" aria-current="page">Conversations</a>
+        <a href="discover.html" class="navlink">Discover</a>
+        <a href="moderation.html" class="navlink">Moderation <span class="badge badge--hold ml-1">2</span></a>
+      </nav>
+      <a href="create.html" class="btn btn-sm btn-primary">＋ New conversation</a>
+      <a href="profile.html" class="avatar avatar--sm a-clay" title="Dana Okafor">DO</a>
+    </div>
+  </div>
+</div>
+
+<div class="shell px-10 py-7">
+
+  <!-- conversation context -->
+  <div class="flex items-center justify-between gap-6 mb-5">
+    <div>
+      <a href="conversation.html" class="backlink">← Back to the conversation</a>
+      <div class="flex items-center gap-2.5 mt-1.5">
+        <div class="avatar a-rust" style="border-radius:9px;">NB</div>
+        <div>
+          <h1 class="text-[19px] font-semibold" style="letter-spacing:-.02em;">NYC Bike Commuters</h1>
+          <p class="text-[12px]" style="color:var(--muted);">
+            1,204 members · created Nov 12, 2025 by Priya Raghunathan
+          </p>
+        </div>
+      </div>
+    </div>
+    <span class="badge badge--admin" style="font-size:12px; padding:5px 11px;">Your role: Administrator</span>
+  </div>
+
+  <nav class="subnav mb-6">
+    <a href="admin.html" aria-current="page">Settings</a>
+    <a href="admin-members.html">Members &amp; roles</a>
+    <a href="admin-emoji.html">Custom emoji</a>
+    <a href="moderation.html">Moderation</a>
+  </nav>
+
+  <div class="grid grid-cols-[minmax(0,1fr)_296px] gap-7 items-start">
+
+    <div class="space-y-5">
+
+      <!-- ------------------------------------------------------- details -->
+      <section class="card">
+        <div class="panel-head"><span class="panel-title">Conversation details</span></div>
+        <div class="p-5">
+          <label class="label" for="title">Title</label>
+          <input class="input" id="title" value="NYC Bike Commuters" maxlength="60">
+
+          <label class="label mt-4" for="desc">Description</label>
+          <textarea class="textarea" id="desc" maxlength="240">Route intel, bridge closures, and where the plow trucks are. Be specific about cross streets.</textarea>
+          <p class="hint">Both are required, and both appear in listed search results.</p>
+
+          <div class="mt-4">
+            <button class="btn btn-primary btn-sm" id="saveDetails">Save details</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ---------------------------------------------------------- tags -->
+      <section class="card">
+        <div class="panel-head">
+          <span class="panel-title">Tags</span>
+          <span class="mono text-[11px]" id="tagCount" style="color:var(--muted);">3 / 10</span>
+        </div>
+        <div class="p-5">
+          <p class="text-[12.5px] mb-3" style="color:var(--muted);">
+            Owners and administrators can both change tags. Removing one ends that
+            assignment with an effective date; the tag itself is shared and stays in
+            circulation for everyone else.
+          </p>
+
+          <div class="space-y-2" id="tagList">
+            <div class="flex items-center gap-3 rounded-lg border p-2.5" style="border-color:var(--line);" data-tag="cycling">
+              <span class="tag tag--sel">cycling</span>
+              <span class="flex-1 text-[12px]" style="color:var(--muted);">Assigned Nov 12, 2025 by Priya Raghunathan · used by 6 other conversations</span>
+              <button class="btn btn-sm btn-danger" data-remove="cycling">Remove</button>
+            </div>
+            <div class="flex items-center gap-3 rounded-lg border p-2.5" style="border-color:var(--line);" data-tag="nyc">
+              <span class="tag tag--sel">nyc</span>
+              <span class="flex-1 text-[12px]" style="color:var(--muted);">Assigned Nov 12, 2025 by Priya Raghunathan · used by 31 other conversations</span>
+              <button class="btn btn-sm btn-danger" data-remove="nyc">Remove</button>
+            </div>
+            <div class="flex items-center gap-3 rounded-lg border p-2.5" style="border-color:var(--line);" data-tag="commute">
+              <span class="tag tag--sel">commute</span>
+              <span class="flex-1 text-[12px]" style="color:var(--muted);">Assigned Feb 2, 2026 by Dana Okafor · used by 4 other conversations</span>
+              <button class="btn btn-sm btn-danger" data-remove="commute">Remove</button>
+            </div>
+          </div>
+
+          <div class="flex gap-2 mt-4">
+            <input class="input input--mono flex-1" id="newTag" placeholder="add a tag…" autocomplete="off">
+            <button class="btn" id="addTag">Add tag</button>
+          </div>
+          <p class="hint" id="tagHint">
+            1–10 tags. Lowercase a–z, digits and internal hyphens; up to 15 characters a side,
+            at most one colon.
+          </p>
+
+          <details class="mt-4">
+            <summary class="text-[12.5px] cursor-pointer" style="color:var(--pine); font-weight:600;">Removed tags (history)</summary>
+            <div class="mt-2.5 flex items-center gap-3 rounded-lg border p-2.5" style="border-color:var(--line); background:var(--surface-2);">
+              <span class="tag" style="opacity:.6;">bikenyc</span>
+              <span class="flex-1 text-[12px]" style="color:var(--faint);">
+                Assigned Nov 12, 2025 · removed Feb 2, 2026 by Dana Okafor
+              </span>
+            </div>
+          </details>
+        </div>
+      </section>
+
+      <!-- ----------------------------------------------------- discovery -->
+      <section class="card">
+        <div class="panel-head"><span class="panel-title">Discovery</span></div>
+        <div class="p-5 space-y-2.5">
+          <label class="radio-card">
+            <input type="radio" name="vis" value="listed" checked>
+            <span>
+              <span class="flex items-center gap-2"><b class="text-[13.5px]">Listed</b>
+                <span class="badge badge--listed"><i class="dot"></i>In search</span></span>
+              <span class="block text-[12.5px] mt-1" style="color:var(--muted);">
+                Findable by name through tag search.
+              </span>
+            </span>
+          </label>
+          <label class="radio-card">
+            <input type="radio" name="vis" value="unlisted">
+            <span>
+              <span class="flex items-center gap-2"><b class="text-[13.5px]">Unlisted</b>
+                <span class="badge badge--unlisted">◎ Hidden</span></span>
+              <span class="block text-[12.5px] mt-1" style="color:var(--muted);">
+                Reachable only with the exact complete tag set. These tags stop being suggested
+                to anyone. Existing members and saved links are unaffected.
+              </span>
+            </span>
+          </label>
+
+          <div class="pt-3.5 mt-1" style="border-top:1px solid var(--line);" id="exclusiveWrap">
+            <label class="check">
+              <input type="checkbox" id="exclusive" checked>
+              <span class="text-[13px]" style="color:var(--ink-2);">
+                <b>Require an exclusive match</b>
+                <span class="block text-[12.5px] mt-0.5" style="color:var(--muted);">
+                  Currently on: searchers must have all three tags selected before this room
+                  appears at all.
+                </span>
+              </span>
+            </label>
+            <p id="exclusiveLocked" class="notice notice--private mt-3" style="display:none;">
+              <span class="notice__icon">◎</span>
+              <span>Unlisted rooms always require every tag, so this isn't configurable.</span>
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- --------------------------------------------------- notes policy -->
+      <section class="card locked" title="Owner-only">
+        <div class="panel-head">
+          <span class="panel-title">Conversation-level notes</span>
+          <span class="badge badge--owner">Owner only</span>
+        </div>
+        <div class="p-5">
+          <label class="check">
+            <input type="checkbox" checked disabled>
+            <span class="text-[13px]" style="color:var(--ink-2);">
+              <b>Allow top-level notes on this conversation</b>
+              <span class="block text-[12.5px] mt-0.5" style="color:var(--muted);">
+                The owner decides whether members may attach notes to the room itself.
+                Thread and message notes are always available.
+              </span>
+            </span>
+          </label>
+        </div>
+      </section>
+
+      <!-- -------------------------------------------------------- archive -->
+      <section class="card" style="border-color:var(--danger-line);">
+        <div class="panel-head" style="background:var(--danger-soft); border-color:var(--danger-line);">
+          <span class="panel-title" style="color:var(--danger);">Archive</span>
+          <span class="badge badge--owner">Owner only</span>
+        </div>
+        <div class="p-5">
+          <p class="text-[13px]" style="color:var(--ink-2);">
+            Archiving is Tawk's delete. Everything is retained; nothing stays readable.
+            The room disappears from search and can never be rejoined.
+          </p>
+          <div class="notice notice--danger mt-4">
+            <span class="notice__icon">⛔</span>
+            <span>
+              You're an administrator, so you can't archive this conversation. Only an owner
+              can, and an owner may archive instead of handing ownership to someone else.
+              Priya Raghunathan is the current owner.
+            </span>
+          </div>
+          <button class="btn btn-danger mt-4" aria-disabled="true">Archive conversation</button>
+          <a href="conversation-archived.html" class="btn btn-sm btn-ghost mt-4 ml-1">See what an archived room looks like →</a>
+        </div>
+      </section>
+
+    </div>
+
+    <!-- ============================================================== rail -->
+    <aside class="space-y-5" style="position:sticky; top:80px;">
+
+      <div class="card card-pad">
+        <p class="eyebrow mb-2.5">What your role allows</p>
+        <ul class="space-y-1.5 text-[12.5px]">
+          <li style="color:var(--live);">✓ Add and remove tags</li>
+          <li style="color:var(--live);">✓ Remove, ban and restore participants</li>
+          <li style="color:var(--live);">✓ Suspend a member's posting</li>
+          <li style="color:var(--live);">✓ Review tickets and delete messages</li>
+          <li style="color:var(--live);">✓ Create conversation custom emoji</li>
+          <li style="color:var(--danger);">✕ Add, remove or change owners</li>
+          <li style="color:var(--danger);">✕ Set the top-level notes policy</li>
+          <li style="color:var(--danger);">✕ Archive the conversation</li>
+        </ul>
+        <hr class="rule my-3.5">
+        <p class="text-[12px]" style="color:var(--faint);">
+          No moderation action is owner-only. The owner boundary is about ownership itself,
+          the notes policy, and archival.
+        </p>
+      </div>
+
+      <div class="card card-pad">
+        <p class="eyebrow mb-2">Ownership</p>
+        <div class="flex items-center gap-2.5">
+          <span class="avatar avatar--sm a-plum">PR</span>
+          <div class="min-w-0">
+            <p class="text-[12.5px] font-semibold truncate">Priya Raghunathan</p>
+            <p class="text-[11px]" style="color:var(--faint);">Sole owner since Nov 12, 2025</p>
+          </div>
+        </div>
+        <p class="hint">
+          An active conversation must always keep at least one owner. Priya can't leave until
+          she promotes someone else, or archives the room.
+        </p>
+        <a href="admin-members.html" class="btn btn-sm btn-block mt-3">Members &amp; roles</a>
+      </div>
+
+    </aside>
+
+  </div>
+</div>
+
+<script src="../assets/tawk.js"></script>
+<script>
+  /* --- details ----------------------------------------------------------- */
+  document.getElementById('saveDetails').addEventListener('click', function () {
+    var t = document.getElementById('title').value.trim();
+    var d = document.getElementById('desc').value.trim();
+    if (!t || !d) { tawkToast('Title and description are both required.'); return; }
+    tawkPending(this, 'Saving', function () { tawkToast('Conversation details saved.'); });
+  });
+
+  /* --- tags -------------------------------------------------------------- */
+  var list  = document.getElementById('tagList');
+  var count = document.getElementById('tagCount');
+  var hint  = document.getElementById('tagHint');
+  var DEFAULT_HINT = '1–10 tags. Lowercase a–z, digits and internal hyphens; up to 15 characters a side, at most one colon.';
+
+  function currentTags() {
+    return Array.prototype.map.call(list.querySelectorAll('[data-tag]'), function (r) { return r.dataset.tag; });
+  }
+  function sync() {
+    var n = currentTags().length;
+    count.textContent = n + ' / 10';
+    count.style.color = n >= 10 ? 'var(--hold)' : 'var(--muted)';
+    // the last tag can never be removed: every conversation keeps at least one
+    Array.prototype.forEach.call(list.querySelectorAll('[data-remove]'), function (b) {
+      if (n <= 1) { b.setAttribute('aria-disabled', 'true'); b.title = 'A conversation must keep at least one tag'; }
+      else { b.removeAttribute('aria-disabled'); b.title = ''; }
+    });
+  }
+  function setHint(msg, bad) {
+    hint.textContent = msg || DEFAULT_HINT;
+    hint.style.color = bad ? 'var(--danger)' : '';
+  }
+
+  list.addEventListener('click', function (e) {
+    var btn = e.target.closest('[data-remove]');
+    if (!btn || btn.getAttribute('aria-disabled')) return;
+    var value = btn.dataset.remove;
+    tawkPending(btn, 'Removing', function () {
+      list.querySelector('[data-tag="' + value + '"]').remove();
+      sync();
+      tawkToast('Tag “' + value + '” removed. Assignment ended, tag retained in history.');
+    });
+  });
+
+  document.getElementById('addTag').addEventListener('click', addTag);
+  document.getElementById('newTag').addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') { e.preventDefault(); addTag(); }
+  });
+
+  function addTag() {
+    var field = document.getElementById('newTag');
+    var tags  = currentTags();
+
+    if (tags.length >= 10) { setHint('Ten tags is the maximum. Remove one first.', true); return; }
+    var check = tawkValidateTag(field.value);
+    if (!check.ok) { setHint(check.error, true); return; }
+    if (tags.indexOf(check.value) > -1) { setHint('“' + check.value + '” is already assigned.', true); return; }
+
+    var row = document.createElement('div');
+    row.className = 'flex items-center gap-3 rounded-lg border p-2.5';
+    row.style.borderColor = 'var(--line)';
+    row.dataset.tag = check.value;
+    row.innerHTML =
+      '<span class="tag tag--sel">' +
+        (check.value.indexOf(':') > -1
+          ? '<b>' + check.value.split(':')[0] + '</b><i>:</i>' + check.value.split(':')[1]
+          : check.value) +
+      '</span>' +
+      '<span class="flex-1 text-[12px]" style="color:var(--muted);">Assigned just now by Dana Okafor</span>' +
+      '<button class="btn btn-sm btn-danger" data-remove="' + check.value + '">Remove</button>';
+    list.appendChild(row);
+
+    field.value = '';
+    setHint('');
+    sync();
+    tawkToast('Tag “' + check.value + '” assigned.');
+  }
+
+  /* --- discovery --------------------------------------------------------- */
+  var exclusive = document.getElementById('exclusive');
+  Array.prototype.forEach.call(document.querySelectorAll('input[name=vis]'), function (r) {
+    r.addEventListener('change', function () {
+      var unlisted = document.querySelector('input[name=vis]:checked').value === 'unlisted';
+      exclusive.disabled = unlisted;
+      if (unlisted) exclusive.checked = false;
+      document.getElementById('exclusiveLocked').style.display = unlisted ? 'flex' : 'none';
+      document.getElementById('exclusiveWrap').style.opacity = unlisted ? '.6' : '1';
+      tawkToast(unlisted
+        ? 'Now unlisted. These tags will no longer be suggested to anyone.'
+        : 'Now listed. The room is discoverable by name again.');
+    });
+  });
+  exclusive.addEventListener('change', function () {
+    tawkToast(exclusive.checked
+      ? 'Exclusive matching on: all tags required to surface this room.'
+      : 'Exclusive matching off: any one matching tag will surface this room.');
+  });
+
+  sync();
+</script>
+</body>
+</html>

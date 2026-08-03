@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1080">
+<title>Discover · Tawk</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/tawk.css">
+<style>
+  .sugg {
+    position: absolute; z-index: 20; left: 0; right: 0; top: calc(100% + 6px);
+    background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
+    box-shadow: var(--shadow); overflow: hidden; display: none;
+  }
+  .sugg.open { display: block; }
+  .sugg__row {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    padding: 8px 12px; cursor: pointer; border-bottom: 1px solid var(--line);
+  }
+  .sugg__row:last-child { border-bottom: 0; }
+  .sugg__row:hover, .sugg__row.active { background: var(--pine-soft); }
+</style>
+</head>
+<body>
+
+<!-- Conversation Hub · discovery. Listed results are identifiable;
+     unlisted matches are reported only as a count until the tag set is exact. -->
+
+<div class="appbar">
+  <div class="shell px-10">
+    <div class="appbar__inner">
+      <a href="hub.html" class="brand"><span class="brand__mark">t</span><span>Tawk</span></a>
+      <nav class="flex items-center gap-6 flex-1">
+        <a href="hub.html" class="navlink">Conversations</a>
+        <a href="discover.html" class="navlink" aria-current="page">Discover</a>
+        <a href="moderation.html" class="navlink">Moderation <span class="badge badge--hold ml-1">2</span></a>
+      </nav>
+      <a href="create.html" class="btn btn-sm btn-primary">＋ New conversation</a>
+      <a href="profile.html" class="avatar avatar--sm a-clay" title="Dana Okafor">DO</a>
+    </div>
+  </div>
+</div>
+
+<div class="shell px-10 py-9">
+
+  <h1 class="serif" style="font-size:30px;">Find a conversation by its tags</h1>
+  <p class="mt-2 text-[13.5px]" style="color:var(--muted); max-width:70ch;">
+    Every tag you add narrows the field. Listed rooms show themselves; unlisted rooms
+    only admit that they exist, and only unlock once your tags match theirs exactly.
+  </p>
+
+  <!-- --------------------------------------------------------- search box -->
+  <div class="card mt-6" style="padding:18px; box-shadow:var(--shadow-sm);">
+    <div style="position:relative;">
+      <div class="taginput" id="tagbox" style="min-height:46px;" onclick="document.getElementById('tagInput').focus()">
+        <span id="chips" style="display:contents;"></span>
+        <input id="tagInput" type="text" placeholder="Add a tag…" autocomplete="off" aria-label="Add a tag">
+      </div>
+      <div class="sugg" id="sugg"></div>
+    </div>
+
+    <p id="tagError" class="hint" style="color:var(--danger); display:none;"></p>
+
+    <div class="mt-3.5 flex items-center justify-between">
+      <label class="check" style="align-items:center;">
+        <input type="checkbox" id="exactOnly">
+        <span class="text-[13px]" style="color:var(--ink-2);">
+          Only show exact matches
+          <span class="faint">· hides rooms whose tag set isn't identical to my search</span>
+        </span>
+      </label>
+      <button class="btn btn-sm btn-ghost" id="clearAll">Clear all</button>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-[minmax(0,1fr)_296px] gap-7 items-start mt-7">
+
+    <!-- ============================================================ results -->
+    <div>
+      <div class="flex items-baseline justify-between mb-3">
+        <h2 class="text-[15px]">Listed conversations</h2>
+        <span class="eyebrow" id="resultCount">–</span>
+      </div>
+      <div id="results" class="space-y-2.5"></div>
+
+      <!-- hidden / unlisted -->
+      <h2 class="text-[15px] mt-8 mb-3">Unlisted conversations</h2>
+      <div id="hidden"></div>
+    </div>
+
+    <!-- =============================================================== rail -->
+    <aside class="space-y-5" style="position:sticky; top:80px;">
+
+      <div class="card card-pad">
+        <p class="eyebrow mb-3">Popular tags</p>
+        <div class="flex flex-wrap gap-1.5" id="popular"></div>
+        <p class="hint">
+          Suggestions only ever include tags that at least one listed conversation
+          uses. A tag that lives only on unlisted rooms never appears here.
+        </p>
+      </div>
+
+      <div class="card card-pad">
+        <p class="eyebrow mb-2.5">How matching works</p>
+        <ul class="space-y-2.5 text-[12.5px]" style="color:var(--muted);">
+          <li class="flex gap-2">
+            <span class="badge badge--listed" style="flex:none;">Listed</span>
+            <span>Appears when your search touches <b style="color:var(--ink-2);">any</b> of its tags.</span>
+          </li>
+          <li class="flex gap-2">
+            <span class="badge" style="flex:none; background:#fff;">Exclusive</span>
+            <span>Appears only when you've selected <b style="color:var(--ink-2);">all</b> of its tags.</span>
+          </li>
+          <li class="flex gap-2">
+            <span class="badge badge--unlisted" style="flex:none;">Unlisted</span>
+            <span>Never named. Joins only on an <b style="color:var(--ink-2);">exact</b> tag-set match, with nothing extra.</span>
+          </li>
+        </ul>
+        <hr class="rule my-3.5">
+        <p class="text-[12px]" style="color:var(--faint);">
+          Archived conversations never appear in search, and a conversation you've been
+          banned from can't be rejoined.
+        </p>
+      </div>
+
+    </aside>
+  </div>
+</div>
+
+<script src="../assets/tawk.js"></script>
+<script>
+/* ---------------------------------------------------------------------------
+   Mock corpus. Everything below is static in-page data. No network calls.
+   --------------------------------------------------------------------------- */
+
+var LISTED = [
+  { name:'Homelab Ops',            init:'HO', hue:'a-pine',  members:312,  exclusive:false, banned:false, joined:true,
+    desc:'Rack noise, ZFS scrubs, and the endless pursuit of idle wattage.',
+    tags:['homelab','proxmox','truenas','help:wanted'] },
+  { name:'Proxmox Cluster Rescue', init:'PC', hue:'a-teal',  members:48,   exclusive:false, banned:false, joined:false,
+    desc:'Quorum is gone, the corosync ring is flapping, and it is 2am. Post here.',
+    tags:['proxmox','zfs'] },
+  { name:'TrueNAS Scale Users',    init:'TS', hue:'a-slate', members:156,  exclusive:false, banned:false, joined:false,
+    desc:'Pool layouts, SMB permissions, and apps that refuse to start.',
+    tags:['truenas','zfs','storage'] },
+  { name:'NYC Bike Commuters',     init:'NB', hue:'a-rust',  members:1204, exclusive:true,  banned:false, joined:true,
+    desc:'Route intel, bridge closures, and where the plow trucks are.',
+    tags:['cycling','nyc','commute'] },
+  { name:'Winter Cycling',         init:'WC', hue:'a-moss',  members:71,   exclusive:false, banned:true,  joined:false,
+    desc:'Studded tires, pogies, and arguing about base layers.',
+    tags:['cycling','winter'] },
+  { name:'Rust on STM32',          init:'RS', hue:'a-slate', members:87,   exclusive:false, banned:false, joined:true,
+    desc:'embassy, RTIC, HAL bugs, and probe-rs flashing woes.',
+    tags:['rust','embedded','stm32'] },
+  { name:'Sunday Sci-Fi',          init:'SS', hue:'a-sand',  members:40,   exclusive:false, banned:false, joined:true,
+    desc:'One book a week. Spoilers allowed after Thursday.',
+    tags:['bookclub','scifi'] }
+];
+
+// Unlisted rooms are never named in the UI, only counted.
+var UNLISTED = [
+  { tags:['team:atlas','release','oncall','deploy'], joined:true  },
+  { tags:['moving','brooklyn','2026','help:wanted'], joined:false },
+  { tags:['team:atlas','postmortem'],                joined:false }
+];
+
+// Only tags with at least one active listed assignment may be suggested.
+var SUGGESTIBLE = (function () {
+  var set = {};
+  LISTED.forEach(function (c) { c.tags.forEach(function (t) { set[t] = true; }); });
+  return Object.keys(set).sort();
+})();
+
+var selected = ['homelab', 'proxmox'];   // arrive with a live search already running
+
+/* ---------------------------------------------------------------- helpers */
+
+var chips     = document.getElementById('chips');
+var input     = document.getElementById('tagInput');
+var sugg      = document.getElementById('sugg');
+var errorEl   = document.getElementById('tagError');
+var exactOnly = document.getElementById('exactOnly');
+
+function fmtTag(v) {
+  if (v.indexOf(':') > -1) {
+    var p = v.split(':');
+    return '<b>' + p[0] + '</b><i>:</i>' + p[1];
+  }
+  return v;
+}
+function sameSet(a, b) {
+  if (a.length !== b.length) return false;
+  return a.every(function (x) { return b.indexOf(x) > -1; });
+}
+function subsetOf(small, big) {
+  return small.every(function (x) { return big.indexOf(x) > -1; });
+}
+
+function addTag(v) {
+  var check = tawkValidateTag(v);
+  if (!check.ok) { showError(check.error); return false; }
+  if (selected.indexOf(check.value) > -1) { showError('“' + check.value + '” is already in your search.'); return false; }
+  selected.push(check.value);
+  hideError();
+  render();
+  return true;
+}
+function removeTag(v) {
+  selected = selected.filter(function (t) { return t !== v; });
+  render();
+}
+function showError(m) { errorEl.textContent = m; errorEl.style.display = 'block'; }
+function hideError() { errorEl.style.display = 'none'; }
+
+/* --------------------------------------------------------------- rendering */
+
+function renderChips() {
+  chips.innerHTML = '';
+  selected.forEach(function (t) {
+    var el = document.createElement('span');
+    el.className = 'tag tag--sel';
+    el.innerHTML = fmtTag(t) + '<span class="tag__x" role="button" aria-label="Remove ' + t + '">×</span>';
+    el.querySelector('.tag__x').addEventListener('click', function (e) {
+      e.stopPropagation();
+      removeTag(t);
+    });
+    chips.appendChild(el);
+  });
+  input.placeholder = selected.length ? 'Add another tag…' : 'Type a tag: homelab, city:nyc, scifi…';
+}
+
+function renderSuggestions() {
+  var q = input.value.trim().toLowerCase();
+  var pool = SUGGESTIBLE.filter(function (t) {
+    return selected.indexOf(t) === -1 && (!q || t.indexOf(q) > -1);
+  }).slice(0, 6);
+
+  if (!pool.length || !q) { sugg.classList.remove('open'); sugg.innerHTML = ''; return; }
+
+  sugg.innerHTML = pool.map(function (t) {
+    var n = LISTED.filter(function (c) { return c.tags.indexOf(t) > -1; }).length;
+    return '<div class="sugg__row" data-tag="' + t + '">' +
+             '<span class="tag">' + fmtTag(t) + '</span>' +
+             '<span class="text-[11.5px]" style="color:var(--faint);">' + n + ' listed room' + (n === 1 ? '' : 's') + '</span>' +
+           '</div>';
+  }).join('');
+
+  Array.prototype.forEach.call(sugg.querySelectorAll('.sugg__row'), function (row) {
+    row.addEventListener('mousedown', function (e) {
+      e.preventDefault();
+      if (addTag(row.dataset.tag)) { input.value = ''; renderSuggestions(); }
+    });
+  });
+  sugg.classList.add('open');
+}
+
+function renderResults() {
+  var box = document.getElementById('results');
+  var count = document.getElementById('resultCount');
+
+  if (!selected.length) {
+    box.innerHTML =
+      '<div class="card empty">' +
+        '<div class="empty__mark">#</div>' +
+        '<p class="font-semibold text-[14px]">Add a tag to begin</p>' +
+        '<p class="mt-1 text-[13px]" style="color:var(--muted);">Nothing is listed until you say what you\'re looking for.</p>' +
+      '</div>';
+    count.textContent = '–';
+    return;
+  }
+
+  var matches = LISTED.filter(function (c) {
+    if (exactOnly.checked) return sameSet(c.tags, selected);
+    if (c.exclusive)       return subsetOf(c.tags, selected);   // exclusive: all of its tags required
+    return c.tags.some(function (t) { return selected.indexOf(t) > -1; });
+  });
+
+  count.textContent = matches.length + ' result' + (matches.length === 1 ? '' : 's');
+
+  if (!matches.length) {
+    box.innerHTML =
+      '<div class="card empty">' +
+        '<div class="empty__mark">∅</div>' +
+        '<p class="font-semibold text-[14px]">No listed conversation matches</p>' +
+        '<p class="mt-1 text-[13px]" style="color:var(--muted);">' +
+          (exactOnly.checked
+            ? 'Exact matching is on. Try turning it off to see partial matches.'
+            : 'Remove a tag to widen the search, or start your own room.') +
+        '</p>' +
+        '<a href="create.html" class="btn btn-sm btn-primary mt-4">Create this conversation</a>' +
+      '</div>';
+    return;
+  }
+
+  box.innerHTML = matches.map(function (c) {
+    var hit = c.tags.filter(function (t) { return selected.indexOf(t) > -1; }).length;
+
+    var action;
+    if (c.banned) {
+      action = '<span class="badge badge--danger">You are banned</span>';
+    } else if (c.joined) {
+      action = '<a href="conversation.html" class="btn btn-sm">Open</a>';
+    } else {
+      action = '<button class="btn btn-sm btn-primary" data-nav="conversation.html" data-nav-label="Joining">Join</button>';
+    }
+
+    return '' +
+      '<article class="card" style="padding:15px 17px;' + (c.banned ? 'opacity:.72;' : '') + '">' +
+        '<div class="flex items-start gap-3.5">' +
+          '<div class="avatar ' + c.hue + '" style="border-radius:9px;">' + c.init + '</div>' +
+          '<div class="flex-1 min-w-0">' +
+            '<div class="flex items-center gap-2 flex-wrap">' +
+              '<span class="font-semibold text-[14.5px]">' + c.name + '</span>' +
+              '<span class="badge badge--listed"><i class="dot"></i>Listed</span>' +
+              (c.exclusive ? '<span class="badge" style="background:#fff;">Exclusive match</span>' : '') +
+              (c.joined ? '<span class="badge badge--admin">You\'re a member</span>' : '') +
+            '</div>' +
+            '<p class="text-[12.5px] mt-1" style="color:var(--muted);">' + c.desc + '</p>' +
+            '<div class="flex flex-wrap gap-1.5 mt-2.5">' +
+              c.tags.map(function (t) {
+                var on = selected.indexOf(t) > -1;
+                return '<span class="tag' + (on ? ' tag--sel' : '') + '">' + fmtTag(t) + '</span>';
+              }).join('') +
+            '</div>' +
+          '</div>' +
+          '<div class="text-right" style="flex:none;">' +
+            action +
+            '<p class="text-[11px] mt-2.5" style="color:var(--faint);">' + c.members.toLocaleString() + ' members</p>' +
+            '<p class="mono text-[10.5px] mt-0.5" style="color:var(--faint);">' + hit + '/' + c.tags.length + ' tags</p>' +
+          '</div>' +
+        '</div>' +
+        (c.banned
+          ? '<p class="mt-3 pt-3 text-[12px]" style="border-top:1px solid var(--line); color:var(--danger);">' +
+              'A moderator banned this identity on Mar 2, 2026. Banned identities cannot rejoin, even with the correct tags.</p>'
+          : '') +
+      '</article>';
+  }).join('');
+}
+
+function renderHidden() {
+  var box = document.getElementById('hidden');
+
+  if (!selected.length) {
+    box.innerHTML =
+      '<div class="card card-pad text-[13px]" style="color:var(--muted);">' +
+        'Unlisted rooms are counted here once you start adding tags.' +
+      '</div>';
+    return;
+  }
+
+  // A room "could still match" while your tags are a subset of its tag set.
+  var candidates = UNLISTED.filter(function (c) { return subsetOf(selected, c.tags); });
+  var exact      = candidates.filter(function (c) { return sameSet(c.tags, selected); });
+
+  if (!candidates.length) {
+    box.innerHTML =
+      '<div class="card card-pad flex gap-3 items-center">' +
+        '<span class="text-[16px]" style="color:var(--faint);">◎</span>' +
+        '<p class="text-[13px]" style="color:var(--muted);">' +
+          'No hidden conversation matches these tags. If you know one exists, check for a ' +
+          'typo. The set has to be exact, with nothing extra.' +
+        '</p>' +
+      '</div>';
+    return;
+  }
+
+  if (exact.length === 1 && candidates.length === 1) {
+    var room = exact[0];
+    box.innerHTML =
+      '<div class="card" style="padding:17px; border-color:var(--private-line); background:var(--private-soft);">' +
+        '<div class="flex items-start gap-3.5">' +
+          '<div class="avatar" style="background:var(--private); border-radius:9px;">◎</div>' +
+          '<div class="flex-1">' +
+            '<p class="font-semibold text-[14.5px]" style="color:var(--private);">Exact match · 1 hidden conversation</p>' +
+            '<p class="text-[12.5px] mt-1" style="color:#46396d;">' +
+              'Your ' + selected.length + ' tags are this room\'s complete tag set. ' +
+              'Its name and description stay hidden until you\'re inside.' +
+            '</p>' +
+          '</div>' +
+          (room.joined
+            ? '<a href="conversation.html" class="btn btn-sm">Open</a>'
+            : '<button class="btn btn-sm btn-primary" data-nav="conversation.html" data-nav-label="Joining">Join hidden room</button>') +
+        '</div>' +
+      '</div>';
+    return;
+  }
+
+  box.innerHTML =
+    '<div class="card" style="padding:17px; border-color:var(--private-line);">' +
+      '<div class="flex items-start gap-3.5">' +
+        '<div class="avatar" style="background:var(--private); border-radius:9px; opacity:.55;">◎</div>' +
+        '<div class="flex-1">' +
+          '<p class="font-semibold text-[14.5px]" style="color:var(--private);">' +
+            candidates.length + ' hidden conversation' + (candidates.length === 1 ? '' : 's') + ' could still match' +
+          '</p>' +
+          '<p class="text-[12.5px] mt-1" style="color:var(--muted);">' +
+            (candidates.length > 1
+              ? 'Keep adding tags until exactly one remains. Tawk will not reveal a name, a description, or a single missing tag.'
+              : 'You have some of its tags but not all of them. Add the rest to unlock joining.') +
+          '</p>' +
+          '<div class="flex flex-wrap gap-1.5 mt-2.5">' +
+            selected.map(function (t) { return '<span class="tag tag--private">' + fmtTag(t) + '</span>'; }).join('') +
+            '<span class="tag tag--ghost">+ ?</span>' +
+          '</div>' +
+        '</div>' +
+        '<button class="btn btn-sm" aria-disabled="true" title="Narrow to exactly one hidden match first">Join</button>' +
+      '</div>' +
+    '</div>';
+}
+
+function renderPopular() {
+  document.getElementById('popular').innerHTML = SUGGESTIBLE.slice(0, 12).map(function (t) {
+    return '<span class="tag tag--btn" data-add="' + t + '">' + fmtTag(t) + '</span>';
+  }).join('');
+  Array.prototype.forEach.call(document.querySelectorAll('#popular [data-add]'), function (el) {
+    el.addEventListener('click', function () { addTag(el.dataset.add); });
+  });
+}
+
+function render() {
+  renderChips();
+  renderResults();
+  renderHidden();
+}
+
+/* ------------------------------------------------------------------ events */
+
+input.addEventListener('input', function () { hideError(); renderSuggestions(); });
+
+input.addEventListener('keydown', function (e) {
+  if (e.key === 'Enter' || e.key === ',' || e.key === ' ') {
+    e.preventDefault();
+    if (input.value.trim() && addTag(input.value)) { input.value = ''; sugg.classList.remove('open'); }
+  }
+  if (e.key === 'Backspace' && !input.value && selected.length) removeTag(selected[selected.length - 1]);
+});
+
+input.addEventListener('blur', function () { setTimeout(function () { sugg.classList.remove('open'); }, 120); });
+
+exactOnly.addEventListener('change', render);
+
+document.getElementById('clearAll').addEventListener('click', function () {
+  selected = [];
+  input.value = '';
+  hideError();
+  render();
+});
+
+renderPopular();
+render();
+</script>
+</body>
+</html>

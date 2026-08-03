@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1080">
+<title>Tawk desktop mockup: page index</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/tawk.css">
+<style>
+  .page {
+    display: flex; align-items: flex-start; gap: 13px;
+    padding: 13px 15px; border: 1px solid var(--line); border-radius: var(--radius);
+    background: var(--surface); transition: border-color .12s, background .12s, transform .12s;
+  }
+  .page:hover { border-color: var(--pine); background: var(--pine-soft); transform: translateY(-1px); }
+  .page__file { font-family: var(--mono); font-size: 10.5px; color: var(--faint); }
+</style>
+</head>
+<body>
+
+<div class="shell px-10 py-12">
+
+  <header class="flex items-end justify-between gap-8 pb-7" style="border-bottom:1px solid var(--line);">
+    <div>
+      <div class="brand mb-3.5" style="font-size:18px;">
+        <span class="brand__mark">t</span><span>Tawk</span>
+      </div>
+      <h1 class="serif" style="font-size:40px; line-height:1.1;">Desktop mockup</h1>
+      <p class="mt-2.5 text-[13.5px]" style="color:var(--muted); max-width:62ch;">
+        Every screen in the Tawk MVP, built from <span class="mono text-[12.5px]">docs/concepts/</span>
+        and <span class="mono text-[12.5px]">docs/schemas/</span>. Fully clickable, entirely
+        hardcoded: no API, no build step, no backend.
+      </p>
+    </div>
+    <a href="public/index.html" class="btn btn-primary btn-lg">Start at the landing page →</a>
+  </header>
+
+  <div class="grid grid-cols-2 gap-x-8 gap-y-9 mt-9">
+
+    <!-- ------------------------------------------------------ Product Home -->
+    <section>
+      <div class="flex items-center gap-2.5 mb-1">
+        <h2 class="text-[16px]">Product Home</h2>
+        <span class="badge badge--listed">Public</span>
+      </div>
+      <p class="text-[12.5px] mb-3.5" style="color:var(--muted);">
+        Product landing/home · no persistent navigation
+      </p>
+      <div class="space-y-2">
+        <a href="public/index.html" class="page">
+          <span class="avatar avatar--sm a-pine">01</span>
+          <span class="flex-1">
+            <span class="block text-[13.5px] font-semibold">Landing page</span>
+            <span class="block text-[12px] mt-0.5" style="color:var(--muted);">
+              Tag model, listed vs unlisted, identified participation, sign-in entry
+            </span>
+            <span class="page__file">public/index.html</span>
+          </span>
+        </a>
+      </div>
+    </section>
+
+    <!-- ------------------------------------------------------- Login area -->
+    <section>
+      <div class="flex items-center gap-2.5 mb-1">
+        <h2 class="text-[16px]">Authentication</h2>
+        <span class="badge">Entry</span>
+      </div>
+      <p class="text-[12.5px] mb-3.5" style="color:var(--muted);">
+        Passwordless email and Google OIDC · no anonymous access
+      </p>
+      <div class="space-y-2">
+        <a href="login/login.html" class="page">
+          <span class="avatar avatar--sm a-slate">02</span>
+          <span class="flex-1">
+            <span class="block text-[13.5px] font-semibold">Sign in</span>
+            <span class="block text-[12px] mt-0.5" style="color:var(--muted);">Email address or Continue with Google</span>
+            <span class="page__file">login/login.html</span>
+          </span>
+        </a>
+        <a href="login/login-verify.html" class="page">
+          <span class="avatar avatar--sm a-slate">03</span>
+          <span class="flex-1">
+            <span class="block text-[13.5px] font-semibold">Six-digit code</span>
+            <span class="block text-[12px] mt-0.5" style="color:var(--muted);">Auto-advancing entry, expiry countdown, resend</span>
+            <span class="page__file">login/login-verify.html</span>
+          </span>
+        </a>
+        <a href="login/login-register.html" class="page">
+          <span class="avatar avatar--sm a-slate">04</span>
+          <span class="flex-1">
+            <span class="block text-[13.5px] font-semibold">Identity setup</span>
+            <span class="block text-[12px] mt-0.5" style="color:var(--muted);">Required display name plus attributes imported from the provider</span>
+            <span class="page__file">login/login-register.html</span>
+          </span>
+        </a>
+      </div>
+    </section>
+
+    <!-- --------------------------------------------------- Conversation Hub -->
+    <section>
+      <div class="flex items-center gap-2.5 mb-1">
+        <h2 class="text-[16px]">Conversation Hub</h2>
+        <span class="badge badge--unlisted">Private</span>
+      </div>
+      <p class="text-[12.5px] mb-3.5" style="color:var(--muted);">
+        Directory and discovery workspace · shared app navigation
+      </p>
+      <div class="space-y-2">
+        <a href="private/hub.html" class="page">
+          <span class="avatar avatar--sm a-clay">05</span>
+          <span class="flex-1">
+            <span class="block text-[13.5px] font-semibold">Your conversations</span>
+            <span class="block text-[12px] mt-0.5" style="color:var(--muted);">Active rooms, moderation discussions, archived, identity context</span>
+            <span class="page__file">private/hub.html</span>
+          </span>
+        </a>
+        <a href="private/discover.html" class="page">
+          <span class="avatar avatar--sm a-clay">06</span>
+          <span class="flex-1">
+            <span class="block text-[13.5px] font-semibold">Discover by tag</span>
+            <span class="block text-[12px] mt-0.5" style="color:var(--muted);">Live matching, exclusive rooms, exact-match toggle, hidden-match counting</span>
+            <span class="page__file">private/discover.html</span>
+          </span>
+        </a>
+        <a href="private/create.html" class="page">
+          <span class="avatar avatar--sm a-clay">07</span>
+          <span class="flex-1">
+            <span class="block text-[13.5px] font-semibold">New conversation</span>
+            <span class="block text-[12px] mt-0.5" style="color:var(--muted);">Title, description, 1–10 validated tags, discovery mode, notes policy</span>
+            <span class="page__file">private/create.html</span>
+          </span>
+        </a>
+        <a href="private/profile.html" class="page">
+          <span class="avatar avatar--sm a-clay">08</span>
+          <span class="flex-1">
+            <span class="block text-[13.5px] font-semibold">Your identity</span>
+            <span class="block text-[12px] mt-0.5" style="color:var(--muted);">Display name, imported attributes, linked sign-in connections, standing</span>
+            <span class="page__file">private/profile.html</span>
+          </span>
+        </a>
+      </div>
+    </section>
+
+    <!-- ------------------------------------------------- Conversation Space -->
+    <section>
+      <div class="flex items-center gap-2.5 mb-1">
+        <h2 class="text-[16px]">Conversation Space</h2>
+        <span class="badge badge--unlisted">Private</span>
+      </div>
+      <p class="text-[12.5px] mb-3.5" style="color:var(--muted);">
+        Conversational workspace · area-specific navigation
+      </p>
+      <div class="space-y-2">
+        <a href="private/conversation.html" class="page">
+          <span class="avatar avatar--sm a-rust">09</span>
+          <span class="flex-1">
+            <span class="block text-[13.5px] font-semibold">A live conversation</span>
+            <span class="block text-[12px] mt-0.5" style="color:var(--muted);">Messages, reactions, bots, former members, held message, flagging, leaving</span>
+            <span class="page__file">private/conversation.html</span>
+          </span>
+        </a>
+        <a href="private/thread.html" class="page">
+          <span class="avatar avatar--sm a-rust">10</span>
+          <span class="flex-1">
+            <span class="block text-[13.5px] font-semibold">Threads</span>
+            <span class="block text-[12px] mt-0.5" style="color:var(--muted);">Switch between an active thread and one paused by an open ticket</span>
+            <span class="page__file">private/thread.html</span>
+          </span>
+        </a>
+        <a href="private/notes.html" class="page">
+          <span class="avatar avatar--sm a-rust">11</span>
+          <span class="flex-1">
+            <span class="block text-[13.5px] font-semibold">Notes</span>
+            <span class="block text-[12px] mt-0.5" style="color:var(--muted);">Context-constrained audiences with append-only visibility audit history</span>
+            <span class="page__file">private/notes.html</span>
+          </span>
+        </a>
+        <a href="private/conversation-archived.html" class="page">
+          <span class="avatar avatar--sm a-slate">12</span>
+          <span class="flex-1">
+            <span class="block text-[13.5px] font-semibold">An archived conversation</span>
+            <span class="block text-[12px] mt-0.5" style="color:var(--muted);">Retained but unreadable, unjoinable, and gone from search</span>
+            <span class="page__file">private/conversation-archived.html</span>
+          </span>
+        </a>
+      </div>
+    </section>
+
+    <!-- ------------------------------------------ Conversation Administration -->
+    <section>
+      <div class="flex items-center gap-2.5 mb-1">
+        <h2 class="text-[16px]">Conversation Administration</h2>
+        <span class="badge badge--unlisted">Private</span>
+      </div>
+      <p class="text-[12.5px] mb-3.5" style="color:var(--muted);">
+        Admin operations workspace · shared app navigation · viewed as an administrator
+      </p>
+      <div class="space-y-2">
+        <a href="private/admin.html" class="page">
+          <span class="avatar avatar--sm a-moss">13</span>
+          <span class="flex-1">
+            <span class="block text-[13.5px] font-semibold">Settings</span>
+            <span class="block text-[12px] mt-0.5" style="color:var(--muted);">Details, tag assignment history, discovery mode, owner-only locks, archival</span>
+            <span class="page__file">private/admin.html</span>
+          </span>
+        </a>
+        <a href="private/admin-members.html" class="page">
+          <span class="avatar avatar--sm a-moss">14</span>
+          <span class="flex-1">
+            <span class="block text-[13.5px] font-semibold">Members &amp; roles</span>
+            <span class="block text-[12px] mt-0.5" style="color:var(--muted);">Roles, bans, restores, posting suspensions, former members, owner invariant</span>
+            <span class="page__file">private/admin-members.html</span>
+          </span>
+        </a>
+        <a href="private/admin-emoji.html" class="page">
+          <span class="avatar avatar--sm a-moss">15</span>
+          <span class="flex-1">
+            <span class="block text-[13.5px] font-semibold">Custom emoji</span>
+            <span class="block text-[12px] mt-0.5" style="color:var(--muted);">Conversation-scoped PNG, JPEG and animated GIF reactions</span>
+            <span class="page__file">private/admin-emoji.html</span>
+          </span>
+        </a>
+      </div>
+    </section>
+
+    <!-- -------------------------------------------------- Moderation Center -->
+    <section>
+      <div class="flex items-center gap-2.5 mb-1">
+        <h2 class="text-[16px]">Moderation Center</h2>
+        <span class="badge badge--unlisted">Private · confidential</span>
+      </div>
+      <p class="text-[12.5px] mb-3.5" style="color:var(--muted);">
+        Case-management workbench · area-specific navigation
+      </p>
+      <div class="space-y-2">
+        <a href="private/moderation.html" class="page">
+          <span class="avatar avatar--sm a-plum">16</span>
+          <span class="flex-1">
+            <span class="block text-[13.5px] font-semibold">Ticket queue</span>
+            <span class="block text-[12px] mt-0.5" style="color:var(--muted);">Reported → under review → reviewed → closed, filtered by state</span>
+            <span class="page__file">private/moderation.html</span>
+          </span>
+        </a>
+        <a href="private/ticket.html" class="page">
+          <span class="avatar avatar--sm a-plum">17</span>
+          <span class="flex-1">
+            <span class="block text-[13.5px] font-semibold">A single case</span>
+            <span class="block text-[12px] mt-0.5" style="color:var(--muted);">Evidence, reporter privacy, confidential discussion, actions, terminal closure</span>
+            <span class="page__file">private/ticket.html</span>
+          </span>
+        </a>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- ------------------------------------------------------------- notes -->
+  <section class="mt-12 pt-8" style="border-top:1px solid var(--line);">
+    <div class="grid grid-cols-3 gap-7">
+
+      <div>
+        <p class="eyebrow mb-2.5">Not built, on purpose</p>
+        <p class="text-[12.5px]" style="color:var(--muted);">
+          <b style="color:var(--ink-2);">Bot Access</b> is the sixth application area, but
+          AREA_LAYOUTS.md declares it a machine-to-machine surface with no persistent
+          navigation and warns against inferring a developer console or token-management UI.
+          It has no screens here. Bots appear as ordinary participants throughout.
+        </p>
+      </div>
+
+      <div>
+        <p class="eyebrow mb-2.5">No pricing, no plans</p>
+        <p class="text-[12.5px]" style="color:var(--muted);">
+          REQUIREMENTS.md lists payments as <span class="mono">None</span> and puts paid
+          plans and tiers out of scope. There is no pricing page, no subscription screen and
+          no upgrade prompt anywhere in this mockup.
+        </p>
+      </div>
+
+      <div>
+        <p class="eyebrow mb-2.5">How to read it</p>
+        <p class="text-[12.5px]" style="color:var(--muted);">
+          You're signed in as <b style="color:var(--ink-2);">Dana Okafor</b>: owner of one
+          room, administrator of another, an ordinary member elsewhere, and suspended in one.
+          That mix is deliberate: it makes every permission boundary visible in one pass.
+        </p>
+      </div>
+
+    </div>
+  </section>
+
+  <footer class="mt-10 pt-6 flex items-center justify-between text-[12px]" style="border-top:1px solid var(--line); color:var(--faint);">
+    <span>Tawk MVP · desktop mockup · 1080px · Tailwind via CDN · no network calls</span>
+    <a href="public/index.html" class="hover:text-[var(--ink)]">Landing page →</a>
+  </footer>
+
+</div>
+
+<script src="assets/tawk.js"></script>
+</body>
+</html>
