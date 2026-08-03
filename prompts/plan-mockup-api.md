@@ -51,16 +51,15 @@ docs/schemas/
 docs/mockup/desktop/
 ```
 
-Agents may also read workflow handoffs created under `ai-docs/` by earlier phases and existing managed outputs under `docs/plans/mockup-api/` when checking or updating a prior run.
+Agents may also read existing managed outputs under `docs/plans/mockup-api/` when checking or updating a prior run. If a phase requires a file-based handoff because its result cannot be carried reliably in the agent's final response, it may read a temporary workflow handoff under `ai-docs/` created by an earlier phase. Such a file is disposable working state, not a durable planning artifact or required deliverable.
 
 Do not derive application behavior from source code, package manifests, tests, commit history, other documentation folders, external systems, or internet research. If the permitted evidence is incomplete, record an open question rather than silently importing an assumption.
 
 ## Permitted outputs
 
-Agents may write only:
+All durable workflow outputs must be written under `docs/plans/mockup-api/`. Agents may write only these durable files:
 
 ```text
-ai-docs/mockup-api-*.md
 docs/plans/mockup-api/README.md
 docs/plans/mockup-api/API-DESIGN-PRINCIPLES.md
 docs/plans/mockup-api/BUSINESS-CAPABILITIES.md
@@ -71,7 +70,16 @@ docs/plans/mockup-api/ERRORS-IDEMPOTENCY.md
 docs/plans/mockup-api/TRACEABILITY.md
 docs/plans/mockup-api/OPEN-QUESTIONS.md
 docs/plans/mockup-api/IMPLEMENTATION-SEQUENCE.md
+docs/plans/mockup-api/VALIDATION.md
 ```
+
+Phase agents must return their handoffs directly to the orchestrator in their final responses by default. If direct handoff is impractical because of context or tool limits, an agent may additionally create one temporary file matching:
+
+```text
+ai-docs/mockup-api-working-*.md
+```
+
+Temporary handoffs must use stable names, must never be linked from durable plan documents, and must be deleted after an `APPROVED` validation verdict. They may be retained only when a blocked workflow needs them for an explicit resume. Existing legacy workflow files matching `ai-docs/mockup-api-*.md` are also temporary and must be removed after successful publication.
 
 Do not create or modify any other file. Preserve unrelated files already present in either output directory.
 
@@ -84,15 +92,16 @@ You are an orchestrator, not the author of the phase deliverables.
 3. Run the phases sequentially because later work depends on earlier artifacts.
 4. Do not reuse an agent for a later phase, including correction and revalidation.
 5. Do not ask one agent to perform both authorship and independent review.
-6. Give each agent its exact role, permitted inputs, owned output files, completion criteria, and idempotency requirements.
+6. Give each agent its exact role, permitted inputs, durable output ownership, completion criteria, final-response handoff requirements, and idempotency requirements.
 7. Require every agent to inspect the primary evidence relevant to its role. Handoff documents are advisory and cannot substitute for primary-source inspection.
 8. Require every agent to exercise independent judgment. An agent must not accept a prior agent's conclusions merely because they appear in a handoff.
-9. Do not run phases in parallel.
-10. Do not collapse roles into the orchestrator if agent creation is unavailable. Stop and report that the required independent workflow could not be executed.
-11. Do not claim completion until the final validation gate passes.
-12. Do not implement, execute, or test the planned API.
+9. When a later phase needs an earlier agent's final-response handoff, include the relevant structured handoff in the new agent's task. If it cannot be transferred reliably in the task context, authorize a stable temporary `ai-docs/mockup-api-working-*.md` handoff instead.
+10. Do not run phases in parallel.
+11. Do not collapse roles into the orchestrator if agent creation is unavailable. Stop and report that the required independent workflow could not be executed.
+12. Do not claim completion until the final validation gate passes.
+13. Do not implement, execute, or test the planned API.
 
-The orchestrator may inventory files, manage the phase plan, read phase status, and decide whether a gate passed. It must not silently repair substantive deliverables itself.
+The orchestrator may inventory files, manage the phase plan, receive agent handoffs, read optional temporary handoffs, and decide whether a gate passed. It must not silently repair substantive deliverables itself.
 
 ## Shared agent rules
 
@@ -109,14 +118,14 @@ Every phase agent must follow these rules:
 - Distinguish business behavior from presentation behavior.
 - Preserve the approved durable object structures. Do not redesign the data model unless the plan explicitly records a source contradiction as an open question.
 - Keep all API contracts independent of storage and framework details.
-- Write only the files owned by the assigned phase.
-- End the handoff with `Phase status: PASS` or `Phase status: BLOCKED`, followed by a concise reason.
+- Write only the durable files owned by the assigned phase. Prefer returning analysis and review handoffs directly without creating a file.
+- End the final-response handoff, and any optional temporary copy of it, with `Phase status: PASS` or `Phase status: BLOCKED`, followed by a concise reason.
 
 ## Idempotency rules
 
 The workflow and every phase must be safely repeatable.
 
-1. Use the stable filenames defined in this prompt. Do not use timestamps in filenames or headings.
+1. Use the stable durable filenames defined in this prompt. Optional temporary handoffs must use stable `ai-docs/mockup-api-working-*.md` names. Do not use timestamps in filenames or headings.
 2. Never append a second copy of a section or finding. Reconstruct and replace the complete owned document when changes are needed.
 3. Preserve valid existing content when it remains supported, but remove stale, duplicated, or contradicted managed content.
 4. Use deterministic section ordering and stable semantic identifiers.
@@ -127,7 +136,7 @@ The workflow and every phase must be safely repeatable.
    - `Q-<semantic-slug>` for open questions.
 6. Do not renumber or rename an existing valid identifier merely because discovery order changes.
 7. If an owned file already contains the complete correct result for unchanged evidence, verify it and leave it unchanged.
-8. Do not delete or overwrite files outside the explicit managed-file list.
+8. Do not delete or overwrite files outside the explicit durable managed-file list, except for verified temporary files matching `ai-docs/mockup-api-*.md` during the successful cleanup phase.
 9. Do not include run timestamps, random identifiers, or environment-specific absolute paths in managed documents.
 10. Sort tables and inventories by a documented stable key, such as source path, semantic identifier, operation ID, or method and path.
 
@@ -215,22 +224,18 @@ The orchestrator must:
 1. Confirm that each permitted source directory exists.
 2. Inventory readable files under the three source directories.
 3. Confirm that at least one concept artifact, schema artifact, and desktop mockup artifact exists.
-4. Create `ai-docs/` and `docs/plans/mockup-api/` if necessary without deleting existing content.
+4. Create `docs/plans/mockup-api/` if necessary without deleting existing content. Create `ai-docs/` only if a later agent establishes that a temporary file-based handoff is necessary.
 5. Record the full sequential plan before spawning the first agent.
 
 If a required source category is absent or unreadable, stop. Do not manufacture a plan from incomplete source categories.
 
 ### Phase 1: Evidence inventory agent
 
-Spawn a new agent whose sole owned output is:
-
-```text
-ai-docs/mockup-api-01-source-inventory.md
-```
+Spawn a new agent with no durable file output. Its owned deliverable is a structured final-response handoff to the orchestrator. It may use `ai-docs/mockup-api-working-source-inventory.md` only as an optional temporary copy when direct handoff is impractical.
 
 The agent must independently inspect every file under `docs/concepts/` and `docs/schemas/`. It must also inventory, but need not deeply analyze, every file under `docs/mockup/desktop/`.
 
-Its handoff must contain:
+Its final-response handoff must contain:
 
 - Complete source-file inventory.
 - Concept-document purpose and authority map.
@@ -245,15 +250,11 @@ Its handoff must contain:
 
 This agent must not design routes.
 
-Gate: proceed only if the handoff reports complete concept and schema coverage and has `Phase status: PASS`.
+Gate: proceed only if the final-response handoff reports complete concept and schema coverage and has `Phase status: PASS`.
 
 ### Phase 2: UI demand and interaction agent
 
-Spawn a different new agent whose sole owned output is:
-
-```text
-ai-docs/mockup-api-02-ui-demand-map.md
-```
+Spawn a different new agent with no durable file output. Its owned deliverable is a structured final-response handoff to the orchestrator. It may use `ai-docs/mockup-api-working-ui-demand-map.md` only as an optional temporary copy when direct handoff is impractical.
 
 The agent must independently inspect every file under `docs/mockup/desktop/`, including shared assets, inline scripts, forms, links, filters, dialogs, and simulated mutations. It must consult concepts and schemas to interpret business meaning, and may consult Phase 1 only as advisory context.
 
@@ -264,7 +265,7 @@ For every page, meaningful state, and interaction, classify the item as:
 - `CLIENT_ONLY`: presentation or transient interaction state.
 - `UNRESOLVED`: product evidence is insufficient or contradictory.
 
-Its handoff must contain:
+Its final-response handoff must contain:
 
 - Complete desktop file and page inventory.
 - Page-by-page visible data requirements.
@@ -279,19 +280,28 @@ Its handoff must contain:
 
 This agent must not turn page names, controls, or event handlers directly into API operations.
 
-Gate: proceed only if every desktop page and relevant interaction is classified and the handoff has `Phase status: PASS`.
+Gate: proceed only if every desktop page and relevant interaction is classified and the final-response handoff has `Phase status: PASS`.
 
 ### Phase 3: Independent API planning agent
 
-Spawn a different new agent whose sole owned output is:
+Spawn a different new agent whose durable owned outputs are the initial candidate versions of:
 
 ```text
-ai-docs/mockup-api-03-api-plan-draft.md
+docs/plans/mockup-api/README.md
+docs/plans/mockup-api/API-DESIGN-PRINCIPLES.md
+docs/plans/mockup-api/BUSINESS-CAPABILITIES.md
+docs/plans/mockup-api/API-OPERATIONS.md
+docs/plans/mockup-api/READ-MODELS.md
+docs/plans/mockup-api/AUTHORIZATION-PRIVACY.md
+docs/plans/mockup-api/ERRORS-IDEMPOTENCY.md
+docs/plans/mockup-api/TRACEABILITY.md
+docs/plans/mockup-api/OPEN-QUESTIONS.md
+docs/plans/mockup-api/IMPLEMENTATION-SEQUENCE.md
 ```
 
 The planner must independently read the primary concept, schema, and mockup evidence. It may use Phases 1 and 2 as navigation aids, but it must verify their claims and make its own design decisions.
 
-The draft must contain:
+The candidate plan documents, taken together, must contain:
 
 - Proposed API/UI responsibility boundary.
 - Stable API naming and HTTP conventions.
@@ -308,19 +318,15 @@ The draft must contain:
 - Proposed dependency-aware implementation sequence.
 - Rejected alternatives where a generic CRUD route or page-specific endpoint would be unsafe.
 
-The planner must not write final files under `docs/plans/mockup-api/`.
+The planner's final-response handoff must summarize the candidate plan, identify every managed file written or left unchanged, describe any blocking evidence gaps, and end with the phase status. The candidate documents are durable planning artifacts subject to independent review and correction; do not create a duplicate draft in `ai-docs/`.
 
-Gate: proceed only if every non-client-only UI demand maps to an operation or open question and the handoff has `Phase status: PASS`.
+Gate: proceed only if every non-client-only UI demand maps to an operation or open question, every candidate plan document exists, and the final-response handoff has `Phase status: PASS`.
 
 ### Phase 4: Product and domain review agent
 
-Spawn a different new agent whose sole owned output is:
+Spawn a different new agent with no durable file output. Its owned deliverable is an independent structured review returned directly to the orchestrator. It may use `ai-docs/mockup-api-working-domain-review.md` only as an optional temporary copy when direct handoff is impractical.
 
-```text
-ai-docs/mockup-api-04-domain-review.md
-```
-
-The reviewer must independently inspect the concepts and schemas, then review the Phase 3 draft. It must not assume the draft or earlier handoffs are correct.
+The reviewer must independently inspect the concepts and schemas, then review the Phase 3 candidate documents under `docs/plans/mockup-api/`. It must not assume the candidate plan or earlier handoffs are correct.
 
 Review for:
 
@@ -336,19 +342,15 @@ Review for:
 - Traceability gaps or weak evidence.
 - Terminology inconsistent with authoritative sources.
 
-Classify each finding as `BLOCKER`, `MAJOR`, `MINOR`, or `NOTE`. Give evidence and a proposed direction, but do not rewrite the plan. Explicitly state areas reviewed with no finding.
+Classify each finding as `BLOCKER`, `MAJOR`, `MINOR`, or `NOTE`. Assign each finding a stable semantic identifier. Give evidence and a proposed direction, but do not rewrite the plan. Explicitly state areas reviewed with no finding.
 
 Gate: this is a review phase; proceed after the report is complete even if it contains blockers. Require a conclusive `Phase status: PASS` for a completed review or `Phase status: BLOCKED` only when the review itself could not be completed.
 
 ### Phase 5: API boundary and contract review agent
 
-Spawn a different new agent whose sole owned output is:
+Spawn a different new agent with no durable file output. Its owned deliverable is an independent structured review returned directly to the orchestrator. It may use `ai-docs/mockup-api-working-api-contract-review.md` only as an optional temporary copy when direct handoff is impractical.
 
-```text
-ai-docs/mockup-api-05-api-contract-review.md
-```
-
-The reviewer must independently inspect relevant primary evidence and then review the Phase 3 draft and Phase 4 findings. It must make its own decisions rather than merely agreeing with the domain reviewer.
+The reviewer must independently inspect relevant primary evidence and then review the Phase 3 candidate documents and the Phase 4 final-response findings. It must make its own decisions rather than merely agreeing with the domain reviewer.
 
 Review for:
 
@@ -367,16 +369,15 @@ Review for:
 - Duplicated operations with the same business meaning.
 - UI demands without traceability.
 
-Classify each finding as `BLOCKER`, `MAJOR`, `MINOR`, or `NOTE`. Give a rationale and proposed direction without editing the draft. Explicitly state areas reviewed with no finding.
+Classify each finding as `BLOCKER`, `MAJOR`, `MINOR`, or `NOTE`. Assign each finding a stable semantic identifier. Give a rationale and proposed direction without editing the candidate documents. Explicitly state areas reviewed with no finding.
 
-Gate: proceed after the review is complete. Use `Phase status: BLOCKED` only if the review could not be performed, not merely because the draft has defects.
+Gate: proceed after the review is complete. Use `Phase status: BLOCKED` only if the review could not be performed, not merely because the candidate plan has defects.
 
 ### Phase 6: Corrective publisher agent
 
 Spawn a different new agent. Its owned outputs are:
 
 ```text
-ai-docs/mockup-api-06-publisher-handoff.md
 docs/plans/mockup-api/README.md
 docs/plans/mockup-api/API-DESIGN-PRINCIPLES.md
 docs/plans/mockup-api/BUSINESS-CAPABILITIES.md
@@ -389,9 +390,9 @@ docs/plans/mockup-api/OPEN-QUESTIONS.md
 docs/plans/mockup-api/IMPLEMENTATION-SEQUENCE.md
 ```
 
-The publisher must independently inspect the primary evidence. It must treat the draft and both reviews as input to evaluate, not instructions to apply mechanically. It is responsible for resolving supported defects and rejecting review suggestions that conflict with evidence.
+The publisher must independently inspect the primary evidence. It must treat the candidate documents and both final-response reviews as input to evaluate, not instructions to apply mechanically. It is responsible for resolving supported defects and rejecting review suggestions that conflict with evidence.
 
-The handoff must include a disposition table for every `BLOCKER`, `MAJOR`, and `MINOR` finding from both reviews:
+The publisher's final-response handoff must include a disposition table for every `BLOCKER`, `MAJOR`, and `MINOR` finding from both reviews:
 
 ```text
 Finding ID | Accepted/Partially accepted/Rejected | Evidence | Resulting change
@@ -399,17 +400,17 @@ Finding ID | Accepted/Partially accepted/Rejected | Evidence | Resulting change
 
 The published documents must satisfy the final-document requirements below. Rebuild managed documents deterministically. Do not copy review commentary into final documents unless it represents an enduring decision, constraint, or open question.
 
-Gate: proceed only if all final documents exist, every substantive review finding has a disposition, and the handoff has `Phase status: PASS`.
+Gate: proceed only if all final documents exist, every substantive review finding has a disposition, and the final-response handoff has `Phase status: PASS`.
 
 ### Phase 7: Final validation agent
 
-Spawn a different new agent whose sole owned output is:
+Spawn a different new agent whose sole durable owned output is:
 
 ```text
-ai-docs/mockup-api-07-final-validation.md
+docs/plans/mockup-api/VALIDATION.md
 ```
 
-The validator must independently inspect all permitted primary evidence and every final document. It must not accept the publisher's claims without verification.
+The validator must independently inspect all permitted primary evidence and every final plan document other than the validation report it is about to replace. It must not accept the publisher's claims without verification.
 
 Validate:
 
@@ -430,7 +431,7 @@ Validate:
 - Final documents contain no timestamps, absolute paths, duplicate sections, stale draft commentary, or application implementation choices unsupported by evidence.
 - A second run would converge on the same managed content when evidence is unchanged.
 
-The report must contain:
+`VALIDATION.md` must contain:
 
 - A check-by-check `PASS` or `FAIL` matrix.
 - Findings classified as `BLOCKER`, `MAJOR`, `MINOR`, or `NOTE`.
@@ -439,30 +440,31 @@ The report must contain:
 - A final verdict of `APPROVED` or `CORRECTION_REQUIRED`.
 - `Phase status: PASS` only when the validation work itself completed; the verdict separately determines whether publication passed.
 
+The validator's final response must summarize the verdict and findings and point to `docs/plans/mockup-api/VALIDATION.md`. Do not create a validation copy in `ai-docs/`.
+
 ### Phase 8: Bounded correction loop
 
 If the Phase 7 verdict is `CORRECTION_REQUIRED`, run a bounded correction loop with fresh agents.
 
 For correction attempt `N`, where `N` is 1 through 3:
 
-1. Spawn a new correction agent that independently checks the primary evidence, evaluates the latest validation findings, edits only the managed final documents, and writes:
-
-   ```text
-   ai-docs/mockup-api-08-correction-attempt-N.md
-   ```
-
-2. Require a disposition for every validation `BLOCKER`, `MAJOR`, and `MINOR` finding. The agent may reject a finding only with primary-source evidence.
-3. Spawn another new validation agent that performs the complete Phase 7 validation again and writes:
-
-   ```text
-   ai-docs/mockup-api-09-validation-attempt-N.md
-   ```
-
-4. Stop the loop immediately when the verdict is `APPROVED`.
+1. Spawn a new correction agent that independently checks the primary evidence, evaluates the latest `docs/plans/mockup-api/VALIDATION.md` findings, and edits only the managed final plan documents other than `VALIDATION.md`.
+2. Require the correction agent's final response to disposition every validation `BLOCKER`, `MAJOR`, and `MINOR` finding. The agent may reject a finding only with primary-source evidence. Do not require or create a durable correction report.
+3. Spawn another new validation agent that performs the complete Phase 7 validation again and deterministically replaces `docs/plans/mockup-api/VALIDATION.md` with the latest complete report.
+4. Require the validation agent's final response to summarize its verdict and point to the durable report.
+5. Stop the loop immediately when the verdict is `APPROVED`.
 
 Never reuse the publisher, prior corrector, or prior validator. Do not allow a correction agent to validate its own changes.
 
-If the third revalidation still returns `CORRECTION_REQUIRED`, stop with a blocked outcome. Preserve the documents and reports, but do not claim that the API plan is approved.
+If the third revalidation still returns `CORRECTION_REQUIRED`, stop with a blocked outcome. Preserve the durable plan and latest `VALIDATION.md`, but do not claim that the API plan is approved.
+
+### Phase 9: Temporary handoff cleanup
+
+Run this phase only after the latest durable `VALIDATION.md` has an `APPROVED` verdict.
+
+The orchestrator must enumerate regular files directly under `ai-docs/` whose basenames match `mockup-api-*.md`. Verify every candidate is inside `ai-docs/` and matches that exact workflow-owned prefix before removing it. Do not recurse, follow links, or remove any other file. This cleanup includes optional `mockup-api-working-*.md` files and legacy handoffs from earlier versions of this workflow.
+
+If deletion of a verified workflow-owned temporary file fails, stop and report the cleanup failure rather than retrying with a broader or stronger deletion operation. A successful run must leave no `ai-docs/mockup-api-*.md` files.
 
 ## Final-document requirements
 
@@ -597,6 +599,18 @@ Include:
 
 Keep the sequence implementation-neutral. Do not prescribe a framework, database, repository layout, deployment system, or internal class architecture.
 
+### `VALIDATION.md`
+
+Include only the latest complete independent validation result:
+
+- Evidence and file-coverage summary.
+- Check-by-check final validation gate matrix.
+- Findings with severity, evidence, and affected durable document sections.
+- Final verdict of `APPROVED` or `CORRECTION_REQUIRED`.
+- Phase status indicating whether validation itself completed.
+
+This is the sole durable source of approval status. Each revalidation replaces the complete document rather than appending attempt history.
+
 ## Final validation gates
 
 The final verdict may be `APPROVED` only when all gates pass:
@@ -622,6 +636,7 @@ After an `APPROVED` validation verdict, respond with a concise completion summar
 - The list of final documents created or updated.
 - Counts of capabilities, operations, read models, client-only interactions, and open questions.
 - Any non-blocking questions that remain.
+- Confirmation that temporary `ai-docs/mockup-api-*.md` handoffs were removed.
 - Confirmation that no API implementation or testing was performed.
 
 If the workflow stops as blocked, state the exact phase, blocking condition, completed artifacts, and what is required to resume. Do not describe an unapproved plan as complete.
